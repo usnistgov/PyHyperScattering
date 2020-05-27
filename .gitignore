@@ -4,4 +4,4 @@ example_data/CCD
 *.hdf
 *.DS_Store
 *.fits
-
+*.zip
