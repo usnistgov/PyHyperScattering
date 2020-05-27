@@ -1,0 +1,123 @@
+from FileLoader import FileLoader
+from astropy.io import fits
+import os
+import xarray as xr
+import pandas as pd
+import warnings
+
+class ALS11012RSoXSLoader(FileLoader):
+    #Loader for FITS files from the ALS 11.0.1.2 RSoXS instrument
+    file_ext = '.fits'
+    md_loading_is_quick = True
+    
+    
+    def __init__(self,corr_mode=None,user_corr_func=None,dark_pedestal=0,exposure_offset=0.002):
+        #Params:
+        #
+        # corr_mode = origin to use for the intensity correction.  Can be 'expt','i0','expt+i0','user_func','old',or 'none'
+        # user_corr_func = a callable that takes the header dictionary and returns the value of the correction.
+        # dark_pedestal = value to add to the whole image before doing dark subtraction, to avoid non-negative values.
+        # exposure_offset = value to add to the exposure time.  Measured at 2ms with the piezo shutter in Dec 2019 by Jacob Thelen, NIST
+        #
+        
+        if corr_mode == None:
+            warnings.warn("Correction mode was not set, not performing *any* intensity corrections.  Are you sure this is "+ 
+                          "right? Set corr_mode to 'none' to suppress this warning.")
+            self.corr_mode = 'none'
+        else:
+            self.corr_mode = corr_mode
+        self.dark_pedestal = dark_pedestal
+        self.user_corr_func = user_corr_func
+        self.exposure_offset = exposure_offset
+        self.darks = {}
+    
+    def loadDarks(self,basepath,dark_base_name):
+    #returns a dictionary of  dark images, sorted by exposure time.  
+        for file in os.listdir(basepath):
+            if dark_base_name in file:
+                darkimage = fits.open(basepath+file)
+                assert darkimage[0].header['CCD Shutter Inhibit']==1,"CCD Shutter was not inhibited for image "+file+"... probably not a dark."
+
+                exptime = round(darkimage[0].header['EXPOSURE'],2)
+
+                self.darks[exptime] = darkimage[2].data
+
+                
+    def loadSampleSpecificDarks(self,basepath,samplenumber,filter="",skip='donotskip'):
+        #load darks matching a specific sample number
+        for file in os.listdir(basepath):
+            if ".fits" in file and filter in file and skip not in file:
+                darkimage = fits.open(basepath+file)
+                headerdict =  dict(zip(darkimage[0].header.keys(),darkimage[0].header.values()))
+                if(headerdict['Sample Number'] == samplenumber and headerdict['CCD Shutter Inhibit'] == 1):
+                    print(f'Loading dark for {headerdict["EXPOSURE"]} from {file}')
+                    exptime = round(darkimage[0].header['EXPOSURE'],4)
+                    self.darks[exptime] = darkimage[2].data
+
+
+    def loadSingleImage(self,filepath,coords=None):
+        input_image = fits.open(filepath)
+        headerdict =  self.normalizeMetadata(dict(zip(input_image[0].header.keys(),input_image[0].header.values())))
+        img = input_image[2].data
+        # two steps in this pre-processing stage: 
+        #     (1) get and apply the right scalar correction term to the image
+        #     (2) find and subtract the right dark
+        if coords != None:
+            headerdict.update(coords)
+        
+        #step 1: correction term
+        
+        if self.corr_mode == 'expt':
+            corr = headerdict['exposure'] #(headerdict['AI 3 Izero']*expt)
+        elif self.corr_mode == 'i0':
+            corr = headerdict['AI 3 Izero']
+        elif self.corr_mode == 'expt+i0':
+            corr = headerdict['exposure'] * headerdict['AI 3 Izero']
+        elif self.corr_mode == 'user_func':
+            corr = self.user_corr_func(headerdict)
+        elif self.corr_mode == 'old':
+            corr = headerdict['AI 6 BeamStop'] * 2.4e10/ headerdict['Beamline Energy'] / headerdict['AI 3 Izero']  
+            #this term is a mess...  @TODO check where it comes from	
+        else:
+            corr = 1
+            
+        if(corr<0):
+            warnings.warn(f'Correction value is negative: {corr} with headers {headerdict}.')
+            corr = abs(corr)
+
+        
+        # step 2: dark subtraction
+        try:
+            darkimg = self.darks[headerdict['EXPOSURE']]
+        except KeyError:
+            warnings.warn(f"Could not find a dark image with exposure time {headerdict['EXPOSURE']}.  Using zeros.")
+            darkimg = np.zeros_like(img)
+
+        img = (img-darkimg+self.dark_pedestal)/corr
+        
+        # now, match up the dims and coords
+        return xr.DataArray(img,dims=['pix_x','pix_y'],attrs=headerdict)
+        
+    def peekAtMd(self,file):
+        input_image = fits.open(file)
+        headerdict =  self.normalizeMetadata(dict(zip(input_image[0].header.keys(),input_image[0].header.values())))
+        return headerdict
+    
+    
+    def normalizeMetadata(self,headerdict):
+        #return a metadata dict using standard terminology from the instrument-raw version
+        headerdict['EXPOSURE'] = round(headerdict['EXPOSURE'],4)
+        headerdict['exposure'] = headerdict['EXPOSURE']+self.exposure_offset
+        headerdict['energy'] = round(headerdict['Beamline Energy'],2)
+        headerdict['polarization'] = round(headerdict['EPU Polarization'],0)
+        headerdict['sam_x'] = headerdict['Sample X']
+        headerdict['sam_y'] = headerdict['Sample Y']
+        headerdict['sam_z'] = headerdict['Sample Z']
+        headerdict['sam_th'] = headerdict['Sample Theta']
+        headerdict['sampleid'] = headerdict['Sample Number']
+        headerdict['wavelength'] = 1.239842e-6 / headerdict['energy']
+        headerdict['det_x'] = round(headerdict['CCD X'],2)
+        headerdict['det_y'] = round(headerdict['CCD Y'],2)
+        headerdict['det_th'] = round(headerdict['CCD Theta'],2)
+        return headerdict
+        
