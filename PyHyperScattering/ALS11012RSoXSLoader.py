@@ -43,8 +43,8 @@ class ALS11012RSoXSLoader(FileLoader):
                 self.darks[exptime] = darkimage[2].data
 
                 
-    def loadSampleSpecificDarks(self,basepath,samplenumber,file_filter='',file_skip='donotskip',md_filter={}):
-        #load darks matching a specific sample number
+    def loadSampleSpecificDarks(self,basepath,file_filter='',file_skip='donotskip',md_filter={}):
+        #load darks matching a specific sample metadata
         md_filter.update({'CCD Shutter Inhibit':1})
         
         for file in os.listdir(basepath):
@@ -54,7 +54,9 @@ class ALS11012RSoXSLoader(FileLoader):
                     md = self.peekAtMd(basepath+file)
                     img = None
                 else:
-                    img,md = self.loadSingleImage(basepath+file,coords=local_coords)
+                        input_image = fits.open(basepath+file)
+                        md = self.normalizeMetadata(dict(zip(input_image[0].header.keys(),input_image[0].header.values())))
+                        img = input_image[2].data
                 load_this_image = True
                 for key,val in md_filter.items():
                     if md[key] != md_filter[key]:
@@ -62,8 +64,9 @@ class ALS11012RSoXSLoader(FileLoader):
                         #print(f'Not loading {file}, expected {key} to be {val} but it was {md[key]}')
                 if load_this_image:
                     if img == None:
-                        img,md = self.loadSingleImage(basepath+file,coords=local_coords)
-                    print(f'Loading dark for {headerdict["EXPOSURE"]} from {file}')
+                        input_image = fits.open(basepath+file)
+                        img = input_image[2].data
+                    print(f'Loading dark for {md["EXPOSURE"]} from {file}')
                     exptime = md['EXPOSURE']
                     self.darks[exptime] = img
     def loadSingleImage(self,filepath,coords=None):
