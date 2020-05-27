@@ -43,18 +43,29 @@ class ALS11012RSoXSLoader(FileLoader):
                 self.darks[exptime] = darkimage[2].data
 
                 
-    def loadSampleSpecificDarks(self,basepath,samplenumber,filter="",skip='donotskip'):
+    def loadSampleSpecificDarks(self,basepath,samplenumber,file_filter='',file_skip='donotskip',md_filter={}):
         #load darks matching a specific sample number
+        md_filter.update({'CCD Shutter Inhibit':1})
+        
         for file in os.listdir(basepath):
-            if ".fits" in file and filter in file and skip not in file:
-                darkimage = fits.open(basepath+file)
-                headerdict =  dict(zip(darkimage[0].header.keys(),darkimage[0].header.values()))
-                if(headerdict['Sample Number'] == samplenumber and headerdict['CCD Shutter Inhibit'] == 1):
+            if self.file_ext in file and file_filter in file and file_skip not in file:
+                if self.md_loading_is_quick:
+                    #if metadata loading is quick, we can just peek at the metadata and decide what to do
+                    md = self.peekAtMd(basepath+file)
+                    img = None
+                else:
+                    img,md = self.loadSingleImage(basepath+file,coords=local_coords)
+                load_this_image = True
+                for key,val in md_filter.items():
+                    if md[key] != md_filter[key]:
+                        load_this_image = False
+                        #print(f'Not loading {file}, expected {key} to be {val} but it was {md[key]}')
+                if load_this_image:
+                    if img == None:
+                        img,md = self.loadSingleImage(basepath+file,coords=local_coords)
                     print(f'Loading dark for {headerdict["EXPOSURE"]} from {file}')
-                    exptime = round(darkimage[0].header['EXPOSURE'],4)
-                    self.darks[exptime] = darkimage[2].data
-
-
+                    exptime = md['EXPOSURE']
+                    self.darks[exptime] = img
     def loadSingleImage(self,filepath,coords=None):
         input_image = fits.open(filepath)
         headerdict =  self.normalizeMetadata(dict(zip(input_image[0].header.keys(),input_image[0].header.values())))
