@@ -5,3 +5,5 @@ example_data/CCD
 *.DS_Store
 *.fits
 *.zip
+peter-dafs/*
+
