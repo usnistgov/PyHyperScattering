@@ -7,7 +7,7 @@ import warnings
 
 class ALS11012RSoXSLoader(FileLoader):
     #Loader for FITS files from the ALS 11.0.1.2 RSoXS instrument
-    file_ext = '.fits'
+    file_ext = '(.*?).fits'
     md_loading_is_quick = True
     
     

@@ -1,6 +1,7 @@
 import xarray as xr
 import pandas as pd
 import os
+import re
 from collections import defaultdict
 
 class FileLoader():
@@ -35,7 +36,7 @@ class FileLoader():
         for file in os.listdir(basepath):
             nprocessed += 1
             local_coords = {}
-            if self.file_ext in file and file_filter in file and file_skip not in file:
+            if (re.match(self.file_ext,file) is not None) and file_filter in file and file_skip not in file:
                 for key,value in coords.items():
                     local_coords[key] = value[file] 
                 if self.md_loading_is_quick:

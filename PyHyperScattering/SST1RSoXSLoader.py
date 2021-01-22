@@ -11,7 +11,7 @@ import numpy as np
 
 class SST1RSoXSLoader(FileLoader):
     #Loader for TIFF files form NSLS-II SST1 RSoXS instrument
-    file_ext = '.tiff'
+    file_ext = '(.*?)primary(.*?).tiff'
     md_loading_is_quick = True
     pix_size_1 = 0.06 
     pix_size_2 = 0.06
