@@ -65,8 +65,9 @@ class PFEnergySeriesIntegrator(PFGeneralIntegrator):
                  NIpixsizex = 0.027, NIpixsizey = 0.027,
                  template_xr = None,
                  integration_method='csr_ocl',
+                 correctSolidAngle=True,
                  npts = 500):
-        
+        #@todo: how much of this can be in a super.init call?
         self.integrator_stack = {}
         
         if(maskmethod == "nika"):

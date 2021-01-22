@@ -24,7 +24,7 @@ class PFGeneralIntegrator():
         TwoD = self.integrator.integrate2d(img_to_integ,
                                                self.npts,
                                                filename=None,
-                                               correctSolidAngle=True,
+                                               #correctSolidAngle=self.correctSolidAngle, this doesn't work and I don't know why
                                                error_model="azimuthal",
                                                mask=self.mask,
                                                unit='q_A^-1',
@@ -48,13 +48,14 @@ class PFGeneralIntegrator():
                  NIpixsizex = 0.027, NIpixsizey = 0.027,
                  energy = 2000,
                  integration_method='csr_ocl',
+                 correctSolidAngle=True,
                  npts = 500):
         #energy units eV
         if(maskmethod == "nika"):
             self.loadNikaMask(maskpath)
         elif(maskmethod == "none"):
             self.mask = None
-
+        self.correctSolidAngle = correctSolidAngle
         self.integration_method = integration_method
         self.wavelength = 1.239842e-6/energy
         self.npts = npts
