@@ -4,10 +4,12 @@ import os
 import pathlib
 import xarray as xr
 import pandas as pd
+import datetime
 import warnings
 import json
 #from pyFAI import azimuthalIntegrator
 import numpy as np
+
 
 class SST1RSoXSLoader(FileLoader):
     #Loader for TIFF files form NSLS-II SST1 RSoXS instrument
@@ -104,18 +106,33 @@ class SST1RSoXSLoader(FileLoader):
         json_dict = {}
         with open(jsonfile) as f:
             data = json.load(f)
+            meas_time =datetime.datetime.fromtimestamp(data[1]['time'])
         if data[1]['RSoXS_Config'] == 'SAXS':
             json_dict['rsoxs_config'] = 'saxs'
             # discrepency between what is in .json and actual
-            json_dict['beamcenter_x'] = 367#data[1]['RSoXS_SAXS_BCX']
-            json_dict['beamcenter_y'] = 479 #data[1]['RSoXS_SAXS_BCY']
-            json_dict['sdd'] = data[1]['RSoXS_SAXS_SDD']
+            if (meas_time > datetime.datetime(2020,12,1)) and (meas_time < datetime.datetime(2021,1,15)):
+                json_dict['beamcenter_x'] = 489.86
+                json_dict['beamcenter_y'] = 490.75
+                json_dict['sdd'] = 521.8               
+            elif (meas_time > datetime.datetime(2020,11,16)) and (meas_time < datetime.datetime(2020,12,1)):
+                json_dict['beamcenter_x'] = 371.52
+                json_dict['beamcenter_y'] = 491.17
+                json_dict['sdd'] = 512.12
+            else:
+                json_dict['beamcenter_x'] = data[1]['RSoXS_SAXS_BCX'] 
+                json_dict['beamcenter_y'] = data[1]['RSoXS_SAXS_BCY'] 
+                json_dict['sdd'] = data[1]['RSoXS_SAXS_SDD']
 
         elif data[1]['RSoXS_Config'] == 'WAXS':
             json_dict['rsoxs_config'] = 'waxs'
-            json_dict['beamcenter_x'] = 399 #data[1]['RSoXS_WAXS_BCX']
-            json_dict['beamcenter_y'] = 526 #data[1]['RSoXS_WAXS_BCY']
-            json_dict['sdd'] = data[1]['RSoXS_WAXS_SDD']
+            if (meas_time > datetime.datetime(2020,11,16)) and (meas_time < datetime.datetime(2021,1,15)):
+                json_dict['beamcenter_x'] = 400.46
+                json_dict['beamcenter_y'] = 530.99
+                json_dict['sdd'] = 38.745
+            else:
+                json_dict['beamcenter_x'] = data[1]['RSoXS_WAXS_BCX'] # 399 #
+                json_dict['beamcenter_y'] = data[1]['RSoXS_WAXS_BCY'] # 526
+                json_dict['sdd'] = data[1]['RSoXS_WAXS_SDD']
 
         else:
             json_dict['rsoxs_config'] == 'unknown'
