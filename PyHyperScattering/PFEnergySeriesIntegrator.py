@@ -32,6 +32,9 @@ class PFEnergySeriesIntegrator(PFGeneralIntegrator):
             return res
     def integrateImageStack(self,img_stack):
         
+        if img_stack.system.to_pandas().drop_duplicates().shape[0] != img_stack.system.shape[0]:
+            warnings.warn('Your system contains duplicate conditions.  This is not supported and may not work.  Try adding additional coords to separate image conditions')
+        
         # get just the energies of the image stack
         energies = img_stack.energy.to_dataframe()
         

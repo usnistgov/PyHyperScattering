@@ -10,9 +10,17 @@ class PFGeneralIntegrator():
     def integrateSingleImage(self,img):
         if(img.ndim>2):
             img_to_integ = img[0]
+            img_to_integ = img[0].values
         else:
             img_to_integ = img
 
+            img_to_integ = img.values
+            
+        if(img.system.shape[0]>1):
+            system_to_integ = [img[0].system]
+            warnings.warn(f'There are two images for {img.system}, I am ONLY INTEGRATING THE FIRST.  This may cause the labels to be dropped and the result to need manual re-tagging in the index.')
+        else:
+            system_to_integ = img.system
         TwoD = self.integrator.integrate2d(img_to_integ,
                                                self.npts,
                                                filename=None,
@@ -25,6 +33,7 @@ class PFGeneralIntegrator():
 
         try:
             return xr.DataArray([TwoD.intensity],dims=['system','chi','q'],coords={'q':TwoD.radial,'chi':TwoD.azimuthal,'system':img.system},attrs=img.attrs)
+            return xr.DataArray([TwoD.intensity],dims=['system','chi','q'],coords={'q':TwoD.radial,'chi':TwoD.azimuthal,'system':system_to_integ},attrs=img.attrs)
         except AttributeError:
             return xr.DataArray(TwoD.intensity,dims=['chi','q'],coords={'q':TwoD.radial,'chi':TwoD.azimuthal},attrs=img.attrs)
 
