@@ -53,7 +53,7 @@ class PFEnergySeriesIntegrator(PFGeneralIntegrator):
         # + 
         # restack the reduced data
 
-        return img_stack.groupby('system').map(self.integrateSingleImage)
+        return img_stack.groupby('system',squeeze=False).map(self.integrateSingleImage)
     
     def createIntegrator(self,en):
         self.integrator_stack[en] = azimuthalIntegrator.AzimuthalIntegrator(
