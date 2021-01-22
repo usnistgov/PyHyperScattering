@@ -97,7 +97,7 @@ class SST1RSoXSLoader(FileLoader):
         #qy = (np.arange(1,img.size[1]+1)-headerdict['beamcenter_y'])*qpx
         ## now, match up the dims and coords
         #return xr.DataArray(img,dims=['qy','qx'],coords={'qy':qy,'qx':qx},attrs=headerdict)
-        print(f"Debug: {filepath} img seq is {headerdict['seq_num']}")
+        #print(f"Debug: {filepath} img seq is {headerdict['seq_num']}")
         return xr.DataArray(img,dims=['pix_x','pix_y'],attrs=headerdict)
 
     def read_json(self,jsonfile):
