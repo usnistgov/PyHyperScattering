@@ -2,6 +2,7 @@
 *.ipynb_checkpoints
 example_data/CCD
 example_data/SST1
+peter-dafs/*
 *.hdf
 *.DS_Store
 *.fits
