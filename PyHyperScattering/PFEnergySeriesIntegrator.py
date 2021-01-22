@@ -43,7 +43,7 @@ class PFEnergySeriesIntegrator(PFGeneralIntegrator):
         #create an integrator for each energy
         for en in energies:
             self.createIntegrator(en)
-            
+        self.createIntegrator(np.median(energies))
         # find the output q for the midpoint and set the final q binning
         self.dest_q = self.integrator_stack[np.median(energies)].integrate2d(np.zeros_like(self.mask).astype(int), self.npts, 
                                                unit='q_A^-1',
