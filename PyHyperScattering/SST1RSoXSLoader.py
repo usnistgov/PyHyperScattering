@@ -49,21 +49,6 @@ class SST1RSoXSLoader(FileLoader):
     #         out = xr.concat(out,single_img)
     #
     #     return out
-    def integrate_image(self, xr_img,npts=500,integration_method='csr_ocl'):
-        self.integrator = azimuthalIntegrator.AzimuthalIntegrator(dist=xr_img.sdd/1000,
-                                                poni1=xr_img.beamcenter_y*.06/1000,
-                                                poni2=xr_img.beamcenter_x*.06/1000,
-                                                pixel1=.06/1000,
-                                                pixel2=.06/1000,
-                                                wavelength=xr_img.wavelength)
-        TwoD = self.integrator.integrate2d(xr_img.values,npts,
-                                correctSolidAngle=True,
-                                error_model='azimuthal',
-                                unit='q_A^-1',
-                                method=integration_method)
-
-        return xr.DataArray(TwoD.intensity,dims=['chi','q'],coords={'q':TwoD.radial,'chi':TwoD.azimuthal},attrs=xr_img.attrs)
-
 
 
     
