@@ -105,6 +105,25 @@ class PFGeneralIntegrator():
         self.pixel1 = pixsizey/1e3
         self.pixel2 = pixsizex/1e3
         self.recreateIntegrator()
+        
+    def calibrationFromTemplateXRParams(self,raw_xr):
+        #Return a calibration array [dist,poni1,poni2,rot1,rot2,rot3] from a Nika detector geometry
+        # if you change the CCD binning, pixsizexy params need to be given.  Default is for 4x4 binning which results in effective size of 27 um.
+        #this will probably only support rotations in the SAXS limit (i.e., where sin(x) ~ x, i.e., a couple degrees)
+        # since it assumes the PyFAI and Nika rotations are about the same origin point (which I think isn't true).
+
+        self.dist = raw_xr.dist
+        self.poni1 = raw_xr.poni1#pyFAI uses the same 0,0 definition, so just pixel to m.  y = poni1, x = poni2
+        self.poni2 = raw_xr.poni2#
+
+        self.rot1 = raw_xr.rot1
+        self.rot2 = raw_xr.rot2
+        self.rot3 = raw_xr.rot3
+
+        self.pixel1 = raw_xr.pixel1
+        self.pixel2 = raw_xr.pixel2
+        
+        self.recreateIntegrator()
     def recreateIntegrator(self):
         #loads an image file, spins up a pyFAI integrator with the right params, and integrates it.
 

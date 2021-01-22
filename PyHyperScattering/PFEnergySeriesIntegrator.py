@@ -63,6 +63,7 @@ class PFEnergySeriesIntegrator(PFGeneralIntegrator):
                  geomethod = "none",
                  NIdistance=0, NIbcx=0, NIbcy=0, NItiltx=0, NItilty=0,
                  NIpixsizex = 0.027, NIpixsizey = 0.027,
+                 template_xr = None,
                  integration_method='csr_ocl',
                  npts = 500):
         
@@ -79,6 +80,8 @@ class PFEnergySeriesIntegrator(PFGeneralIntegrator):
         
         if geomethod == "nika":
             self.calibrationFromNikaParams(NIdistance, NIbcx, NIbcy, NItiltx, NItilty,pixsizex = NIpixsizex, pixsizey = NIpixsizey)
+        if geomethod == 'template_xr':
+            self.calibrationFromTemplateXRParams(template_xr)
         elif geomethod == "none":
             self.dist = 0.1
             self.poni1 = 0
