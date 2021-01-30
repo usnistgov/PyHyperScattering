@@ -10,7 +10,7 @@ before_install:
   - pip install codecov
   - pip install flake8
   - pip install -r requirements.txt
-  - wget https://nextcloud.peterbeaucage.com/index.php/s/BeAaccExHgLPjWw
+  - wget https://nextcloud.peterbeaucage.com/index.php/s/BeAaccExHgLPjWw/download
   - unzip Example.zip
 #install:
 #  - pip install ".[test]" . # install package + test dependencies
