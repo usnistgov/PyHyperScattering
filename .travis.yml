@@ -8,7 +8,7 @@ jobs:
            - python --version
            - pip install -U pip
            - pip install flake8
-      script: flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics  # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+      script: flake8 . --count --max-complexity=10 --max-line-length=127 --statistics  # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
     - stage: test
       python:
         - 3.8
@@ -18,7 +18,9 @@ jobs:
         - pip install -U pytest
         - pip install codecov
         - pip install -r requirements.txt
-        - wget https://github.com/usnistgov/PyHyperScattering/releases/download/0.0.0-example-data/Example.zip
+# noble goal, but private repo's can't be directly downloaded so        - wget https://github.com/usnistgov/PyHyperScattering/releases/download/0.0.0-example-data/Example.zip
+        - wget https://nextcloud.peterbeaucage.com/index.php/s/F2n24Y7dQSQcnSQ/download
+        - mv download Example.zip
         - unzip Example.zip
       script: pytest
       after_success:
