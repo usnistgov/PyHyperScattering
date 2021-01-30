@@ -1,7 +1,6 @@
 astropy
 fabio
 h5py
-hdf5
 nodejs
 numpy
 pandas
