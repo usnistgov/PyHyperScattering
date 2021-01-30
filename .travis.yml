@@ -3,21 +3,30 @@ python:
   - 3.6
   - 3.7
   - 3.8
-before_install:
-  - python --version
-  - pip install -U pip
-  - pip install -U pytest
-  - pip install codecov
-  - pip install flake8
-  - pip install -r requirements.txt
+jobs:
+  include:
+    -name: "lint"
+
+      before_install:
+        - python --version
+        - pip install -U pip
+        - pip install -U pytest
+        - pip install codecov
+        - pip install flake8
+      script: flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics  # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+      after_success: 
+        -codecov
+    -name: "test"
+      before_install:
+        - python --version
+        - pip install -U pip
+        - pip install -U pytest
+        - pip install codecov
+        - pip install flake8
+        - pip install -r requirements.txt
+      script: flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics  # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+      after_success: 
+        -codecov   
 #install:
 #  - pip install ".[test]" . # install package + test dependencies
 #script:  flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics       # stop the build if there are Python syntax errors or undefined names
-jobs:
-  include:
-    - stage: lint
-      script:  flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics  # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-    - stage: test
-      script: pytest # run tests
-after_success:
-  - codecov # submit coverage
