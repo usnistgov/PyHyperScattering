@@ -32,6 +32,9 @@ class PFEnergySeriesIntegrator(PFGeneralIntegrator):
             return res
     def integrateImageStack(self,img_stack):
         
+        if img_stack.system.to_pandas().drop_duplicates().shape[0] != img_stack.system.shape[0]:
+            warnings.warn('Your system contains duplicate conditions.  This is not supported and may not work.  Try adding additional coords to separate image conditions')
+        
         # get just the energies of the image stack
         energies = img_stack.energy.to_dataframe()
         
@@ -40,7 +43,7 @@ class PFEnergySeriesIntegrator(PFGeneralIntegrator):
         #create an integrator for each energy
         for en in energies:
             self.createIntegrator(en)
-            
+        self.createIntegrator(np.median(energies))
         # find the output q for the midpoint and set the final q binning
         self.dest_q = self.integrator_stack[np.median(energies)].integrate2d(np.zeros_like(self.mask).astype(int), self.npts, 
                                                unit='q_A^-1',
@@ -50,7 +53,7 @@ class PFEnergySeriesIntegrator(PFGeneralIntegrator):
         # + 
         # restack the reduced data
 
-        return img_stack.groupby('system').map(self.integrateSingleImage)
+        return img_stack.groupby('system',squeeze=False).map(self.integrateSingleImage)
     
     def createIntegrator(self,en):
         self.integrator_stack[en] = azimuthalIntegrator.AzimuthalIntegrator(
@@ -60,9 +63,11 @@ class PFEnergySeriesIntegrator(PFGeneralIntegrator):
                  geomethod = "none",
                  NIdistance=0, NIbcx=0, NIbcy=0, NItiltx=0, NItilty=0,
                  NIpixsizex = 0.027, NIpixsizey = 0.027,
+                 template_xr = None,
                  integration_method='csr_ocl',
+                 correctSolidAngle=True,
                  npts = 500):
-        
+        #@todo: how much of this can be in a super.init call?
         self.integrator_stack = {}
         
         if(maskmethod == "nika"):
@@ -76,6 +81,8 @@ class PFEnergySeriesIntegrator(PFGeneralIntegrator):
         
         if geomethod == "nika":
             self.calibrationFromNikaParams(NIdistance, NIbcx, NIbcy, NItiltx, NItilty,pixsizex = NIpixsizex, pixsizey = NIpixsizey)
+        if geomethod == 'template_xr':
+            self.calibrationFromTemplateXRParams(template_xr)
         elif geomethod == "none":
             self.dist = 0.1
             self.poni1 = 0
