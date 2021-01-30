@@ -6,3 +6,4 @@ example_data/SST1
 *.DS_Store
 *.fits
 *.zip
+peter-dafs/*
