@@ -1,19 +1,27 @@
 language: python
-python:
-  - 3.6
-  - 3.7
-  - 3.8
-before_install:
-  - python --version
-  - pip install -U pip
-  - pip install -U pytest
-  - pip install codecov
-  - pip install flake8
-  - pip install -r requirements.txt
-#install:
-#  - pip install ".[test]" . # install package + test dependencies
-script:  flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics       # stop the build if there are Python syntax errors or undefined names
-script:  flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics  # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-script: pytest # run tests
-after_success:
-  - codecov # submit coverage
+jobs:
+  include:
+    - stage: lint
+      python:
+      - 3.8
+      before_install:
+           - python --version
+           - pip install -U pip
+           - pip install flake8
+      script: flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics  # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+    - stage: test
+      python:
+        - 3.8
+      before_install:
+        - python --version
+        - pip install -U pip
+        - pip install -U pytest
+        - pip install codecov
+        - pip install -r requirements.txt
+# noble goal, but private repo's can't be directly downloaded so        - wget https://github.com/usnistgov/PyHyperScattering/releases/download/0.0.0-example-data/Example.zip
+        - wget https://nextcloud.peterbeaucage.com/index.php/s/F2n24Y7dQSQcnSQ/download
+        - mv download Example.zip
+        - unzip Example.zip
+      script: pytest
+      after_success:
+        - codecov # submit coverage

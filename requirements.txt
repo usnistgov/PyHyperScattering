@@ -1,7 +1,6 @@
 astropy
 fabio
 h5py
-hdf5
 nodejs
 numpy
 pandas
@@ -9,3 +8,4 @@ pyfai
 pyopencl
 scikit-image
 scipy
+xarray

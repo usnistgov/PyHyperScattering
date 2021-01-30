@@ -1,7 +1,7 @@
 *__pycache__
 *.ipynb_checkpoints
-example_data/CCD
-example_data/SST1
+Example/*
+example-data/*
 *.hdf
 *.DS_Store
 *.fits
