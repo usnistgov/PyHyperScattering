@@ -1,11 +1,11 @@
 *__pycache__
 *.ipynb_checkpoints
-example_data/CCD
-example_data/SST1
+Example/*
+example-data/*
+example_data/*
 *.hdf
 *.DS_Store
 *.fits
 *.zip
 peter-dafs/*
 SST1RSoXS_Dec20/*
-

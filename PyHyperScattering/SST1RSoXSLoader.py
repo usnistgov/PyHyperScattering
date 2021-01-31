@@ -107,6 +107,7 @@ class SST1RSoXSLoader(FileLoader):
         with open(jsonfile) as f:
             data = json.load(f)
             meas_time =datetime.datetime.fromtimestamp(data[1]['time'])
+            json_dict['sample_name'] = data[1]['sample_name']
         if data[1]['RSoXS_Config'] == 'SAXS':
             json_dict['rsoxs_config'] = 'saxs'
             # discrepency between what is in .json and actual

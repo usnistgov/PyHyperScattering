@@ -3,6 +3,7 @@ from astropy.io import fits
 import os
 import xarray as xr
 import pandas as pd
+import numpy as np
 import warnings
 
 class ALS11012RSoXSLoader(FileLoader):

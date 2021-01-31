@@ -1,0 +1,11 @@
+astropy
+fabio
+h5py
+nodejs
+numpy
+pandas
+pyfai
+pyopencl
+scikit-image
+scipy
+xarray
