@@ -15,9 +15,9 @@ class SST1RSoXSLoader(FileLoader):
     #Loader for TIFF files form NSLS-II SST1 RSoXS instrument
     file_ext = '(.*?)primary(.*?).tiff'
     md_loading_is_quick = True
-    pix_size_1 = 0.06 
+    pix_size_1 = 0.06
     pix_size_2 = 0.06
-    
+
     def __init__(self,corr_mode=None,user_corr_fun=None,dark_pedestal=0,exposure_offset=0):
         #Params:
         #
@@ -53,8 +53,8 @@ class SST1RSoXSLoader(FileLoader):
     #     return out
 
 
-    
-    def loadSingleImage(self,filepath,coords=None):
+
+    def loadSingleImage(self,filepath,coords=None, return_q=False):
         img = Image.open(filepath)
 
         headerdict = self.loadMd(filepath)
@@ -93,14 +93,14 @@ class SST1RSoXSLoader(FileLoader):
         #     darkimg = np.zeros_like(img)
 
         # img = (img-darkimg+self.dark_pedestal)/corr
-        
-        #qpx = 2*np.pi*60e-6/(headerdict['sdd']/1000)/(headerdict['wavelength']*1e10)
-        #qx = (np.arange(1,img.size[0]+1)-headerdict['beamcenter_x'])*qpx
-        #qy = (np.arange(1,img.size[1]+1)-headerdict['beamcenter_y'])*qpx
-        ## now, match up the dims and coords
-        #return xr.DataArray(img,dims=['qy','qx'],coords={'qy':qy,'qx':qx},attrs=headerdict)
-        #print(f"Debug: {filepath} img seq is {headerdict['seq_num']}")
-        return xr.DataArray(img,dims=['pix_x','pix_y'],attrs=headerdict)
+        if return_q:
+            qpx = 2*np.pi*60e-6/(headerdict['sdd']/1000)/(headerdict['wavelength']*1e10)
+            qx = (np.arange(1,img.size[0]+1)-headerdict['beamcenter_x'])*qpx
+            qy = (np.arange(1,img.size[1]+1)-headerdict['beamcenter_y'])*qpx
+            # now, match up the dims and coords
+            return xr.DataArray(img,dims=['qy','qx'],coords={'qy':qy,'qx':qx},attrs=headerdict)
+        else:
+            return xr.DataArray(img,dims=['pix_x','pix_y'],attrs=headerdict)
 
     def read_json(self,jsonfile):
         json_dict = {}
@@ -114,14 +114,14 @@ class SST1RSoXSLoader(FileLoader):
             if (meas_time > datetime.datetime(2020,12,1)) and (meas_time < datetime.datetime(2021,1,15)):
                 json_dict['beamcenter_x'] = 489.86
                 json_dict['beamcenter_y'] = 490.75
-                json_dict['sdd'] = 521.8               
+                json_dict['sdd'] = 521.8
             elif (meas_time > datetime.datetime(2020,11,16)) and (meas_time < datetime.datetime(2020,12,1)):
                 json_dict['beamcenter_x'] = 371.52
                 json_dict['beamcenter_y'] = 491.17
                 json_dict['sdd'] = 512.12
             else:
-                json_dict['beamcenter_x'] = data[1]['RSoXS_SAXS_BCX'] 
-                json_dict['beamcenter_y'] = data[1]['RSoXS_SAXS_BCY'] 
+                json_dict['beamcenter_x'] = data[1]['RSoXS_SAXS_BCX']
+                json_dict['beamcenter_y'] = data[1]['RSoXS_SAXS_BCY']
                 json_dict['sdd'] = data[1]['RSoXS_SAXS_SDD']
 
         elif data[1]['RSoXS_Config'] == 'WAXS':
@@ -202,23 +202,23 @@ class SST1RSoXSLoader(FileLoader):
             primary_dict = self.read_primary(primary_fname[0],json_dict,seq_num)
 
         headerdict = {**primary_dict,**baseline_dict,**json_dict}
-        
+
         headerdict['wavelength'] = 1.239842e-6 / headerdict['energy']
         headerdict['seq_num'] = seq_num
         headerdict['sampleid'] = scan_id
-        
+
         headerdict['dist'] = headerdict['sdd'] / 1000
-        
+
         headerdict['pixel1'] = self.pix_size_1 / 1000
         headerdict['pixel2'] = self.pix_size_2 / 1000
-        
+
         headerdict['poni1'] = headerdict['beamcenter_y'] * headerdict['pixel1']
         headerdict['poni2'] = headerdict['beamcenter_x'] * headerdict['pixel2']
 
         headerdict['rot1'] = 0
         headerdict['rot2'] = 0
         headerdict['rot3'] = 0
-        
+
         return headerdict
 
     def peekAtMd(self,filepath):
