@@ -9,7 +9,6 @@ import math
 class PFEnergySeriesIntegrator(PFGeneralIntegrator):
 
     def integrateSingleImage(self,img):
-        
         # for each image: 
         #    get the energy and locate the matching integrator
         #    use that integrator to reduce
@@ -59,41 +58,11 @@ class PFEnergySeriesIntegrator(PFGeneralIntegrator):
         self.integrator_stack[en] = azimuthalIntegrator.AzimuthalIntegrator(
             self.dist, self.poni1, self.poni2, self.rot1, self.rot2, self.rot3 ,pixel1=self.pixel1,pixel2=self.pixel2, wavelength = 1.239842e-6/en)
         return self.integrator_stack[en]
-    def __init__(self,maskmethod = "none",maskpath = "",
-                 geomethod = "none",
-                 NIdistance=0, NIbcx=0, NIbcy=0, NItiltx=0, NItilty=0,
-                 NIpixsizex = 0.027, NIpixsizey = 0.027,
-                 template_xr = None,
-                 integration_method='csr_ocl',
-                 correctSolidAngle=True,
-                 npts = 500):
+    def __init__(self,**kwargs):
         #@todo: how much of this can be in a super.init call?
         self.integrator_stack = {}
         
-        if(maskmethod == "nika"):
-            self.loadNikaMask(maskpath)
-        elif(maskmethod == "none"):
-            self.mask = None
-
-        self.integration_method = integration_method
-        self.npts = npts
-        self.dest_q = None
-        
-        if geomethod == "nika":
-            self.calibrationFromNikaParams(NIdistance, NIbcx, NIbcy, NItiltx, NItilty,pixsizex = NIpixsizex, pixsizey = NIpixsizey)
-        if geomethod == 'template_xr':
-            self.calibrationFromTemplateXRParams(template_xr)
-        elif geomethod == "none":
-            self.dist = 0.1
-            self.poni1 = 0
-            self.poni2 = 0
-            self.rot1 = 0
-            self.rot2 = 0
-            self.rot3 = 0
-            self.pixel1 = 0.027
-            self.pixel2 = 0.027
-            warnings.warn('Initializing geometry with default values.  This is probably NOT what you want.')
-        
+        super().__init__(**kwargs)
     def recreateIntegrator(self):
         pass
     

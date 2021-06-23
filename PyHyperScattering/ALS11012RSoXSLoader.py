@@ -5,9 +5,12 @@ import xarray as xr
 import pandas as pd
 import numpy as np
 import warnings
+import re
 
 class ALS11012RSoXSLoader(FileLoader):
-    #Loader for FITS files from the ALS 11.0.1.2 RSoXS instrument
+#Loader for FITS files from the ALS 11.0.1.2 RSoXS instrument
+
+    
     file_ext = '(.*?).fits'
     md_loading_is_quick = True
     
@@ -33,7 +36,6 @@ class ALS11012RSoXSLoader(FileLoader):
         self.darks = {}
     
     def loadDarks(self,basepath,dark_base_name):
-    #returns a dictionary of  dark images, sorted by exposure time.  
         for file in os.listdir(basepath):
             if dark_base_name in file:
                 darkimage = fits.open(basepath+file)
@@ -45,11 +47,22 @@ class ALS11012RSoXSLoader(FileLoader):
 
                 
     def loadSampleSpecificDarks(self,basepath,file_filter='',file_skip='donotskip',md_filter={}):
-        #load darks matching a specific sample metadata
+        '''
+        load darks matching a specific sample metadata
+
+        @param basepath: path to load darks from
+        
+        @param file_filter: string that must be in each file name
+        
+        @param file_skip: string that, if in file name, means file should be skipped.
+        
+        @param md_filter: dict of required metadata values.  this will be appended with dark images only, no need to put that here.
+        '''
+        
         md_filter.update({'CCD Shutter Inhibit':1})
         
         for file in os.listdir(basepath):
-            if self.file_ext in file and file_filter in file and file_skip not in file:
+            if (re.match(self.file_ext,file) is not None) and file_filter in file and file_skip not in file:
                 if self.md_loading_is_quick:
                     #if metadata loading is quick, we can just peek at the metadata and decide what to do
                     md = self.peekAtMd(basepath+file)
@@ -120,7 +133,9 @@ class ALS11012RSoXSLoader(FileLoader):
     
     
     def normalizeMetadata(self,headerdict):
-        #return a metadata dict using standard terminology from the instrument-raw version
+        '''
+        convert the local metadata terms in headerdict to standard nomenclature
+        '''
         headerdict['EXPOSURE'] = round(headerdict['EXPOSURE'],4)
         headerdict['exposure'] = headerdict['EXPOSURE']+self.exposure_offset
         headerdict['energy'] = round(headerdict['Beamline Energy'],2)

@@ -25,7 +25,33 @@ class FileLoader():
     def peekAtMd(self,filepath):
         return loadSingleImage(filepath,{})
     
+<<<<<<< Updated upstream
     def loadFileSeries(self,basepath,dims,coords={},file_filter='',file_skip='donotskip',md_filter={},quiet=False):
+=======
+<<<<<<< Updated upstream
+    def loadFileSeries(self,basepath,dims,coords={},file_filter='',file_skip='donotskip',md_filter={}):
+=======
+    def loadFileSeries(self,basepath,dims,coords={},file_filter='',file_skip='donotskip',md_filter={},quiet=False):
+        '''
+        Load a series into a single xarray.
+        
+        @param basepath: path to the directory to load
+        
+        @param dims: dimensions of the resulting xarray
+        
+        @param coords: dictionary of any dims that are *not* present in metadata
+        
+        @param file_filter: string that must be in each file name
+        
+        @param file_skip: string that, if present in file name, means file should be skipped.
+        
+        @param md_filter: dict of *required* metadata values; points without these metadata values will be dropped
+        
+        @param quiet: (bool) skip printing most intermediate output if true.
+        
+        '''
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
         nfiles = len(os.listdir(basepath))
         nprocessed = 0
         filesintegrated = 0
