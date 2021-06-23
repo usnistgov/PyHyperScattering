@@ -28,7 +28,7 @@ class SST1RSoXSDB:
     
     
 
-    def __init__(self,corr_mode=None,user_corr_fun=None,dark_subtract=True,dark_pedestal=0,exposure_offset=0):
+    def __init__(self,corr_mode=None,user_corr_fun=None,dark_subtract=True,dark_pedestal=0,exposure_offset=0,catalog=None,catalog_kwargs={}):
         #Params:
         #
         # corr_mode = origin to use for the intensity correction.  Can be 'expt','i0','expt+i0','user_func','old',or 'none'
@@ -44,7 +44,10 @@ class SST1RSoXSDB:
         else:
             self.corr_mode = corr_mode
         
-        self.c = from_profile('rsoxs')
+        if catalog is None:
+            self.c = from_profile('rsoxs',**catalog_kwargs)
+        else:
+            self.c = catalog
         self.dark_subtract=dark_subtract
         self.dark_pedestal=dark_pedestal
         self.exposure_offset=exposure_offset
@@ -127,11 +130,12 @@ class SST1RSoXSDB:
         md = {}
 
         # items coming from the start document
-
+        start = run.start
+        
         meas_time =datetime.datetime.fromtimestamp(run.start['time'])
         md['meas_time']=meas_time
-        md['sample_name'] = run.start['sample_name']
-        if run.start['RSoXS_Config'] == 'SAXS':
+        md['sample_name'] = start['sample_name']
+        if start['RSoXS_Config'] == 'SAXS':
             md['rsoxs_config'] = 'saxs'
                 # discrepency between what is in .json and actual
             if (meas_time > datetime.datetime(2020,12,1)) and (meas_time < datetime.datetime(2021,1,15)):
@@ -147,7 +151,7 @@ class SST1RSoXSDB:
                 md['beamcenter_y'] = run.start['RSoXS_SAXS_BCY']
                 md['sdd'] = run.start['RSoXS_SAXS_SDD']
 
-        elif run.start['RSoXS_Config'] == 'WAXS':
+        elif start['RSoXS_Config'] == 'WAXS':
             md['rsoxs_config'] = 'waxs'
             if (meas_time > datetime.datetime(2020,11,16)) and (meas_time < datetime.datetime(2021,1,15)):
                 md['beamcenter_x'] = 400.46
@@ -160,7 +164,7 @@ class SST1RSoXSDB:
 
         else:
             md['rsoxs_config'] == 'unknown'
-            warnings.warn(f'RSoXS_Config is neither SAXS or WAXS. Looks to be {run.start["RSoXS_Config"]}.  Might want to check that out.')
+            warnings.warn(f'RSoXS_Config is neither SAXS or WAXS. Looks to be {start["RSoXS_Config"]}.  Might want to check that out.')
 
         if md['rsoxs_config']=='saxs':
             md['detector'] = 'Small Angle CCD Detector'
@@ -191,8 +195,9 @@ class SST1RSoXSDB:
                 md[phs] = primary[rsoxs]
             except KeyError:
                 try:
-                    md[phs] = baseline[rsoxs].mean().data
-                    if baseline[rsoxs].var() > 0:
+                    blval = baseline[rsoxs]
+                    md[phs] = blval.mean().data
+                    if blval.var() > 0:
                         warnings.warn(f'While loading {rsoxs} to infill metadata entry for {phs}, found beginning and end values unequal: {baseline[rsoxs]}.  It is possible something is messed up.')
                 except KeyError:
                     warnings.warn(f'Could not find {rsoxs} in either baseline or primary.  Needed to infill value {phs}.  Setting to None.')
