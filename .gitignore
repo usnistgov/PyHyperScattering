@@ -14,3 +14,7 @@ OrientationRunDec2019/*
 *.ipynb
 Example/*
 example-data/*
+src/.*
+src/__pycache__
+*.egg-info
+src/PyHyperScattering/__pycache__
