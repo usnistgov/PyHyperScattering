@@ -5,17 +5,18 @@ import re
 from collections import defaultdict
 
 class FileLoader():
-    #Abstract class defining a generic scattering file loader.  Input is a (or multiple) filename/s and output is a
-    #xarray I(pix_x,pix_y,dims,coords) where dims and coords are loaded by user request.
-    #
-    #
-    # Difference: all coords are dims but not all dims are coords.  Dims can also be auto-hinted using the following   
-    # standard names: energy,exposure,pos_x,pos_y,pos_z,theta.
-    # 
-    # Individual loaders can try searching metadata for other dim names but this is not guaranteed.
-    # Coords can be used to provide a list of values for a dimension when that dimension cannot be hinted, e.g. where vals
-    # come from external data.
+    '''
+    Abstract class defining a generic scattering file loader.  Input is a (or multiple) filename/s and output is a
+    xarray I(pix_x,pix_y,dims,coords) where dims and coords are loaded by user request.
     
+    
+     Difference: all coords are dims but not all dims are coords.  Dims can also be auto-hinted using the following   
+     standard names: energy,exposure,pos_x,pos_y,pos_z,theta.
+     
+     Individual loaders can try searching metadata for other dim names but this is not guaranteed.
+     Coords can be used to provide a list of values for a dimension when that dimension cannot be hinted, e.g. where vals
+     come from external data.
+    '''
     file_ext = ''  # file extension to be used to filter files from this instrument
     md_loading_is_quick = False
     
