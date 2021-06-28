@@ -4,20 +4,6 @@ import numpy as np
 import math
 
 def slice_chi(img,chi,chi_width=5):
-<<<<<<< Updated upstream
-    return img.sel(chi=slice(chi-chi_width,chi+chi_width)).mean('chi')
-
-def slice_q(img,q,q_width=None):
-=======
-    '''
-    slice an xarray in chi
-    
-    @param img: xarray to work on
-    
-    @param chi: chi about which slice should be centered
-    
-    @param chi_width (default 5): width of slice in each direction.
-    '''
     return img.sel(chi=slice(chi-chi_width,chi+chi_width)).mean('chi')
 
 def slice_q(img,q,q_width=None):
@@ -30,7 +16,6 @@ def slice_q(img,q,q_width=None):
     
     @param q_width (default 10%): width of slice in each direction.
     '''
->>>>>>> Stashed changes
     if q_width==None:
         q_width = 0.1*q
     return img.sel(q=slice(q-q_width,q+q_width)).mean('q')

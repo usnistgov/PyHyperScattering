@@ -25,12 +25,7 @@ class FileLoader():
     def peekAtMd(self,filepath):
         return loadSingleImage(filepath,{})
     
-<<<<<<< Updated upstream
-    def loadFileSeries(self,basepath,dims,coords={},file_filter='',file_skip='donotskip',md_filter={},quiet=False):
-=======
-<<<<<<< Updated upstream
-    def loadFileSeries(self,basepath,dims,coords={},file_filter='',file_skip='donotskip',md_filter={}):
-=======
+
     def loadFileSeries(self,basepath,dims,coords={},file_filter='',file_skip='donotskip',md_filter={},quiet=False):
         '''
         Load a series into a single xarray.
@@ -50,8 +45,7 @@ class FileLoader():
         @param quiet: (bool) skip printing most intermediate output if true.
         
         '''
->>>>>>> Stashed changes
->>>>>>> Stashed changes
+
         nfiles = len(os.listdir(basepath))
         nprocessed = 0
         filesintegrated = 0
