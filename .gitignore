@@ -15,9 +15,10 @@ OrientationRunDec2019/*
 Example/*
 example-data/*
 src/.*
-src/.ipynb-checkpoints/*
+src/.ipynb_checkpoints/*
 src/__pycache__
 *.egg-info
 src/PyHyperScattering/__pycache__
+src/PyHyperScattering/.ipynb_checkpoints/*
 dist
 
