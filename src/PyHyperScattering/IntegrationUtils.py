@@ -3,10 +3,13 @@ import xarray as xr
 import numpy as np
 import math
 
-import holoviews as hv
-import hvplot.xarray
-import skimage.draw
+try:
+    import holoviews as hv
+    import hvplot.xarray
 
+    import skimage.draw
+except (ModuleNotFoundError,ImportError):
+    warnings.warn('Could not import package for interactive integration utils.  Install holoviews and scikit-image.')
 import pandas as pd
 
 import json

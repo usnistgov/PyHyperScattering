@@ -5,6 +5,11 @@ import pandas as pd
 import numpy as np
 import warnings
 import re
+try:
+    from astropy.io import fits
+except ImportError:
+    warnings.warn('Could not import astropy.io.fits, needed for ALS 11.0.1.2 RSoXS loading.  Is this dependency installed?')
+
 
 class ALS11012RSoXSLoader(FileLoader):
 #Loader for FITS files from the ALS 11.0.1.2 RSoXS instrument
