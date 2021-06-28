@@ -9,3 +9,4 @@ pyopencl
 scikit-image
 scipy
 xarray
+holoviews
