@@ -1,5 +1,4 @@
-from FileLoader import FileLoader
-from astropy.io import fits
+from PyHyperScattering.FileLoader import FileLoader
 import os
 import xarray as xr
 import pandas as pd
