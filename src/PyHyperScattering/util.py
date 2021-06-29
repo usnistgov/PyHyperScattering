@@ -1,4 +1,5 @@
-import PyHyperScattering.Fitting 
-import PyHyperScattering.HDR 
-import PyHyperScattering.RSoXS
-import PyHyperScattering.IntegrationUtils
+from PyHyperScattering import Fitting
+from PyHyperScattering import HDR
+from PyHyperScattering import RSoXS
+from PyHyperScattering import IntegrationUtils
+from PyHyperScattering import Nexus
