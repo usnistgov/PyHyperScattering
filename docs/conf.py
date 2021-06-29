@@ -18,7 +18,7 @@
 # -- Project information -----------------------------------------------------
 
 project = 'PyHyperScattering'
-copyright = '2021, Peter Beaucage'
+copyright = ': Official Contribution of the US Government.  Not subject to copyright in the United States.'
 author = 'Peter Beaucage'
 
 # The full version, including alpha/beta/rc tags

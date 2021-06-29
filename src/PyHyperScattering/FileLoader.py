@@ -31,19 +31,14 @@ class FileLoader():
         '''
         Load a series into a single xarray.
         
-        @param basepath: path to the directory to load
-        
-        @param dims: dimensions of the resulting xarray
-        
-        @param coords: dictionary of any dims that are *not* present in metadata
-        
-        @param file_filter: string that must be in each file name
-        
-        @param file_skip: string that, if present in file name, means file should be skipped.
-        
-        @param md_filter: dict of *required* metadata values; points without these metadata values will be dropped
-        
-        @param quiet: (bool) skip printing most intermediate output if true.
+        Args:
+            basepath (str or Path): path to the directory to load
+            dims (list): dimensions of the resulting xarray, as list of str
+            coords (dict): dictionary of any dims that are *not* present in metadata
+            file_filter (str): string that must be in each file name
+            file_skip (str): string that, if present in file name, means file should be skipped.
+            md_filter (dict): dict of *required* metadata values; points without these metadata values will be dropped
+            quiet (bool): skip printing most intermediate output if true.
         
         '''
 

@@ -12,20 +12,23 @@ import numpy as np
 
 
 class SST1RSoXSLoader(FileLoader):
-    #Loader for TIFF files form NSLS-II SST1 RSoXS instrument
+    '''
+    Loader for TIFF files from NSLS-II SST1 RSoXS instrument
+    
+    '''
     file_ext = '(.*?)primary(.*?).tiff'
     md_loading_is_quick = True
     pix_size_1 = 0.06
     pix_size_2 = 0.06
 
     def __init__(self,corr_mode=None,user_corr_fun=None,dark_pedestal=0,exposure_offset=0):
-        #Params:
-        #
-        # corr_mode = origin to use for the intensity correction.  Can be 'expt','i0','expt+i0','user_func','old',or 'none'
-        # user_corr_func = a callable that takes the header dictionary and returns the value of the correction.
-        # dark_pedestal = value to add to the whole image before doing dark subtraction, to avoid non-negative values.
-        # exposure_offset = value to add to the exposure time.  Measured at 2ms with the piezo shutter in Dec 2019 by Jacob Thelen, NIST
-        #
+        '''
+        Args:
+            corr_mode (str): origin to use for the intensity correction.  Can be 'expt','i0','expt+i0','user_func','old',or 'none'
+            user_corr_func (callable): takes the header dictionary and returns the value of the correction.
+            dark_pedestal (numeric): value to add to the whole image before doing dark subtraction, to avoid non-negative values.
+            exposure_offset (numeric): value to add to the exposure time.  Measured at 2ms with the piezo shutter in Dec 2019 by Jacob Thelen, NIST
+        '''
 
         if corr_mode == None:
             warnings.warn("Correction mode was not set, not performing *any* intensity corrections.  Are you sure this is "+

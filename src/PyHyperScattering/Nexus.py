@@ -32,7 +32,7 @@ def save(xr,fileName):
         # figure out if one image or more
         if 'system' in xr.dimensions:
             # writing a stack of images
-            
+            pass
         else: 
             # writing a single image
             
@@ -209,12 +209,13 @@ def save(xr,fileName):
         
     print("wrote file:", fileName)
     if 'pix_x' in xr.dimensions:
-        
+        pass
     elif 'q' in xr.dimensions:
-        
+        pass
     else:
         raise NotImplementedError(f'I do not support xarrays with dimensions of {xr.dimensions}')
     
 def load(path):
     if type(path) is str:
+        raise NotImplementedError
             

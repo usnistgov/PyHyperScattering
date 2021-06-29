@@ -1,4 +1,4 @@
-PyHyperScattering
+API Documentation
 =================
 
 .. toctree::

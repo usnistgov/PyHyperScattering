@@ -20,7 +20,11 @@ import copy
 
 
 class SST1RSoXSDB:
-    #Loader for bluesky run xarrays form NSLS-II SST1 RSoXS instrument
+    '''
+    Loader for bluesky run xarrays form NSLS-II SST1 RSoXS instrument
+    
+
+    '''
     file_ext = ''
     md_loading_is_quick = True
     pix_size_1 = 0.06
@@ -29,14 +33,15 @@ class SST1RSoXSDB:
     
 
     def __init__(self,corr_mode=None,user_corr_fun=None,dark_subtract=True,dark_pedestal=0,exposure_offset=0,catalog=None,catalog_kwargs={}):
-        #Params:
-        #
-        # corr_mode = origin to use for the intensity correction.  Can be 'expt','i0','expt+i0','user_func','old',or 'none'
-        # user_corr_func = a callable that takes the header dictionary and returns the value of the correction.
-        # dark_pedestal = value to add to the whole image before doing dark subtraction, to avoid non-negative values.
-        # exposure_offset = value to add to the exposure time.  Measured at 2ms with the piezo shutter in Dec 2019 by Jacob Thelen, NIST
-        #
-
+        '''
+            Args:
+                corr_mode (str): origin to use for the intensity correction.  Can be 'expt','i0','expt+i0','user_func','old',or 'none'
+                user_corr_func (callable): takes the header dictionary and returns the value of the correction.
+                dark_pedestal (numeric): value to add to the whole image before doing dark subtraction, to avoid non-negative values.
+                exposure_offset (numeric): value to add to the exposure time.
+                catalog (DataBroker Catalog): overrides the internally-set-up catalog with a version you provide
+                catalog_kwargs (dict): kwargs to be passed to a from_profile catalog generation script.  For example, you can ask for Dask arrays here.
+        '''
         if corr_mode == None:
             warnings.warn("Correction mode was not set, not performing *any* intensity corrections.  Are you sure this is "+
                           "right? Set corr_mode to 'none' to suppress this warning.")
@@ -68,11 +73,32 @@ class SST1RSoXSDB:
     #     return out
     
     def runSearch(self,**kwargs):
+        '''
+        Search the catalog using given commands.
+
+        Args:
+            **kwargs: passed through to the RawMongo search method of the catalog.
+
+        Returns:
+            result (obj): a catalog result object
+
+        '''
         q = RawMongo(**kwargs)
         return self.c.search(q)
     
     def loadRun(self,run,dims,coords={}):
+        '''
+        Loads a run entry from a catalog result into a raw xarray.
 
+        Args:
+            run (DataBroker result): a single run from BlueSky
+            dims (list): list of dimensions you'd like in the resulting xarray.  See list of allowed dimensions in documentation.
+            coords (dict): user-supplied dimensions, see syntax examples in documentation.
+
+        Returns:
+            raw (xarray): raw xarray containing your scan in PyHyper-compliant format
+
+        '''
         md = self.loadMd(run)  
 
         
@@ -222,6 +248,13 @@ class SST1RSoXSDB:
         return md
 
     def loadSingleImage(self,filepath,coords=None, return_q=False):
+        '''
+            DO NOT USE
+
+            This function is preserved as reference for the qx/qy loading conventions.
+
+            NOT FOR ACTIVE USE.  DOES NOT WORK.
+        '''
         img = Image.open(filepath)
 
         headerdict = self.loadMd(filepath)

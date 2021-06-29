@@ -4,93 +4,47 @@ PyHyperScattering package
 Submodules
 ----------
 
-PyHyperScattering.ALS11012RSoXSLoader module
---------------------------------------------
+PyHyperScattering.load module
+-----------------------------
 
-.. automodule:: PyHyperScattering.ALS11012RSoXSLoader
+.. automodule:: PyHyperScattering.load
    :members:
    :undoc-members:
    :show-inheritance:
 
-PyHyperScattering.FileLoader module
------------------------------------
+   PyHyperScattering.load.FileLoader module
+   ----------------------------------------------------
 
-.. automodule:: PyHyperScattering.FileLoader
-   :members:
-   :undoc-members:
-   :show-inheritance:
+   .. autoclass:: PyHyperScattering.load.FileLoader
+      :members:
+      :undoc-members:
+      :show-inheritance:
 
-PyHyperScattering.Fitting module
---------------------------------
+   PyHyperScattering.load.ALS11012RSoXSLoader module
+   -------------------------------------------------------------------
 
-.. automodule:: PyHyperScattering.Fitting
-   :members:
-   :undoc-members:
-   :show-inheritance:
+   .. autoclass:: PyHyperScattering.load.ALS11012RSoXSLoader
+      :members:
+      :undoc-members:
+      :show-inheritance:
 
-PyHyperScattering.HDR module
-----------------------------
+   PyHyperScattering.load.SST1RSoXSLoader module
+   ---------------------------------------------------------
 
-.. automodule:: PyHyperScattering.HDR
-   :members:
-   :undoc-members:
-   :show-inheritance:
+   .. autoclass:: PyHyperScattering.load.SST1RSoXSLoader
+      :members:
+      :undoc-members:
+      :show-inheritance:
 
-PyHyperScattering.IntegrationUtils module
------------------------------------------
 
-.. automodule:: PyHyperScattering.IntegrationUtils
-   :members:
-   :undoc-members:
-   :show-inheritance:
+   PyHyperScattering.load.SST1RSoXSDB module
+   -----------------------------------------------------
 
-PyHyperScattering.Nexus module
-------------------------------
+   .. autoclass:: PyHyperScattering.load.SST1RSoXSDB
+      :members:
+      :undoc-members:
+      :show-inheritance:
 
-.. automodule:: PyHyperScattering.Nexus
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-PyHyperScattering.PFEnergySeriesIntegrator module
--------------------------------------------------
-
-.. automodule:: PyHyperScattering.PFEnergySeriesIntegrator
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-PyHyperScattering.PFGeneralIntegrator module
---------------------------------------------
-
-.. automodule:: PyHyperScattering.PFGeneralIntegrator
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-PyHyperScattering.RSoXS module
-------------------------------
-
-.. automodule:: PyHyperScattering.RSoXS
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-PyHyperScattering.SST1RSoXSDB module
-------------------------------------
-
-.. automodule:: PyHyperScattering.SST1RSoXSDB
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-PyHyperScattering.SST1RSoXSLoader module
-----------------------------------------
-
-.. automodule:: PyHyperScattering.SST1RSoXSLoader
-   :members:
-   :undoc-members:
-   :show-inheritance:
 
 PyHyperScattering.integrate module
 ----------------------------------
@@ -100,13 +54,21 @@ PyHyperScattering.integrate module
    :undoc-members:
    :show-inheritance:
 
-PyHyperScattering.load module
------------------------------
+   PyHyperScattering.integrate.PFEnergySeriesIntegrator module
+   -------------------------------------------------------------------------------------
 
-.. automodule:: PyHyperScattering.load
-   :members:
-   :undoc-members:
-   :show-inheritance:
+   .. automodule:: PyHyperScattering.PFEnergySeriesIntegrator
+      :members:
+      :undoc-members:
+      :show-inheritance:
+
+   PyHyperScattering.integrate.PFGeneralIntegrator module
+   --------------------------------------------------------------------------------
+
+   .. automodule:: PyHyperScattering.PFGeneralIntegrator
+      :members:
+      :undoc-members:
+      :show-inheritance:
 
 PyHyperScattering.util module
 -----------------------------
@@ -115,6 +77,53 @@ PyHyperScattering.util module
    :members:
    :undoc-members:
    :show-inheritance:
+
+   PyHyperScattering.util.Fitting module
+   -------------------------------------------------
+
+   .. automodule:: PyHyperScattering.util.Fitting
+      :members:
+      :undoc-members:
+      :show-inheritance:
+
+   PyHyperScattering.util.HDR module
+   ---------------------------------------------
+
+   .. automodule:: PyHyperScattering.util.HDR
+      :members:
+      :undoc-members:
+      :show-inheritance:
+
+   PyHyperScattering.util.IntegrationUtils module
+   ----------------------------------------------------------
+
+   .. automodule:: PyHyperScattering.util.IntegrationUtils
+      :members:
+      :undoc-members:
+      :show-inheritance:
+
+   PyHyperScattering.util.Nexus module
+   -----------------------------------------------
+
+   .. automodule:: PyHyperScattering.util.Nexus
+      :members:
+      :undoc-members:
+      :show-inheritance:
+
+
+
+   PyHyperScattering.util.RSoXS module
+   -----------------------------------------------
+
+   .. automodule:: PyHyperScattering.util.RSoXS
+      :members:
+      :undoc-members:
+      :show-inheritance:
+
+
+
+
+
 
 Module contents
 ---------------

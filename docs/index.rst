@@ -7,39 +7,16 @@ Welcome to PyHyperScattering's documentation!
 =============================================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 4
    :caption: Contents:
 
-.. automodule:: PyHyperScattering 
-   :members:
+   source/intro
+   source/loading
+   source/integration
+   source/learning-to-fly
+   source/utilities
+   source/modules
 
-
-Loaders
-===============================================
-.. automodule:: PyHyperScattering.load
-   :members:
-   :undoc-members:
-
-Integrators
-===============================================
-
-.. automodule:: PyHyperScattering.integrate
-   :members:
-   :undoc-members:
-
-Utility Modules
-===============================================
-
-.. automodule:: PyHyperScattering.util
-   :members:
-   :undoc-members:
-
-Example of a Particular Class: ALS 11.0.1.2 RSoXS Loader
-=========================================================
-
-.. autoclass:: PyHyperScattering.load.ALS11012RSoXSLoader
-   :members:
-   :undoc-members:
 
 
 Indices and tables

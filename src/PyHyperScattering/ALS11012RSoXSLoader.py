@@ -12,22 +12,29 @@ except ImportError:
 
 
 class ALS11012RSoXSLoader(FileLoader):
-#Loader for FITS files from the ALS 11.0.1.2 RSoXS instrument
+    '''
+    Loader for FITS files from the ALS 11.0.1.2 RSoXS instrument
 
-    
+
+    Additional requirement: astropy, for FITS file loader
+
+
+    Usage is mainly via the inherited function integrateImageStack from FileLoader
+
+    '''
     file_ext = '(.*?).fits'
     md_loading_is_quick = True
     
     
     def __init__(self,corr_mode=None,user_corr_func=None,dark_pedestal=0,exposure_offset=0.002):
-        #Params:
-        #
-        # corr_mode = origin to use for the intensity correction.  Can be 'expt','i0','expt+i0','user_func','old',or 'none'
-        # user_corr_func = a callable that takes the header dictionary and returns the value of the correction.
-        # dark_pedestal = value to add to the whole image before doing dark subtraction, to avoid non-negative values.
-        # exposure_offset = value to add to the exposure time.  Measured at 2ms with the piezo shutter in Dec 2019 by Jacob Thelen, NIST
-        #
+        '''
+        Args:
+            corr_mode (str): origin to use for the intensity correction.  Can be 'expt','i0','expt+i0','user_func','old',or 'none'
+            user_corr_func (callable): that takes the header dictionary and returns the value of the correction.
+            dark_pedestal (numeric): number to add to the whole image before doing dark subtraction, to avoid non-negative values.
+            exposure_offset (numeric): value to add to the exposure time.  Measured at 2ms with the piezo shutter in Dec 2019 by Jacob Thelen, NIST
         
+        '''
         if corr_mode == None:
             warnings.warn("Correction mode was not set, not performing *any* intensity corrections.  Are you sure this is "+ 
                           "right? Set corr_mode to 'none' to suppress this warning.")
@@ -40,6 +47,13 @@ class ALS11012RSoXSLoader(FileLoader):
         self.darks = {}
     
     def loadDarks(self,basepath,dark_base_name):
+        '''
+        Load a series of dark images as a function of exposure time, to be subtracted from subsequently-loaded data.
+
+        Args:
+            basepath (str or Path): path to load images from
+            dark_base_name (str): str that must be in file for file to be a dark
+        '''
         for file in os.listdir(basepath):
             if dark_base_name in file:
                 darkimage = fits.open(basepath+file)
@@ -54,13 +68,13 @@ class ALS11012RSoXSLoader(FileLoader):
         '''
         load darks matching a specific sample metadata
 
-        @param basepath: path to load darks from
-        
-        @param file_filter: string that must be in each file name
-        
-        @param file_skip: string that, if in file name, means file should be skipped.
-        
-        @param md_filter: dict of required metadata values.  this will be appended with dark images only, no need to put that here.
+        Used, e.g., to load darks taken at a time of measurement in order to improve the connection between the dark and sample data.
+
+        Args:
+            basepath (str): path to load darks from
+            file_filter (str): string that must be in each file name
+            file_skip (str): string that, if in file name, means file should be skipped.
+            md_filter (dict): dict of required metadata values.  this will be appended with dark images only, no need to put that here.
         '''
         
         md_filter.update({'CCD Shutter Inhibit':1})
@@ -88,6 +102,13 @@ class ALS11012RSoXSLoader(FileLoader):
                     exptime = md['EXPOSURE']
                     self.darks[exptime] = img
     def loadSingleImage(self,filepath,coords=None):
+        '''
+        THIS IS A HELPER FUNCTION, mostly - should not be called directly unless you know what you are doing
+
+
+        Load a single image from filepath and return a single-image, raw xarray, performing dark subtraction if so configured.
+
+        '''
         input_image = fits.open(filepath)
         headerdict =  self.normalizeMetadata(dict(zip(input_image[0].header.keys(),input_image[0].header.values())))
         img = input_image[2].data
@@ -131,6 +152,12 @@ class ALS11012RSoXSLoader(FileLoader):
         return xr.DataArray(img,dims=['pix_x','pix_y'],attrs=headerdict)
         
     def peekAtMd(self,file):
+        '''
+        load the header/metadata without opening the corresponding image
+
+        Args:
+            file (str): fits file from which to load metadata
+        '''
         input_image = fits.open(file)
         headerdict =  self.normalizeMetadata(dict(zip(input_image[0].header.keys(),input_image[0].header.values())))
         return headerdict
@@ -139,6 +166,9 @@ class ALS11012RSoXSLoader(FileLoader):
     def normalizeMetadata(self,headerdict):
         '''
         convert the local metadata terms in headerdict to standard nomenclature
+
+        Args:
+            headerdict (dict): the header returned by the file loader
         '''
         headerdict['EXPOSURE'] = round(headerdict['EXPOSURE'],4)
         headerdict['exposure'] = headerdict['EXPOSURE']+self.exposure_offset
