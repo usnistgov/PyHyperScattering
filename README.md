@@ -1,6 +1,10 @@
 # PyHyperScattering
 Python utilities for loading, reducing, slicing, and plotting hyperspectral scattering datasets
 
+This is a pre-ALPHA package, under active development.  It has not been tested for functionality, stability, or scientific correctness. It may be poorly documented.  Use at your own risk.  If you have interest in contributing, please contact Peter Beaucage (peter.beaucage@nist.gov).
+
+
+
 Legal
 =====
 
