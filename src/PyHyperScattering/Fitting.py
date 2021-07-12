@@ -75,7 +75,7 @@ def gauss(x, *p):
         p (list): parameters [A, mu, sigma] where the intensity will be: A*numpy.exp(-(x-mu)**2/(2.*sigma**2))
     '''
     A, mu, sigma = p
-    return A*numpy.exp(-(x-mu)**2/(2.*sigma**2))
+    return A*np.exp(-(x-mu)**2/(2.*sigma**2))
 def lorentz( x, *p ):
     '''
     Helper function - Lorentzian peak

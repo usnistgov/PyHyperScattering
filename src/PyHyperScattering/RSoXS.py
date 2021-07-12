@@ -60,14 +60,14 @@ def AR(img,two_AR=False,chi_width=5):
     
 def collate_AR_stack(sample,energy):
     raise NotImplementedError('This is a stub function. Should return tuple of the two polarizations, but it does not yet.')
-    for sam in data_idx.groupby('sample'):
+    '''for sam in data_idx.groupby('sample'):
         print(f'Processing for {sam[0]}')
         for enset in sam[1].groupby('energy'):
             print(f'    Processing energy group {enset[0]}')
             pol90 = enset[1][enset[1]['pol']==90.0].num
             pol0 = enset[1][enset[1]['pol']==0.0].num
             print(f'        Pol 0: {pol0}')
-            print(f'        Pol 90: {pol90}')
+            print(f'        Pol 90: {pol90}')'''
     
 '''
     

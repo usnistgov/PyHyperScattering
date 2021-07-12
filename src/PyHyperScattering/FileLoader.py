@@ -24,7 +24,7 @@ class FileLoader():
         raise NotImplementedError
     
     def peekAtMd(self,filepath):
-        return loadSingleImage(filepath,{})
+        return self.loadSingleImage(filepath,{})
     
 
     def loadFileSeries(self,basepath,dims,coords={},file_filter='',file_skip='donotskip',md_filter={},quiet=False):

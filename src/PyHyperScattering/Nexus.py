@@ -5,7 +5,7 @@ import math
 import pathlib
 import h5py
 import pathlib
-
+'''
 def save(xr,fileName):
     
     # figure out if xr is a raw or integrated array
@@ -218,4 +218,6 @@ def save(xr,fileName):
 def load(path):
     if type(path) is str:
         raise NotImplementedError
+
+'''
             
