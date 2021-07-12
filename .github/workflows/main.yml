@@ -31,6 +31,10 @@ jobs:
         python -m pip install --upgrade pip
         pip install flake8 pytest
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    - name: Fetch and unzip example data
+      run: |
+        wget https://github.com/usnistgov/PyHyperScattering/releases/download/0.0.0-example-data/Example.zip
+        unzip Example.zip
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
