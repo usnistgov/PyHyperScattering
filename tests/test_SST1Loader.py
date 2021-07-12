@@ -1,9 +1,9 @@
 import sys
-sys.path.append("PyHyperScattering/")
+sys.path.append("src/")
 
-from SST1RSoXSLoader import SST1RSoXSLoader
+from PyHyperScattering.load import SST1RSoXSLoader
 
-from PFEnergySeriesIntegrator import PFEnergySeriesIntegrator
+from PyHyperScattering.integrate import PFEnergySeriesIntegrator
 import numpy as np
 import pandas as pd
 import xarray as xr

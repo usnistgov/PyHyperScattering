@@ -1,13 +1,11 @@
 import sys,os
-sys.path.append("PyHyperScattering/")
+sys.path.append("src/")
 
-from ALS11012RSoXSLoader import ALS11012RSoXSLoader
+from PyHyperScattering.load import ALS11012RSoXSLoader
 
-from PFEnergySeriesIntegrator import PFEnergySeriesIntegrator
-<<<<<<< Updated upstream
-=======
+from PyHyperScattering.integrate import PFEnergySeriesIntegrator
+
 import xarray as xr
->>>>>>> Stashed changes
 
 #import HDR
 
@@ -34,11 +32,10 @@ def test_11012_single_scan_import():
                                coords = {'filenumber':test_custom_coord_creation()},
                                md_filter={'sampleid':1,'CCD Shutter Inhibit':0}
                               )
-<<<<<<< Updated upstream
-=======
+
 
 def test_examine_single_scan():
 	data = test_11012_single_scan_import()
 
 	assert type(data)==xr.DataArray
->>>>>>> Stashed changes
+
