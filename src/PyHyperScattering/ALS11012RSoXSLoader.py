@@ -173,7 +173,7 @@ class ALS11012RSoXSLoader(FileLoader):
         headerdict['EXPOSURE'] = round(headerdict['EXPOSURE'],4)
         headerdict['exposure'] = headerdict['EXPOSURE']+self.exposure_offset
         headerdict['energy'] = round(headerdict['Beamline Energy'],2)
-        headerdict['polarization'] = round(headerdict['EPU Polarization'],0)
+        headerdict['polarization'] = round(headerdict['EPU Polarization'],0)-100
         headerdict['sam_x'] = headerdict['Sample X']
         headerdict['sam_y'] = headerdict['Sample Y']
         headerdict['sam_z'] = headerdict['Sample Z']
