@@ -26,21 +26,21 @@ def select_chi(img,chi,method='interp'):
 def select_q(img,q,method='interp'):
     return img.sel(q=q,method=method)
 def select_pol(img,pol,method='nearest'):
-    return img.sel(pol=pol,method=method)
+    return img.sel(polarization=pol,method=method)
     
     
-def AR(img,two_AR=False,chi_width=5):
+def AR(img,calc2d=False,two_AR=False,chi_width=5):
     '''
     img can either be a single dataarray (in which case we'll compute AR using 0 and 90 deg chi slices), or a list of two dataarrays with polarization 0 and 90 (in which case we'll use the more rigorous approach decoupling the polarization-induced anisotropy)
     '''
     
-    if(type(img)==xr.DataArray):
+    if(not calc2d):
         para = slice_chi(img,0,chi_width=chi_width)
         perp = slice_chi(img,-90,chi_width=chi_width)
         return ((para - perp) / (para+perp))
-    elif(len(img)==2):
+    elif(calc2d):
         para_pol = select_pol(img,0)
-        perp_pol = select_pol(img,-90)
+        perp_pol = select_pol(img,90)
         
         para_para = slice_chi(para_pol,0)
         para_perp = slice_chi(para_pol,-90)
