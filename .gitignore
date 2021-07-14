@@ -21,4 +21,6 @@ src/__pycache__
 src/PyHyperScattering/__pycache__
 src/PyHyperScattering/.ipynb_checkpoints/*
 dist
+docs/_build/*
+docs/_build/html/*
 
