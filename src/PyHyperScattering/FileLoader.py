@@ -5,6 +5,7 @@ import re
 from collections import defaultdict
 import warnings
 import math
+import numpy as np
 
 class FileLoader():
     '''
@@ -125,4 +126,5 @@ class FileLoader():
         index.name = 'system'
         out = xr.concat(data_rows,dim=index)
         out.attrs.update({'dims_unpacked':dims})
+        out = out.assign_coords({'pix_x':np.arange(0,len(out.pix_x)),'pix_y':np.arange(0,len(out.pix_y))})
         return out
