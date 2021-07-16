@@ -130,8 +130,8 @@ class FileLoader():
         if output_qxy:
             #come up with destination qx/qy here
             if 'energy' in dest_coords.keys():
-                target_energy=np.median(dest_coords['energy:'])
-                for n,e in enumerate(dest_coords['energy'])
+                target_energy=np.median(dest_coords['energy'])
+                for n,e in enumerate(dest_coords['energy']):
                     if e == target_energy:
                         dest_row = n
                         break
