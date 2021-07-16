@@ -26,14 +26,14 @@ class ALS11012RSoXSLoader(FileLoader):
     md_loading_is_quick = True
     
     
-    def __init__(self,corr_mode=None,user_corr_func=None,dark_pedestal=0,exposure_offset=0.002):
+    def __init__(self,corr_mode=None,user_corr_func=None,dark_pedestal=0,exposure_offset=0.002,constant_md={}):
         '''
         Args:
             corr_mode (str): origin to use for the intensity correction.  Can be 'expt','i0','expt+i0','user_func','old',or 'none'
             user_corr_func (callable): that takes the header dictionary and returns the value of the correction.
             dark_pedestal (numeric): number to add to the whole image before doing dark subtraction, to avoid non-negative values.
             exposure_offset (numeric): value to add to the exposure time.  Measured at 2ms with the piezo shutter in Dec 2019 by Jacob Thelen, NIST
-        
+            constant_md (dict): values to insert into every metadata load.  Example: beamcenter_x, beamcenter_y, sdd to enable qx/qy loading.
         '''
         if corr_mode == None:
             warnings.warn("Correction mode was not set, not performing *any* intensity corrections.  Are you sure this is "+ 
@@ -45,6 +45,7 @@ class ALS11012RSoXSLoader(FileLoader):
         self.user_corr_func = user_corr_func
         self.exposure_offset = exposure_offset
         self.darks = {}
+        self.constant_md = constant_md
     
     def loadDarks(self,basepath,dark_base_name):
         '''
@@ -101,7 +102,7 @@ class ALS11012RSoXSLoader(FileLoader):
                     print(f'Loading dark for {md["EXPOSURE"]} from {file}')
                     exptime = md['EXPOSURE']
                     self.darks[exptime] = img
-    def loadSingleImage(self,filepath,coords=None):
+    def loadSingleImage(self,filepath,coords=None,return_q=False):
         '''
         THIS IS A HELPER FUNCTION, mostly - should not be called directly unless you know what you are doing
 
@@ -149,6 +150,12 @@ class ALS11012RSoXSLoader(FileLoader):
         img = (img-darkimg+self.dark_pedestal)/corr
         
         # now, match up the dims and coords
+        if return_q:
+            qpx = 2*np.pi*60e-6/(headerdict['sdd']/1000)/(headerdict['wavelength']*1e10)
+            qx = (np.arange(1,img.size[0]+1)-headerdict['beamcenter_x'])*qpx
+            qy = (np.arange(1,img.size[1]+1)-headerdict['beamcenter_y'])*qpx
+            # now, match up the dims and coords
+            return xr.DataArray(img,dims=['qy','qx'],coords={'qy':qy,'qx':qx},attrs=headerdict)
         return xr.DataArray(img,dims=['pix_x','pix_y'],attrs=headerdict)
         
     def peekAtMd(self,file):
@@ -183,5 +190,6 @@ class ALS11012RSoXSLoader(FileLoader):
         headerdict['det_x'] = round(headerdict['CCD X'],2)
         headerdict['det_y'] = round(headerdict['CCD Y'],2)
         headerdict['det_th'] = round(headerdict['CCD Theta'],2)
+        headerdict.update(self.constant_md)
         return headerdict
         
