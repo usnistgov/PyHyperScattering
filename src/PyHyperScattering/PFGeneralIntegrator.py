@@ -95,12 +95,12 @@ class PFGeneralIntegrator():
             filetoload (pathlib.Path or string): path to hdf5/tiff format mask from Nika.
             rotate_image (bool, default True): rotate image as should work
         '''
-        if 'h5' in string(filetoload):
+        if 'h5' in str(filetoload):
             type='h5'
             maskhdf = h5py.File(filetoload,'r')
             mask = maskhdf['M_ROIMask']
 
-        elif 'tif' in string(filetoload):
+        elif 'tif' in str(filetoload):
             type='tif'
             mask = plt.imread(filetoload)
             
