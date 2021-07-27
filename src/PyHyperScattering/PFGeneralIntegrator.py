@@ -87,23 +87,27 @@ class PFGeneralIntegrator():
         return f"PyFAI general integrator wrapper SDD = {self.dist} m, poni1 = {self.poni1} m, poni2 = {self.poni2} m, rot1 = {self.rot1} rad, rot2 = {self.rot2} rad"
 
 
-    def loadNikaMask(self,filetoload):
+    def loadNikaMask(self,filetoload,rotate_image=True):
         '''
         Loads a Nika-generated HDF5 or tiff mask and converts it to an array that matches the local conventions.
         
         Args:
-            filetoload: path to hdf5/tiff format mask from Nika.
+            filetoload (pathlib.Path or string): path to hdf5/tiff format mask from Nika.
+            rotate_image (bool, default True): rotate image as should work
         '''
-        if 'h5' in filetoload:
+        if 'h5' in string(filetoload):
             type='h5'
             maskhdf = h5py.File(filetoload,'r')
             mask = maskhdf['M_ROIMask']
 
-        elif 'tif' in filetoload:
+        elif 'tif' in string(filetoload):
             type='tif'
             mask = plt.imread(filetoload)
             
-        convertedmask = np.flipud(np.rot90(mask))
+        if rotate_image: 
+            convertedmask = np.flipud(np.rot90(mask))
+        else:
+            convertedmask = mask
         boolmask = np.invert(convertedmask.astype(bool))
         print(f"Imported Nika mask of type {type}, dimensions {str(np.shape(boolmask))}")
         self.mask = boolmask
@@ -120,7 +124,7 @@ class PFGeneralIntegrator():
             bcx: beam center x in pixels
             bcy: beam center y in pixels
             tiltx: detector x tilt in deg, see note above
-            tilty: detectpr y tilt in deg, see note above
+            tilty: detector y tilt in deg, see note above
             pixsizex: pixel size in x, microns
             pixsizey: pixel size in y, microns
         '''
