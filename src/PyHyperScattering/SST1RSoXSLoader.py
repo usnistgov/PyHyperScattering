@@ -14,7 +14,7 @@ import numpy as np
 class SST1RSoXSLoader(FileLoader):
     '''
     Loader for TIFF files from NSLS-II SST1 RSoXS instrument
-    
+
     '''
     file_ext = '(.*?)primary(.*?).tiff'
     md_loading_is_quick = True
@@ -111,7 +111,7 @@ class SST1RSoXSLoader(FileLoader):
             data = json.load(f)
             meas_time =datetime.datetime.fromtimestamp(data[1]['time'])
             json_dict['sample_name'] = data[1]['sample_name']
-        if data[1]['RSoXS_Config'] == 'SAXS':
+        if data[1]['RSoXS_Main_DET'] == 'SAXS':
             json_dict['rsoxs_config'] = 'saxs'
             # discrepency between what is in .json and actual
             if (meas_time > datetime.datetime(2020,12,1)) and (meas_time < datetime.datetime(2021,1,15)):
@@ -127,7 +127,7 @@ class SST1RSoXSLoader(FileLoader):
                 json_dict['beamcenter_y'] = data[1]['RSoXS_SAXS_BCY']
                 json_dict['sdd'] = data[1]['RSoXS_SAXS_SDD']
 
-        elif data[1]['RSoXS_Config'] == 'WAXS':
+        elif data[1]['RSoXS_Main_DET'] == 'WAXS':
             json_dict['rsoxs_config'] = 'waxs'
             if (meas_time > datetime.datetime(2020,11,16)) and (meas_time < datetime.datetime(2021,1,15)):
                 json_dict['beamcenter_x'] = 400.46
@@ -142,6 +142,20 @@ class SST1RSoXSLoader(FileLoader):
             json_dict['rsoxs_config'] == 'unknown'
             warnings.warn('RSoXS_Config is neither SAXS or WAXS. Check json file')
 
+        if json_dict['sdd'] == None:
+            warnings.warn('sdd is None, reverting to default values. Check json file')
+            if json_dict['rsoxs_config'] == 'waxs':
+                json_dict['sdd'] = 38.745
+            elif json_dict['rsoxs_config'] == 'saxs':
+                json_dict['sdd'] = 512.12
+        if json_dict['beamcenter_x'] == None:
+            warnings.warn('beamcenter_x/y is None, reverting to default values. Check json file')
+            if json_dict['rsoxs_config'] == 'waxs':
+                json_dict['beamcenter_x'] = 400.46
+                json_dict['beamcenter_y'] = 530.99
+            elif json_dict['rsoxs_config'] == 'saxs':
+                json_dict['beamcenter_x'] = 371.52
+                json_dict['beamcenter_y'] = 491.17
         return json_dict
 
     def read_baseline(self,baseline_csv):
@@ -209,9 +223,10 @@ class SST1RSoXSLoader(FileLoader):
         headerdict['wavelength'] = 1.239842e-6 / headerdict['energy']
         headerdict['seq_num'] = seq_num
         headerdict['sampleid'] = scan_id
-
-        headerdict['dist'] = headerdict['sdd'] / 1000
-
+        # try:
+        #     headerdict['dist'] = headerdict['sdd'] / 1000
+        # except TypeError:
+        #     print(headerdict['sdd'])
         headerdict['pixel1'] = self.pix_size_1 / 1000
         headerdict['pixel2'] = self.pix_size_2 / 1000
 
