@@ -223,10 +223,11 @@ class SST1RSoXSLoader(FileLoader):
         headerdict['wavelength'] = 1.239842e-6 / headerdict['energy']
         headerdict['seq_num'] = seq_num
         headerdict['sampleid'] = scan_id
-        # try:
-        #     headerdict['dist'] = headerdict['sdd'] / 1000
-        # except TypeError:
-        #     print(headerdict['sdd'])
+        try:
+            headerdict['dist'] = headerdict['sdd'] / 1000
+        except TypeError:
+            print(headerdict['sdd'])
+        
         headerdict['pixel1'] = self.pix_size_1 / 1000
         headerdict['pixel2'] = self.pix_size_2 / 1000
 
