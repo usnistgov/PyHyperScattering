@@ -5,8 +5,8 @@ This is a pre-ALPHA package, under active development.  It has not been tested f
 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/usnistgov/PyHyperScattering/HEAD)
 [![Documentation Status](https://readthedocs.org/projects/pyhyperscattering/badge/?version=latest)](https://pyhyperscattering.readthedocs.io/en/latest/?badge=latest)
-![Unit Tests](https://github.com/usnistgiv/PyHyperScattering/actions/workflows/main.yml/badge.svg)
-![CodeQL](https://github.com/usnistgiv/PyHyperScattering/actions/workflows/codeql-analysis.yml/badge.svg)
+![Unit Tests](https://github.com/usnistgov/PyHyperScattering/actions/workflows/main.yml/badge.svg)
+![CodeQL](https://github.com/usnistgov/PyHyperScattering/actions/workflows/codeql-analysis.yml/badge.svg)
 
 Legal
 =====
