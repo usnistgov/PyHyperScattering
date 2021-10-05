@@ -36,7 +36,10 @@ Once you do that, you can follow these instructions to set up a development envi
 		from PyHyperScattering import __version__
 		print(f'USING PYHYPER VERSION: {__version__}')
 
-	If __version__ prints as devel (or whatever it is set to in PyHyperScattering/src/init.py), you are on your development copy. If it prints a release number, you probably are using production code.
+	__version__ will prints as either a release number (if sourced from pip), or a longer string if sourced from a working tree, something like: 0.6+2.g6d02fb3.dirty
+
+	 If it prints a git hash, you're working from your development copy. 
+	 (the format is [last tag]+[number of untagged commits].[commit hash].[dirty if there are unstaged changes])
 
 3) Do your development
 
