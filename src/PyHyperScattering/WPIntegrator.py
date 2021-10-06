@@ -83,16 +83,27 @@ class WPIntegrator():
         return retval
     
     def integrateSingleImage(self,img):
-        img_to_integ = img.values
+        img_to_integ = img.values.squeeze()
+ 
+        center_x = (xr.DataArray(np.linspace(0,len(img.qx)-1,len(img.qx)))
+                    .assign_coords({'dim_0':img.qx.values})
+                    .rename({'dim_0':'qx'})
+                    .interp(qx=0)
+                    .data)
+        center_y = (xr.DataArray(np.linspace(0,len(img.qy)-1,len(img.qy)))
+                    .assign_coords({'dim_0':img.qy.values})
+                    .rename({'dim_0':'qy'})
+                    .interp(qy=0)
+                    .data)        
         try:
             system_to_integ = img.system
         except AttributeError:
             pass
         
         if self.MACHINE_HAS_CUDA:
-            TwoD = self.warp_polar_gpu(img_to_integ)
+            TwoD = self.warp_polar_gpu(img_to_integ,center=(center_x,center_y))
         else:
-            TwoD = skimage.transform.warp_polar(img_to_integ)
+            TwoD = skimage.transform.warp_polar(img_to_integ,center=(center_x,center_y))
 
         
         qx = img.qx

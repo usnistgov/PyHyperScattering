@@ -130,7 +130,9 @@ class FileLoader():
         if output_qxy:
             #come up with destination qx/qy here
             if 'energy' in dest_coords.keys():
-                target_energy=np.median(dest_coords['energy'])
+                en_sorted = np.sort(dest_coords['energy'])
+                target_energy = en_sorted[math.floor(len(en_sorted)/2)]
+                #target_energy=np.median(dest_coords['energy']) should work but doesn't bc of edge case w even num pts
                 for n,e in enumerate(dest_coords['energy']):
                     if e == target_energy:
                         dest_row = n
@@ -139,12 +141,11 @@ class FileLoader():
                 dest_row = math.floor(len(data_rows)/2)
             if dest_qx is None: dest_qx = data_rows[dest_row].qx
             if dest_qy is None: dest_qy = data_rows[dest_row].qy
+            data_rows_transformed = []
             for row in data_rows:
-                row = row.interp(coords={'qx':dest_qx,'qy':dest_qy})
-    
-
-
-        out = xr.concat(data_rows,dim=index)
+                data_rows_transformed.append(
+                    row.interp(coords={'qx':dest_qx,'qy':dest_qy}))
+        out = xr.concat(data_rows_transformed,dim=index)
         out.attrs.update({'dims_unpacked':dims})
         if not output_qxy:
             out = out.assign_coords({'pix_x':np.arange(0,len(out.pix_x)),'pix_y':np.arange(0,len(out.pix_y))})
