@@ -120,10 +120,8 @@ class cyrsoxsLoader():
         return xr.DataArray(data, dims=("qx", "qy", "system"), coords={"qx":Qx, "qy":Qy, "system":index},attrs=config)
         
         #bar = xr.DataArray(data_remeshed, dims=("chi", "q", "energy"), coords={"chi":output_chi, "q":output_q, "energy":elist})        
-
-       
-        return foo, bar
-
+'''
+    @TODO: support larger axes based on regex of dir names - this should be implemented at the fileloader level, I think, personally.
     def datacubes_params(maindir, prefix, params):
         start = datetime.datetime.now()
 
@@ -190,3 +188,4 @@ class cyrsoxsLoader():
         print(f'Finished reading ' + str(numparams) + ' parameters. Time required: ' + str(datetime.datetime.now()-start))
 
         return lfoo, lbar
+'''
