@@ -59,7 +59,6 @@ class PFEnergySeriesIntegrator(PFGeneralIntegrator):
             self.dist, self.poni1, self.poni2, self.rot1, self.rot2, self.rot3 ,pixel1=self.pixel1,pixel2=self.pixel2, wavelength = 1.239842e-6/en)
         return self.integrator_stack[en]
     def __init__(self,**kwargs):
-        #@todo: how much of this can be in a super.init call?
         self.integrator_stack = {}
         
         super().__init__(**kwargs)

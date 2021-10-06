@@ -4,6 +4,7 @@ import warnings
 import xarray as xr
 import numpy as np
 import math
+import matplotlib.pyplot as plt
 
 class PFGeneralIntegrator():
 
@@ -86,16 +87,32 @@ class PFGeneralIntegrator():
         return f"PyFAI general integrator wrapper SDD = {self.dist} m, poni1 = {self.poni1} m, poni2 = {self.poni2} m, rot1 = {self.rot1} rad, rot2 = {self.rot2} rad"
 
 
-    def loadNikaMask(self,filetoload):
+    def loadNikaMask(self,filetoload,rotate_image=True):
         '''
-        Loads a Nika-generated HDF5 mask and converts it to an array that matches the local conventions.
+        Loads a Nika-generated HDF5 or tiff mask and converts it to an array that matches the local conventions.
         
-        @param filetoload: path to hdf5 format mask from Nika.
+        Args:
+            filetoload (pathlib.Path or string): path to hdf5/tiff format mask from Nika.
+            rotate_image (bool, default True): rotate image as should work
         '''
-        maskhdf = h5py.File(filetoload,'r')
-        convertedmask = np.flipud(np.rot90(maskhdf['M_ROIMask']))
+        if 'h5' in str(filetoload) or 'hdf' in str(filetoload):
+            type='h5'
+            maskhdf = h5py.File(filetoload,'r')
+            mask = maskhdf['M_ROIMask']
+
+        elif 'tif' in str(filetoload):
+            type='tif'
+            mask = plt.imread(filetoload)
+        else:
+            warnings.warn('Unsupported mask type...')
+
+            
+        if rotate_image: 
+            convertedmask = np.flipud(np.rot90(mask))
+        else:
+            convertedmask = mask
         boolmask = np.invert(convertedmask.astype(bool))
-        print("Imported Nika mask, dimensions " + str(np.shape(boolmask)))
+        print(f"Imported Nika mask of type {type}, dimensions {str(np.shape(boolmask))}")
         self.mask = boolmask
 
     def calibrationFromNikaParams(self,distance, bcx, bcy, tiltx, tilty,pixsizex, pixsizey):
@@ -105,13 +122,14 @@ class PFGeneralIntegrator():
            this will probably only support rotations in the SAXS limit (i.e., where sin(x) ~ x, i.e., a couple degrees)
            since it assumes the PyFAI and Nika rotations are about the same origin point (which I think isn't true).
         
-        @param distance: sample-detector distance in mm
-        @param bcx: beam center x in pixels
-        @param bcy: beam center y in pixels
-        @param tiltx: detector x tilt in deg, see note above
-        @param tilty: detectpr y tilt in deg, see note above
-        @param pixsizex: pixel size in x, microns
-        @param pixsizey: pixel size in y, microns
+        Args:
+            distance: sample-detector distance in mm
+            bcx: beam center x in pixels
+            bcy: beam center y in pixels
+            tiltx: detector x tilt in deg, see note above
+            tilty: detector y tilt in deg, see note above
+            pixsizex: pixel size in x, microns
+            pixsizey: pixel size in y, microns
         '''
         self.dist = distance / 1000 # mm in Nika, m in pyFAI
         self.poni1 = bcy * pixsizey / 1000#pyFAI uses the same 0,0 definition, so just pixel to m.  y = poni1, x = poni2
@@ -127,13 +145,10 @@ class PFGeneralIntegrator():
         
     def calibrationFromTemplateXRParams(self,raw_xr):
         '''
+        Return a calibration array [dist,poni1,poni2,rot1,rot2,rot3] from a pyFAI values in a template xarray
         
-        Return a calibration array [dist,poni1,poni2,rot1,rot2,rot3] from a Nika detector geometry
-        # if you change the CCD binning, pixsizexy params need to be given.  Default is for 4x4 binning which results in effective size of 27 um.
-        #this will probably only support rotations in the SAXS limit (i.e., where sin(x) ~ x, i.e., a couple degrees)
-        # since it assumes the PyFAI and Nika rotations are about the same origin point (which I think isn't true).
-
-        @param raw_xr: a raw_xr bearing the metadata in members
+        Args:
+            raw_xr (raw format xarray): a raw_xr bearing the metadata in members
         
         '''
         self.dist = raw_xr.dist

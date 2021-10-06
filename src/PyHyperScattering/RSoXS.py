@@ -4,17 +4,24 @@ import numpy as np
 import math
 
 def slice_chi(img,chi,chi_width=5):
+    '''
+    slice an xarray in chi
+    
+    Args:
+        img (xarray): xarray to work on
+        chi (numeric): q about which slice should be centered, in deg
+        chi_width (numeric): width of slice in each direction, in deg
+    '''
     return img.sel(chi=slice(chi-chi_width,chi+chi_width)).mean('chi')
 
 def slice_q(img,q,q_width=None):
     '''
     slice an xarray in q
     
-    @param img: xarray to work on
-    
-    @param q: q about which slice should be centered
-    
-    @param q_width (default 10%): width of slice in each direction.
+    Args:
+        img (xarray): xarray to work on
+        q (numeric): q about which slice should be centered
+        q_width (numeric): width of slice in each direction, in q units
     '''
     if q_width==None:
         q_width = 0.1*q
@@ -29,9 +36,17 @@ def select_pol(img,pol,method='nearest'):
     return img.sel(polarization=pol,method=method)
     
     
-def AR(img,calc2d=False,two_AR=False,chi_width=5):
+def AR(img,calc2d=False,two_AR=False,chi_width=5,calc2d_norm_energy=None):
     '''
-    img can either be a single dataarray (in which case we'll compute AR using 0 and 90 deg chi slices), or a list of two dataarrays with polarization 0 and 90 (in which case we'll use the more rigorous approach decoupling the polarization-induced anisotropy)
+    Calculate the RSoXS Anisotropic Ratio (AR) of either a single RSoXS scan or a polarized pair of scans.
+
+    AR is defined as (para-perp)/(para+perp) where para is the chi slice parallel to the polarization direction, and perp is the chi slice 90 deg offset from the polarization direction.
+    
+    Args:
+        img (xarray): image to plot
+        calc2d (bool): calculate the AR using both polarizations
+        two_AR (bool): return both polarizations if calc2d = True.  If two_AR = False, return the average AR between the two polarizations.
+        calc2d_norm_energy (numeric): if set, normalizes each polarization's AR at a given energy.  THIS EFFECTIVELY FORCES THE AR TO 0 AT THIS ENERGY.
     '''
     
     if(not calc2d):
@@ -51,6 +66,13 @@ def AR(img,calc2d=False,two_AR=False,chi_width=5):
         AR_para = ((para_para - para_perp)/(para_para+para_perp))
         AR_perp = ((perp_perp - perp_para)/(perp_perp+perp_para))
         
+        if calc2d_norm_energy is not None:
+            AR_para = AR_para / AR_para.sel(energy=calc2d_norm_energy)
+            AR_perp = AR_perp / AR_perp.sel(energy=calc2d_norm_energy)
+
+        if AR_para < AR_perp or AR_perp < AR_para:
+            warnings.warn('One polarization has a systematically higher/lower AR than the other.  Typically this indicates bad intensity values.')
+
         if two_AR:
             return (AR_para,AR_perp)
         else:

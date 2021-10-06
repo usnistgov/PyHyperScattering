@@ -1,3 +1,4 @@
+versioneer
 astropy
 fabio
 h5py

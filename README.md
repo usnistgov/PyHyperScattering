@@ -3,7 +3,10 @@ Python utilities for loading, reducing, slicing, and plotting hyperspectral scat
 
 This is a pre-ALPHA package, under active development.  It has not been tested for functionality, stability, or scientific correctness. It may be poorly documented.  Use at your own risk.  If you have interest in contributing, please contact Peter Beaucage (peter.beaucage@nist.gov).
 
-
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/usnistgov/PyHyperScattering/HEAD)
+[![Documentation Status](https://readthedocs.org/projects/pyhyperscattering/badge/?version=latest)](https://pyhyperscattering.readthedocs.io/en/latest/?badge=latest)
+![Unit Tests](https://github.com/usnistgov/PyHyperScattering/actions/workflows/main.yml/badge.svg)
+![CodeQL](https://github.com/usnistgov/PyHyperScattering/actions/workflows/codeql-analysis.yml/badge.svg)
 
 Legal
 =====
