@@ -24,3 +24,4 @@ dist
 docs/_build/*
 docs/_build/html/*
 
+*.pyc
