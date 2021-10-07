@@ -34,6 +34,14 @@ def test_11012_single_scan_import():
                               )
 
 
+def test_11012_single_scan_qxy_import():
+	global loader 
+	return loader.loadFileSeries(
+                                'Example/11012/CCD/',
+                               ['energy','polarization','exposure','filenumber'],
+                               coords = {'filenumber':test_custom_coord_creation()},
+                               md_filter={'sampleid':1,'CCD Shutter Inhibit':0},
+                              output_qxy=True)
 def test_examine_single_scan():
 	data = test_11012_single_scan_import()
 

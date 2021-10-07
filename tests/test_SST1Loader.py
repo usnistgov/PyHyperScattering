@@ -15,3 +15,7 @@ def test_loader_imports_cleanly():
 def test_SST1_single_scan_import():
 	global loader
 	return loader.loadFileSeries('Example/SST1/21792/',['energy','polarization'])
+
+def test_SST1_single_scan_qxy_import():
+        global loader
+        return loader.loadFileSeries('Example/SST1/21972/',['energy','polarization'],output_qxy=True)
