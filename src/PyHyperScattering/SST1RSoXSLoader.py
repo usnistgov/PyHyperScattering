@@ -21,13 +21,14 @@ class SST1RSoXSLoader(FileLoader):
     pix_size_1 = 0.06
     pix_size_2 = 0.06
 
-    def __init__(self,corr_mode=None,user_corr_fun=None,dark_pedestal=0,exposure_offset=0):
+    def __init__(self,corr_mode=None,user_corr_fun=None,dark_pedestal=0,exposure_offset=0,constant_md={}):
         '''
         Args:
             corr_mode (str): origin to use for the intensity correction.  Can be 'expt','i0','expt+i0','user_func','old',or 'none'
             user_corr_func (callable): takes the header dictionary and returns the value of the correction.
             dark_pedestal (numeric): value to add to the whole image before doing dark subtraction, to avoid non-negative values.
             exposure_offset (numeric): value to add to the exposure time.  Measured at 2ms with the piezo shutter in Dec 2019 by Jacob Thelen, NIST
+            constant_md (dict): values to insert into every metadata load. 
         '''
 
         if corr_mode == None:
@@ -36,6 +37,10 @@ class SST1RSoXSLoader(FileLoader):
             self.corr_mode = 'none'
         else:
             self.corr_mode = corr_mode
+
+
+        self.constant_md = constant_md
+
         # self.dark_pedestal = dark_pedestal
         # self.user_corr_func = user_corr_func
         # self.exposure_offset = exposure_offset
@@ -58,6 +63,16 @@ class SST1RSoXSLoader(FileLoader):
 
 
     def loadSingleImage(self,filepath,coords=None, return_q=False):
+        '''
+        HELPER FUNCTION that loads a single image and returns an xarray with either pix_x / pix_y dimensions (if return_q == False) or qx / qy (if return_q == True)
+
+
+        Args:
+            filepath (str): path of the file to load
+            coords (dict-like): coordinate values to inject into the metadata
+            return_q (bool): return qx / qy coords.  If false, returns pixel coords.
+
+        '''
         img = Image.open(filepath)
 
         headerdict = self.loadMd(filepath)
@@ -98,8 +113,8 @@ class SST1RSoXSLoader(FileLoader):
         # img = (img-darkimg+self.dark_pedestal)/corr
         if return_q:
             qpx = 2*np.pi*60e-6/(headerdict['sdd']/1000)/(headerdict['wavelength']*1e10)
-            qx = (np.arange(1,img.size[0]+1)-headerdict['beamcenter_x'])*qpx
-            qy = (np.arange(1,img.size[1]+1)-headerdict['beamcenter_y'])*qpx
+            qx = (np.arange(1,img.size[0]+1)-headerdict['beamcenter_y'])*qpx
+            qy = (np.arange(1,img.size[1]+1)-headerdict['beamcenter_x'])*qpx
             # now, match up the dims and coords
             return xr.DataArray(img,dims=['qy','qx'],coords={'qy':qy,'qx':qx},attrs=headerdict)
         else:
@@ -238,6 +253,7 @@ class SST1RSoXSLoader(FileLoader):
         headerdict['rot2'] = 0
         headerdict['rot3'] = 0
 
+        headerdict.update(self.constant_md)
         return headerdict
 
     def peekAtMd(self,filepath):
