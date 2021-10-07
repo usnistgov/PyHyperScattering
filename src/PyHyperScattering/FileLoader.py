@@ -145,7 +145,8 @@ class FileLoader():
             for row in data_rows:
                 data_rows_transformed.append(
                     row.interp(coords={'qx':dest_qx,'qy':dest_qy}))
-        out = xr.concat(data_rows_transformed,dim=index)
+            data_rows = data_rows_transformed
+        out = xr.concat(data_rows,dim=index)
         out.attrs.update({'dims_unpacked':dims})
         if not output_qxy:
             out = out.assign_coords({'pix_x':np.arange(0,len(out.pix_x)),'pix_y':np.arange(0,len(out.pix_y))})
