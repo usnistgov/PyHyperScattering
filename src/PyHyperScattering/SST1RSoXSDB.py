@@ -213,7 +213,7 @@ class SST1RSoXSDB:
             'sam_th':'RSoXS Sample Rotation',
             'energy':'en_energy_setpoint',
             'polarization':'en_polarization_setpoint',
-            'exposure':md['detector']+'_cam_acquire_time'
+            'exposure':'RSoXS Shutter Opening Time (ms)' #md['detector']+'_cam_acquire_time'
         }
 
         for phs,rsoxs in md_lookup.items():
