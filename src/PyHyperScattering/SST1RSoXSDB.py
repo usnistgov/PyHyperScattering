@@ -120,7 +120,7 @@ class SST1RSoXSDB:
         for dim in dims:
             try:
                 test = len(md[dim])
-                dims_to_join.append(md[dim].data)
+                dims_to_join.append(md[dim])
                 dim_names_to_join.append(dim)
             except TypeError:
                 dims_to_join.append(np.ones(run.start['num_points'])*md[dim])
@@ -134,7 +134,7 @@ class SST1RSoXSDB:
                 dims_to_join,
                 names=dim_names_to_join)
 
-        retxr = image.squeeze('dim_0').rename({'dim_1':'pix_y','dim_2':'pix_x'}).assign_coords(time=index).rename({'time':'system'})#,md['detector']+'_image':'intensity'})
+        retxr = image.squeeze('dim_0').rename({'dim_1':'pix_y','dim_2':'pix_x'}).rename({'time':'system'}).assign_coords(system=index)#,md['detector']+'_image':'intensity'})
         
         #this is needed for holoviews compatibility, hopefully does not break other features.
         retxr = retxr.assign_coords({'pix_x':np.arange(0,len(retxr.pix_x)),'pix_y':np.arange(0,len(retxr.pix_y))})
@@ -218,7 +218,8 @@ class SST1RSoXSDB:
 
         for phs,rsoxs in md_lookup.items():
             try:
-                md[phs] = primary[rsoxs]
+                md[phs] = primary[rsoxs].values
+                #print(f'Loading from primary: {phs}, value {primary[rsoxs].values}')
             except KeyError:
                 try:
                     blval = baseline[rsoxs]
