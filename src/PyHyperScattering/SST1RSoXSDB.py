@@ -44,7 +44,7 @@ class SST1RSoXSDB:
         '''
         if corr_mode == None:
             warnings.warn("Correction mode was not set, not performing *any* intensity corrections.  Are you sure this is "+
-                          "right? Set corr_mode to 'none' to suppress this warning.")
+                          "right? Set corr_mode to 'none' to suppress this warning.",stacklevel=2)
             self.corr_mode = 'none'
         else:
             self.corr_mode = corr_mode
@@ -111,7 +111,7 @@ class SST1RSoXSDB:
             image = data - self.dark_pedestal
 
         if self.corr_mode != 'none':
-            warnings.warn('corrections other than none are not supported at the moment')
+            warnings.warn('corrections other than none are not supported at the moment',stacklevel=2)
 
 
         dims_to_join = []
@@ -190,14 +190,14 @@ class SST1RSoXSDB:
 
         else:
             md['rsoxs_config'] == 'unknown'
-            warnings.warn(f'RSoXS_Config is neither SAXS or WAXS. Looks to be {start["RSoXS_Config"]}.  Might want to check that out.')
+            warnings.warn(f'RSoXS_Config is neither SAXS or WAXS. Looks to be {start["RSoXS_Config"]}.  Might want to check that out.',stacklevel=2)
 
         if md['rsoxs_config']=='saxs':
             md['detector'] = 'Small Angle CCD Detector'
         elif md['rsoxs_config']=='waxs':
             md['detector'] = 'Wide Angle CCD Detector'
         else:
-            warnings.warn(f'Cannot auto-hint detector type without RSoXS config.')
+            warnings.warn(f'Cannot auto-hint detector type without RSoXS config.',stacklevel=2)
 
 
         # items coming from baseline  
@@ -224,9 +224,9 @@ class SST1RSoXSDB:
                     blval = baseline[rsoxs]
                     md[phs] = blval.mean().data
                     if blval.var() > 0:
-                        warnings.warn(f'While loading {rsoxs} to infill metadata entry for {phs}, found beginning and end values unequal: {baseline[rsoxs]}.  It is possible something is messed up.')
+                        warnings.warn(f'While loading {rsoxs} to infill metadata entry for {phs}, found beginning and end values unequal: {baseline[rsoxs]}.  It is possible something is messed up.',stacklevel=2)
                 except KeyError:
-                    warnings.warn(f'Could not find {rsoxs} in either baseline or primary.  Needed to infill value {phs}.  Setting to None.')
+                    warnings.warn(f'Could not find {rsoxs} in either baseline or primary.  Needed to infill value {phs}.  Setting to None.',stacklevel=2)
                     md[phs] = None
                     
         md['wavelength'] = 1.239842e-6 / md['energy']
@@ -281,7 +281,7 @@ class SST1RSoXSDB:
             corr = 1
 
         if(corr<0):
-            warnings.warn(f'Correction value is negative: {corr} with headers {headerdict}.')
+            warnings.warn(f'Correction value is negative: {corr} with headers {headerdict}.',stacklevel=2)
             corr = abs(corr)
 
 
@@ -289,7 +289,7 @@ class SST1RSoXSDB:
         # try:
         #     darkimg = self.darks[headerdict['EXPOSURE']]
         # except KeyError:
-        #     warnings.warn(f"Could not find a dark image with exposure time {headerdict['EXPOSURE']}.  Using zeros.")
+        #     warnings.warn(f"Could not find a dark image with exposure time {headerdict['EXPOSURE']}.  Using zeros.",stacklevel=2)
         #     darkimg = np.zeros_like(img)
 
         # img = (img-darkimg+self.dark_pedestal)/corr

@@ -71,7 +71,7 @@ def AR(img,calc2d=False,two_AR=False,chi_width=5,calc2d_norm_energy=None):
             AR_perp = AR_perp / AR_perp.sel(energy=calc2d_norm_energy)
 
         if AR_para < AR_perp or AR_perp < AR_para:
-            warnings.warn('One polarization has a systematically higher/lower AR than the other.  Typically this indicates bad intensity values.')
+            warnings.warn('One polarization has a systematically higher/lower AR than the other.  Typically this indicates bad intensity values.',stacklevel=2)
 
         if two_AR:
             return (AR_para,AR_perp)

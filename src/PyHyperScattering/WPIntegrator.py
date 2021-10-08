@@ -16,7 +16,7 @@ try:
     import cupyx.scipy.ndimage as ndigpu
 except ImportError:
     MACHINE_HAS_CUDA=False
-    warnings.warn('Could not import CuPy or ndigpu.  If you expect this machine to support CuPy, check dependencies.  Falling back to scikit-image/numpy CPU integration.')
+    warnings.warn('Could not import CuPy or ndigpu.  If you expect this machine to support CuPy, check dependencies.  Falling back to scikit-image/numpy CPU integration.',stacklevel=2)
 
 
 class WPIntegrator():

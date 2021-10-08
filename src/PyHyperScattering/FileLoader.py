@@ -100,7 +100,7 @@ class FileLoader():
                     except IndexError: # handle the edge case of the first run, where dest_coords has no keys.  Can't be a duplicate if there's nothing to duplicate ;)
                         duplicate=False
                     if duplicate:
-                        warnings.warn(f'Duplicate image detected while loading... skipping this image {img.attrs}')
+                        warnings.warn(f'Duplicate image detected while loading... skipping this image {img.attrs}',stacklevel=2)
                     else:
                         data_rows.append(img)
                         for dim in dims:

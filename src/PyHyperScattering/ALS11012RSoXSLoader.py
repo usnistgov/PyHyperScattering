@@ -8,7 +8,7 @@ import re
 try:
     from astropy.io import fits
 except ImportError:
-    warnings.warn('Could not import astropy.io.fits, needed for ALS 11.0.1.2 RSoXS loading.  Is this dependency installed?')
+    warnings.warn('Could not import astropy.io.fits, needed for ALS 11.0.1.2 RSoXS loading.  Is this dependency installed?',stacklevel=2)
 
 
 class ALS11012RSoXSLoader(FileLoader):
@@ -37,7 +37,7 @@ class ALS11012RSoXSLoader(FileLoader):
         '''
         if corr_mode == None:
             warnings.warn("Correction mode was not set, not performing *any* intensity corrections.  Are you sure this is "+ 
-                          "right? Set corr_mode to 'none' to suppress this warning.")
+                          "right? Set corr_mode to 'none' to suppress this warning.",stacklevel=2)
             self.corr_mode = 'none'
         else:
             self.corr_mode = corr_mode
@@ -136,7 +136,7 @@ class ALS11012RSoXSLoader(FileLoader):
             corr = 1
             
         if(corr<0):
-            warnings.warn(f'Correction value is negative: {corr} with headers {headerdict}.')
+            warnings.warn(f'Correction value is negative: {corr} with headers {headerdict}.',stacklevel=2)
             corr = abs(corr)
 
         
@@ -144,7 +144,7 @@ class ALS11012RSoXSLoader(FileLoader):
         try:
             darkimg = self.darks[headerdict['EXPOSURE']]
         except KeyError:
-            warnings.warn(f"Could not find a dark image with exposure time {headerdict['EXPOSURE']}.  Using zeros.")
+            warnings.warn(f"Could not find a dark image with exposure time {headerdict['EXPOSURE']}.  Using zeros.",stacklevel=2)
             darkimg = np.zeros_like(img)
 
         img = (img-darkimg+self.dark_pedestal)/corr

@@ -16,7 +16,7 @@ class PFGeneralIntegrator():
             
         if(img.system.shape[0]>1):
             system_to_integ = [img[0].system]
-            warnings.warn(f'There are two images for {img.system}, I am ONLY INTEGRATING THE FIRST.  This may cause the labels to be dropped and the result to need manual re-tagging in the index.')
+            warnings.warn(f'There are two images for {img.system}, I am ONLY INTEGRATING THE FIRST.  This may cause the labels to be dropped and the result to need manual re-tagging in the index.',stacklevel=2)
         else:
             system_to_integ = img.system
         TwoD = self.integrator.integrate2d(img_to_integ,
@@ -78,7 +78,7 @@ class PFGeneralIntegrator():
             self.rot3 = 0
             self.pixel1 = 0.027/1e3
             self.pixel2 = 0.027/1e3
-            warnings.warn('Initializing geometry with default values.  This is probably NOT what you want.')
+            warnings.warn('Initializing geometry with default values.  This is probably NOT what you want.',stacklevel=2)
 
 
         self.recreateIntegrator()
@@ -104,7 +104,7 @@ class PFGeneralIntegrator():
             type='tif'
             mask = plt.imread(filetoload)
         else:
-            warnings.warn('Unsupported mask type...')
+            warnings.warn('Unsupported mask type...',stacklevel=2)
 
             
         if rotate_image: 

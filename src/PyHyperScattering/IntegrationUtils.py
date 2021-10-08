@@ -9,7 +9,7 @@ try:
 
     import skimage.draw
 except (ModuleNotFoundError,ImportError):
-    warnings.warn('Could not import package for interactive integration utils.  Install holoviews and scikit-image.')
+    warnings.warn('Could not import package for interactive integration utils.  Install holoviews and scikit-image.',stacklevel=2)
 import pandas as pd
 
 import json
@@ -40,7 +40,7 @@ class DrawMask:
 
         '''
         if len(frame.shape) > 2:
-            warnings.warn('This tool needs a single frame, not a stack!  .sel down to a single frame before starting!')
+            warnings.warn('This tool needs a single frame, not a stack!  .sel down to a single frame before starting!',stacklevel=2)
         
         self.frame=frame
         

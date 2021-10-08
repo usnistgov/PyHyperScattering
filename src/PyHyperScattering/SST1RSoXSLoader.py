@@ -33,7 +33,7 @@ class SST1RSoXSLoader(FileLoader):
 
         if corr_mode == None:
             warnings.warn("Correction mode was not set, not performing *any* intensity corrections.  Are you sure this is "+
-                          "right? Set corr_mode to 'none' to suppress this warning.")
+                          "right? Set corr_mode to 'none' to suppress this warning.",stacklevel=2)
             self.corr_mode = 'none'
         else:
             self.corr_mode = corr_mode
@@ -99,7 +99,7 @@ class SST1RSoXSLoader(FileLoader):
             corr = 1
 
         if(corr<0):
-            warnings.warn(f'Correction value is negative: {corr} with headers {headerdict}.')
+            warnings.warn(f'Correction value is negative: {corr} with headers {headerdict}.',stacklevel=2)
             corr = abs(corr)
 
 
@@ -107,7 +107,7 @@ class SST1RSoXSLoader(FileLoader):
         # try:
         #     darkimg = self.darks[headerdict['EXPOSURE']]
         # except KeyError:
-        #     warnings.warn(f"Could not find a dark image with exposure time {headerdict['EXPOSURE']}.  Using zeros.")
+        #     warnings.warn(f"Could not find a dark image with exposure time {headerdict['EXPOSURE']}.  Using zeros.",stacklevel=2)
         #     darkimg = np.zeros_like(img)
 
         # img = (img-darkimg+self.dark_pedestal)/corr
@@ -155,16 +155,16 @@ class SST1RSoXSLoader(FileLoader):
 
         else:
             json_dict['rsoxs_config'] == 'unknown'
-            warnings.warn('RSoXS_Config is neither SAXS or WAXS. Check json file')
+            warnings.warn('RSoXS_Config is neither SAXS or WAXS. Check json file',stacklevel=2)
 
         if json_dict['sdd'] == None:
-            warnings.warn('sdd is None, reverting to default values. Check json file')
+            warnings.warn('sdd is None, reverting to default values. Check json file',stacklevel=2)
             if json_dict['rsoxs_config'] == 'waxs':
                 json_dict['sdd'] = 38.745
             elif json_dict['rsoxs_config'] == 'saxs':
                 json_dict['sdd'] = 512.12
         if json_dict['beamcenter_x'] == None:
-            warnings.warn('beamcenter_x/y is None, reverting to default values. Check json file')
+            warnings.warn('beamcenter_x/y is None, reverting to default values. Check json file',stacklevel=2)
             if json_dict['rsoxs_config'] == 'waxs':
                 json_dict['beamcenter_x'] = 400.46
                 json_dict['beamcenter_y'] = 530.99
@@ -191,7 +191,7 @@ class SST1RSoXSLoader(FileLoader):
         elif json_dict['rsoxs_config'] == 'saxs':
             primary_dict['exposure'] = df_primary['Small Angle CCD Detector_cam_acquire_time'][seq_num]
         else:
-            warnings.warn('Check rsoxs_config in json file')
+            warnings.warn('Check rsoxs_config in json file',stacklevel=2)
 
         primary_dict['energy'] = round(df_primary['en_energy_setpoint'][seq_num],4)
         primary_dict['polarization'] = df_primary['en_polarization_setpoint'][seq_num]
