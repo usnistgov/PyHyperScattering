@@ -2,3 +2,4 @@ from PyHyperScattering.ALS11012RSoXSLoader import ALS11012RSoXSLoader
 from PyHyperScattering.FileLoader import FileLoader
 from PyHyperScattering.SST1RSoXSDB import SST1RSoXSDB
 from PyHyperScattering.SST1RSoXSLoader import SST1RSoXSLoader
+from PyHyperScattering.cyrsoxsLoader import cyrsoxsLoader

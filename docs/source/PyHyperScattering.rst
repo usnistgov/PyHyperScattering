@@ -45,6 +45,13 @@ PyHyperScattering.load module
       :undoc-members:
       :show-inheritance:
 
+   PyHyperScattering.load.cyrsoxsLoader module
+   -------------------------------------------------------------------
+
+   .. autoclass:: PyHyperScattering.load.cyrsoxsLoader
+      :members:
+      :undoc-members:
+      :show-inheritance:
 
 PyHyperScattering.integrate module
 ----------------------------------
@@ -66,6 +73,14 @@ PyHyperScattering.integrate module
    --------------------------------------------------------------------------------
 
    .. automodule:: PyHyperScattering.PFGeneralIntegrator
+      :members:
+      :undoc-members:
+      :show-inheritance:
+
+      PyHyperScattering.integrate.WPIntegrator module
+   --------------------------------------------------------------------------------
+
+   .. automodule:: PyHyperScattering.WPIntegrator
       :members:
       :undoc-members:
       :show-inheritance:
