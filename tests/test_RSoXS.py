@@ -8,10 +8,11 @@ import xarray as xr
 import pathlib
 import numpy as np
 import unittest
+import pytest
 #import HDR
 
-
-def test_rsoxs_chi_slice():
+@pytest.fixture 
+def data():
         load = cyrsoxsLoader()
         integ = WPIntegrator()
 
@@ -19,16 +20,6 @@ def test_rsoxs_chi_slice():
         reduced = integ.integrateImageStack(raw)
 
         assert type(reduced)==xr.DataArray
-        data = reduced
-        test_chi_slice_both_outside_negative(data)
-        test_chi_slice_both_outside_positive(data)
-        test_chi_slice_range_too_wide(data)
-        test_chi_slice_span_n180(data)
-        test_chi_slice_span_p180(data)
-        
-        test_chi_select_outside_positive(data)
-        test_chi_select_outside_negative(data)
-        
         return data
 
 def test_chi_slice_both_outside_negative(data):

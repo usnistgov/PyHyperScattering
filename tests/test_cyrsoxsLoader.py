@@ -10,7 +10,6 @@ import pathlib
 def test_cyrsoxs_loader_imports_cleanly():
 	cyloader = cyrsoxsLoader()
 
-
 def test_cyrsoxs_single_scan_import():
         load = cyrsoxsLoader()
 
