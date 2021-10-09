@@ -55,7 +55,7 @@ class RSoXS:
         if slice_begin<self._chi_min and slice_end > self._chi_max:
             #this is a wraparound slice that covers over 360 deg.  how to handle?
             warnings.warn(f'Chi slice specified from {slice_begin} to {slice_end}, which exceeds range of {self._chi_min} to {self._chi_max}.  Returning sum across all values of chi.',stacklevel=2)
-            selector = self._obj.chi
+            selector = np.ones_like(self._obj.chi,dtype=bool)
         elif slice_begin<self._chi_min and slice_end :
             #wrap-around _chi_min
             selector = np.logical_and(self._obj.chi>=self._chi_min,
