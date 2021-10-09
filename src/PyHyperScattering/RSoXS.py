@@ -61,7 +61,7 @@ class RSoXS:
             selector = np.logical_and(self._obj.chi>=self._chi_min,
                                       self._obj.chi <= slice_end)
             selector = np.logical_or(selector,
-                                     np.logical_and(self._obj.chi<self._chi_max,
+                                     np.logical_and(self._obj.chi<=self._chi_max,
                                        self._obj.chi >= (self._chi_max - (self._chi_min - slice_begin))))
         elif slice_end > self._chi_max:
             #wrap-around _chi_max
