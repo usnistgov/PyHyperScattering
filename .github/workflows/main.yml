@@ -29,7 +29,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install flake8 pytest
+        pip install flake8 pytest coverage
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Lint with flake8
       run: |
@@ -45,7 +45,11 @@ jobs:
         unzip cyrsoxs-example.zip
     - name: Test with pytest
       run: |
-        pytest
+        coverage run -m pytest
+    - name: Report coverage
+      run: |
+        coverage report
+        coverage html
     - name: Upload pytest test results
       uses: actions/upload-artifact@v2
       with:
