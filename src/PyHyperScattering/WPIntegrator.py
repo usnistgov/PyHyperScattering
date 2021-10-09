@@ -109,7 +109,7 @@ class WPIntegrator():
         qx = img.qx
         qy = img.qy
         q = np.sqrt(qy**2+qx**2)
-        chi = np.linspace(-180,180,360)
+        chi = np.linspace(-179.5,179.5,360)
         q = np.linspace(0,np.amax(q), TwoD.shape[1])
         try:
             return xr.DataArray([TwoD],dims=['system','chi','q'],coords={'q':q,'chi':chi,'system':system_to_integ},attrs=img.attrs)
