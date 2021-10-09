@@ -19,7 +19,7 @@ def test_rsoxs_chi_slice():
         reduced = integ.integrateImageStack(raw)
 
         assert type(reduced)==xr.DataArray
-        
+        data = reduced
         test_chi_slice_both_outside_negative(data)
         test_chi_slice_both_outside_positive(data)
         test_chi_slice_range_too_wide(data)
@@ -27,7 +27,7 @@ def test_rsoxs_chi_slice():
         test_chi_slice_span_p180(data)
         
         test_chi_select_outside_positive(data)
-        test
+        test_chi_select_outside_negative(data)
         
         return data
 

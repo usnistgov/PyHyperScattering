@@ -77,9 +77,6 @@ class RSoXS:
             
         return self._obj.isel({'chi':selector}).sum('chi')
             
-        
-        return img.sel(chi=slice(chi-chi_width,chi+chi_width)).mean('chi')
-
     def slice_q(self,q,q_width=None):
         '''
         slice an xarray in q
