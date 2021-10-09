@@ -91,7 +91,7 @@ class RSoXS:
             q_width = 0.1*q
         return img.sel(q=slice(q-q_width,q+q_width)).mean('q')
 
-    def select_chi(self,chi,method='interp'):
+    def select_chi(self,chi,method='nearest'):
         if chi < self._chi_min:
             nshift = math.floor((self._chi_min-chi)/360) +1
             chi += 360*nshift
