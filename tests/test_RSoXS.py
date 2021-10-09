@@ -20,7 +20,7 @@ def data():
         reduced = integ.integrateImageStack(raw)
 
         assert type(reduced)==xr.DataArray
-        return data
+        return reduced
 
 def test_chi_slice_both_outside_negative(data):
         assert(np.allclose(data.rsoxs.slice_chi(-270),data.rsoxs.slice_chi(90)))
@@ -29,7 +29,7 @@ def test_chi_slice_both_outside_positive(data):
         assert(np.allclose(data.rsoxs.slice_chi(90),data.rsoxs.slice_chi(450)))
 
 def test_chi_slice_range_too_wide(data):
-        with unittest.assertWarns(UserWarning):
+        with pytest.warns(UserWarning):
             data.rsoxs.slice_chi(0,chi_width=540)
             
 def test_chi_slice_span_n180(data):
