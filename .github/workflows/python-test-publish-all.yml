@@ -19,7 +19,7 @@ jobs:
   deploy:
 
     runs-on: ubuntu-latest
-
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
     - name: Fetch repo  
       uses: actions/checkout@v2
