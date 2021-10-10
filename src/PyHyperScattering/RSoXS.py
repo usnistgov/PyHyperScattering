@@ -53,25 +53,25 @@ class RSoXS:
         
         
         if slice_begin<self._chi_min and slice_end > self._chi_max:
-            #this is a wraparound slice that covers over 360 deg.  how to handle?
+            #case 1
             warnings.warn(f'Chi slice specified from {slice_begin} to {slice_end}, which exceeds range of {self._chi_min} to {self._chi_max}.  Returning sum across all values of chi.',stacklevel=2)
             selector = np.ones_like(self._obj.chi,dtype=bool)
-        elif slice_begin<self._chi_min and slice_end :
-            #wrap-around _chi_min
+        elif slice_begin<self._chi_min and slice_end < self._chi_max :
+            #wrap-around _chi_min: case 2
             selector = np.logical_and(self._obj.chi>=self._chi_min,
                                       self._obj.chi <= slice_end)
             selector = np.logical_or(selector,
                                      np.logical_and(self._obj.chi<=self._chi_max,
-                                       self._obj.chi >= (self._chi_max - (self._chi_min - slice_begin))))
-        elif slice_end > self._chi_max:
-            #wrap-around _chi_max
+                                       self._obj.chi >= (self._chi_max - (self._chi_min - slice_begin) +1)))
+        elif slice_end > self._chi_max and slice_begin > self._chi_min:
+            #wrap-around _chi_max: case 4
             selector = np.logical_and(self._obj.chi<= self._chi_max,
                                       self._obj.chi >= slice_begin)
             selector = np.logical_or(selector,
                                     np.logical_and(self._obj.chi>= self._chi_min,
-                                           self._obj.chi <= (self._chi_min + (slice_end - self._chi_max))))
+                                           self._obj.chi <= (self._chi_min + (slice_end - self._chi_max)-1)))
         else:
-            #simple slice
+            #simple slice, case 6, hooray
             selector = np.logical_and(self._obj.chi>=slice_begin,
                                       self._obj.chi<=slice_end)
             
