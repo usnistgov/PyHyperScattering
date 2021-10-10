@@ -11,7 +11,7 @@ import unittest
 import pytest
 #import HDR
 
-@pytest.fixture 
+@pytest.fixture(autouse=True,scope='module')
 def data():
         load = cyrsoxsLoader()
         integ = WPIntegrator()
@@ -22,38 +22,39 @@ def data():
         assert type(reduced)==xr.DataArray
         return reduced
 
-def test_chi_slice_both_outside_negative(data):
-        assert(np.allclose(data.rsoxs.slice_chi(-270),data.rsoxs.slice_chi(90)))
+def test_chi_slice_outside_negative(data):
+        assert(np.allclose(data.rsoxs.slice_chi(-270),data.rsoxs.slice_chi(90),
+                           equal_nan=True))
 
-def test_chi_slice_both_outside_positive(data):
-        assert(np.allclose(data.rsoxs.slice_chi(90),data.rsoxs.slice_chi(450)))
+def test_chi_slice_outside_positive(data):
+        assert(np.allclose(data.rsoxs.slice_chi(90),data.rsoxs.slice_chi(450),
+                           equal_nan=True))
 
 def test_chi_slice_range_too_wide(data):
         with pytest.warns(UserWarning):
             data.rsoxs.slice_chi(0,chi_width=540)
             
-''' these tests are not passing due to numerical convergence errors - 
 def test_chi_slice_span_n180(data):
         assert(np.allclose(data.rsoxs.slice_chi(-180),
                           xr.concat(
                           [
-                              data.sel(chi=slice(-170,-180)).sum('chi'),
-                              data.sel(chi=slice(170,179)).sum('chi')
-                          ],dim='chi').sum('chi')
-                          ))    
+                              data.sel(chi=slice(-180,-175)).sum('chi'),
+                              data.sel(chi=slice(175,180)).sum('chi')
+                          ],dim='chi').sum('chi'),
+                          equal_nan=True))    
 def test_chi_slice_span_p180(data):
         assert(np.allclose(data.rsoxs.slice_chi(180),
                           xr.concat(
                           [
-                              data.sel(chi=slice(170,180)).sum('chi'),
-                              data.sel(chi=slice(-179,-170)).sum('chi')
-                          ],dim='chi').sum('chi')
-                          ))
-'''
+                              data.sel(chi=slice(175,180)).sum('chi'),
+                              data.sel(chi=slice(-180,-175)).sum('chi')
+                          ],dim='chi').sum('chi'),
+                          equal_nan=True))
+
         
 def test_chi_select_outside_positive(data):
-        assert(np.allclose(data.rsoxs.select_chi(450),data.rsoxs.select_chi(90)))
+        assert(np.allclose(data.rsoxs.select_chi(450),data.rsoxs.select_chi(90),equal_nan=True))
 def test_chi_select_outside_negative(data):
-        assert(np.allclose(data.rsoxs.select_chi(-270),data.rsoxs.select_chi(90)))
+        assert(np.allclose(data.rsoxs.select_chi(-270),data.rsoxs.select_chi(90),equal_nan=True))
 
         
