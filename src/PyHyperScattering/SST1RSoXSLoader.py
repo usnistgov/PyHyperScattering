@@ -187,9 +187,9 @@ class SST1RSoXSLoader(FileLoader):
         primary_dict = {}
         df_primary = pd.read_csv(primary_csv)
         if json_dict['rsoxs_config'] == 'waxs':
-            primary_dict['exposure'] = df_primary['Wide Angle CCD Detector_cam_acquire_time'][seq_num]
+            primary_dict['exposure'] = df_primary['RSoXS Shutter Opening Time (ms)'][seq_num]
         elif json_dict['rsoxs_config'] == 'saxs':
-            primary_dict['exposure'] = df_primary['Small Angle CCD Detector_cam_acquire_time'][seq_num]
+            primary_dict['exposure'] = df_primary['RSoXS Shutter Opening Time (ms)'][seq_num]
         else:
             warnings.warn('Check rsoxs_config in json file',stacklevel=2)
 
