@@ -105,15 +105,15 @@ class SST1RSoXSLoader(FileLoader):
 
         # # step 2: dark subtraction
         # this is already done in the suitcase, but we offer the option to add/subtract a pedestal.
-        img = (np.array(img)-self.dark_pedestal)/corr
+        image_data = (np.array(img)-self.dark_pedestal)/corr
         if return_q:
             qpx = 2*np.pi*60e-6/(headerdict['sdd']/1000)/(headerdict['wavelength']*1e10)
             qx = (np.arange(1,img.size[0]+1)-headerdict['beamcenter_y'])*qpx
             qy = (np.arange(1,img.size[1]+1)-headerdict['beamcenter_x'])*qpx
             # now, match up the dims and coords
-            return xr.DataArray(img,dims=['qy','qx'],coords={'qy':qy,'qx':qx},attrs=headerdict)
+            return xr.DataArray(image_data,dims=['qy','qx'],coords={'qy':qy,'qx':qx},attrs=headerdict)
         else:
-            return xr.DataArray(img,dims=['pix_x','pix_y'],attrs=headerdict)
+            return xr.DataArray(image_data,dims=['pix_x','pix_y'],attrs=headerdict)
 
     def read_json(self,jsonfile):
         json_dict = {}

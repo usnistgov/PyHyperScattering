@@ -38,16 +38,16 @@ def test_chi_slice_span_n180(data):
         assert(np.allclose(data.rsoxs.slice_chi(-180),
                           xr.concat(
                           [
-                              data.sel(chi=slice(-180,-175)).mean('chi'),
-                              data.sel(chi=slice(175,180)).mean('chi')
+                              data.sel(chi=slice(-180,-175)),
+                              data.sel(chi=slice(175,180))
                           ],dim='chi').mean('chi'),
                           equal_nan=True))    
 def test_chi_slice_span_p180(data):
         assert(np.allclose(data.rsoxs.slice_chi(180),
                           xr.concat(
                           [
-                              data.sel(chi=slice(175,180)).mean('chi'),
-                              data.sel(chi=slice(-180,-175)).mean('chi')
+                              data.sel(chi=slice(175,180)),
+                              data.sel(chi=slice(-180,-175))
                           ],dim='chi').mean('chi'),
                           equal_nan=True))
 
