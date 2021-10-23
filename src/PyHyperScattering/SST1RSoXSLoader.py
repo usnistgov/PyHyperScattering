@@ -105,7 +105,7 @@ class SST1RSoXSLoader(FileLoader):
 
         # # step 2: dark subtraction
         # this is already done in the suitcase, but we offer the option to add/subtract a pedestal.
-        img = (img-self.dark_pedestal)/corr
+        img = (np.array(img)-self.dark_pedestal)/corr
         if return_q:
             qpx = 2*np.pi*60e-6/(headerdict['sdd']/1000)/(headerdict['wavelength']*1e10)
             qx = (np.arange(1,img.size[0]+1)-headerdict['beamcenter_y'])*qpx
