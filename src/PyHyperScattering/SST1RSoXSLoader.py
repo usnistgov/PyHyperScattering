@@ -21,12 +21,12 @@ class SST1RSoXSLoader(FileLoader):
     pix_size_1 = 0.06
     pix_size_2 = 0.06
 
-    def __init__(self,corr_mode=None,user_corr_fun=None,dark_pedestal=0,exposure_offset=0,constant_md={}):
+    def __init__(self,corr_mode=None,user_corr_fun=None,dark_pedestal=-100,exposure_offset=0,constant_md={}):
         '''
         Args:
             corr_mode (str): origin to use for the intensity correction.  Can be 'expt','i0','expt+i0','user_func','old',or 'none'
             user_corr_func (callable): takes the header dictionary and returns the value of the correction.
-            dark_pedestal (numeric): value to add to the whole image before doing dark subtraction, to avoid non-negative values.
+            dark_pedestal (numeric): value to add(/subtract, if negative) to the whole image.  this should match the instrument setting for suitcased tiffs, typically 100.
             exposure_offset (numeric): value to add to the exposure time.  Measured at 2ms with the piezo shutter in Dec 2019 by Jacob Thelen, NIST
             constant_md (dict): values to insert into every metadata load. 
         '''
@@ -41,9 +41,9 @@ class SST1RSoXSLoader(FileLoader):
 
         self.constant_md = constant_md
 
-        # self.dark_pedestal = dark_pedestal
-        # self.user_corr_func = user_corr_func
-        # self.exposure_offset = exposure_offset
+        self.dark_pedestal = dark_pedestal
+        self.user_corr_func = user_corr_func
+        self.exposure_offset = exposure_offset
         # self.darks = {}
     # def loadFileSeries(self,basepath):
     #     try:
@@ -104,13 +104,8 @@ class SST1RSoXSLoader(FileLoader):
 
 
         # # step 2: dark subtraction
-        # try:
-        #     darkimg = self.darks[headerdict['EXPOSURE']]
-        # except KeyError:
-        #     warnings.warn(f"Could not find a dark image with exposure time {headerdict['EXPOSURE']}.  Using zeros.",stacklevel=2)
-        #     darkimg = np.zeros_like(img)
-
-        # img = (img-darkimg+self.dark_pedestal)/corr
+        # this is already done in the suitcase, but we offer the option to add/subtract a pedestal.
+        img = (img-self.dark_pedestal)/corr
         if return_q:
             qpx = 2*np.pi*60e-6/(headerdict['sdd']/1000)/(headerdict['wavelength']*1e10)
             qx = (np.arange(1,img.size[0]+1)-headerdict['beamcenter_y'])*qpx
