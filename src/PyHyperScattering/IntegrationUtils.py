@@ -8,12 +8,42 @@ try:
     import hvplot.xarray
 
     import skimage.draw
+    import matplotlib.pyplot as plt
+    from matplotlib.colors import LogNorm,Normalize
 except (ModuleNotFoundError,ImportError):
     warnings.warn('Could not import package for interactive integration utils.  Install holoviews and scikit-image.',stacklevel=2)
 import pandas as pd
 
 import json
 
+class CheckMask:
+    '''
+    Quick Utility to display a mask next to an image, to sanity check the orientation of e.g. an imported mask
+    
+    '''
+    def checkMask(integrator,img,img_min=1,img_max=10000,img_scaling='log'):
+        '''
+            draw a side-by-side of the mask and an image
+
+            Args:
+                integrator: a PyHyper integrator object
+                img: a PyHyper raw image (single frame, please!) to draw
+                img_min: min value to display
+                img_max: max value to display
+                img_scaling: 'lin' or 'log'
+        '''
+        if len(img.shape) > 2:
+                warnings.warn('This tool needs a single frame, not a stack!  .sel down to a single frame before starting!',stacklevel=2)
+
+        fig,ax=plt.subplots(1,2)
+        ax[0].imshow(integrator.mask)
+        if img_scaling == 'log':
+            norm=LogNorm(img_min,img_max)
+        else:
+            norm=Normalize(img_min,img_max)
+        img.plot(norm=norm,ax=ax[1])
+        ax[1].set_aspect(1)
+    
 class DrawMask:
     '''
     Utility class for interactively drawing a mask in a Jupyter notebook.
