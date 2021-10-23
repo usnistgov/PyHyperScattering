@@ -32,6 +32,7 @@ class PFGeneralIntegrator():
         try:
             if self.maskToNan:
                 TwoD.intensity[TwoD.intensity==0] = np.nan
+                #print(f'Patched zero to NaN, number of NaNs = {np.isnan(TwoD.intensity).sum()}')
             return xr.DataArray([TwoD.intensity],dims=['system','chi','q'],coords={'q':TwoD.radial,'chi':TwoD.azimuthal,'system':system_to_integ},attrs=img.attrs)
         except AttributeError:
             if self.maskToNan:
