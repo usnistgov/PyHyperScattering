@@ -24,6 +24,7 @@ class PFGeneralIntegrator():
                                                filename=None,
                                                correctSolidAngle=self.correctSolidAngle, #, this doesn't work and I don't know why
                                                error_model="azimuthal",
+                                               dummy=-8675309 if self.maskToNan else 0,
                                                mask=self.mask,
                                                unit='q_A^-1',
                                                method=self.integration_method
@@ -31,8 +32,9 @@ class PFGeneralIntegrator():
 
         try:
             if self.maskToNan:
-                TwoD.intensity[TwoD.intensity==0] = np.nan
-                #print(f'Patched zero to NaN, number of NaNs = {np.isnan(TwoD.intensity).sum()}')
+                #preexisting_nans = np.isnan(TwoD.intensity).sum()
+                TwoD.intensity[TwoD.intensity==-8675309] = np.nan
+                #print(f'Patched dummy flag to NaN, number of NaNs = {np.isnan(TwoD.intensity).sum()}, preexisting {preexisting_nans}')
             return xr.DataArray([TwoD.intensity],dims=['system','chi','q'],coords={'q':TwoD.radial,'chi':TwoD.azimuthal,'system':system_to_integ},attrs=img.attrs)
         except AttributeError:
             if self.maskToNan:
