@@ -103,12 +103,24 @@ class SST1RSoXSDB:
 
         
 
-        data = run['primary']['data'][md['detector']+'_image'] 
+        #data = run['primary']['data'][md['detector']+'_image'] 
+        #if self.dark_subtract:
+        #    dark = run['dark']['data'][md['detector']+'_image'].mean('time') #@TODO: change to correct dark indexing
+        #    image = data - dark - self.dark_pedestal
+        #else:
+        #    image = data - self.dark_pedestal
+            
+        data = run['primary']['data'][md['detector']+'_image'].astype(int) # convert from uint to handle dark subtraction
+        
         if self.dark_subtract:
-            dark = run['dark']['data'][md['detector']+'_image'].mean('time') #@TODO: change to correct dark indexing
-            image = data - dark - self.dark_pedestal
-        else:
-            image = data - self.dark_pedestal
+            dark = run['dark']['data'][md['detector']+'_image']
+            darkframe = np.copy(data.time)
+            for n,time in enumerate(dark.time):
+                darkframe[(data.time - time)>0]=int(n)
+            data = data.assign_coords(dark_id=("time", darkframe))
+            def subtract_dark(img,pedestal=100,darks=None):
+                return img + pedestal - darks[int(img.dark_id.values)]
+            data = data.groupby('time').map(subtract_dark,darks=dark,pedestal=self.dark_pedestal)
 
         if self.corr_mode != 'none':
             warnings.warn('corrections other than none are not supported at the moment',stacklevel=2)
@@ -134,7 +146,7 @@ class SST1RSoXSDB:
                 dims_to_join,
                 names=dim_names_to_join)
 
-        retxr = image.squeeze('dim_0').rename({'dim_1':'pix_y','dim_2':'pix_x'}).rename({'time':'system'}).assign_coords(system=index)#,md['detector']+'_image':'intensity'})
+        retxr = data.squeeze('dim_0').rename({'dim_1':'pix_y','dim_2':'pix_x'}).rename({'time':'system'}).assign_coords(system=index)#,md['detector']+'_image':'intensity'})
         
         #this is needed for holoviews compatibility, hopefully does not break other features.
         retxr = retxr.assign_coords({'pix_x':np.arange(0,len(retxr.pix_x)),'pix_y':np.arange(0,len(retxr.pix_y))})
