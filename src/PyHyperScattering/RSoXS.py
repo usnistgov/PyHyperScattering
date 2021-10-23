@@ -54,7 +54,7 @@ class RSoXS:
         
         if slice_begin<self._chi_min and slice_end > self._chi_max:
             #case 1
-            warnings.warn(f'Chi slice specified from {slice_begin} to {slice_end}, which exceeds range of {self._chi_min} to {self._chi_max}.  Returning sum across all values of chi.',stacklevel=2)
+            warnings.warn(f'Chi slice specified from {slice_begin} to {slice_end}, which exceeds range of {self._chi_min} to {self._chi_max}.  Returning mean across all values of chi.',stacklevel=2)
             selector = np.ones_like(self._obj.chi,dtype=bool)
         elif slice_begin<self._chi_min and slice_end < self._chi_max :
             #wrap-around _chi_min: case 2
@@ -75,7 +75,7 @@ class RSoXS:
             selector = np.logical_and(self._obj.chi>=slice_begin,
                                       self._obj.chi<=slice_end)
             
-        return self._obj.isel({'chi':selector}).sum('chi')
+        return self._obj.isel({'chi':selector}).mean('chi')
             
     def slice_q(self,q,q_width=None):
         '''
