@@ -1,4 +1,5 @@
 from pyFAI import azimuthalIntegrator
+from pyFAI.units import eq_q, formula_q, register_radial_unit
 import h5py
 import warnings
 import xarray as xr
@@ -22,24 +23,26 @@ class PFGeneralIntegrator():
         TwoD = self.integrator.integrate2d(img_to_integ,
                                                self.npts,
                                                filename=None,
-                                               correctSolidAngle=self.correctSolidAngle, #, this doesn't work and I don't know why
+                                               correctSolidAngle=self.correctSolidAngle,
                                                error_model="azimuthal",
                                                dummy=-8675309 if self.maskToNan else 0,
                                                mask=self.mask,
-                                               unit='q_A^-1',
+                                               unit='arcsinh(q.µm)' if self.use_log_ish_binning else 'q_A^-1',
                                                method=self.integration_method
                                               )
-
+        
+        if self.maskToNan:
+                        #preexisting_nans = np.isnan(TwoD.intensity).sum()
+                        TwoD.intensity[TwoD.intensity==-8675309] = np.nan
+                        #print(f'Patched dummy flag to NaN, number of NaNs = {np.isnan(TwoD.intensity).sum()}, preexisting {preexisting_nans}')
+        if self.use_log_ish_binning:
+            radial_to_save = np.sinh(TwoD.radial)/10000 #was 1000 for inverse nm
+        else:
+            radial_to_save = TwoD.radial
         try:
-            if self.maskToNan:
-                #preexisting_nans = np.isnan(TwoD.intensity).sum()
-                TwoD.intensity[TwoD.intensity==-8675309] = np.nan
-                #print(f'Patched dummy flag to NaN, number of NaNs = {np.isnan(TwoD.intensity).sum()}, preexisting {preexisting_nans}')
-            return xr.DataArray([TwoD.intensity],dims=['system','chi','q'],coords={'q':TwoD.radial,'chi':TwoD.azimuthal,'system':system_to_integ},attrs=img.attrs)
+            return xr.DataArray([TwoD.intensity],dims=['system','chi','q'],coords={'q':radial_to_save,'chi':TwoD.azimuthal,'system':system_to_integ},attrs=img.attrs)
         except AttributeError:
-            if self.maskToNan:
-                TwoD.intensity[TwoD.intensity==0] = np.nan
-            return xr.DataArray(TwoD.intensity,dims=['chi','q'],coords={'q':TwoD.radial,'chi':TwoD.azimuthal},attrs=img.attrs)
+            return xr.DataArray(TwoD.intensity,dims=['chi','q'],coords={'q':radial_to_save,'chi':TwoD.azimuthal},attrs=img.attrs)
 
 
     def integrateImageStack(self,img_stack):
@@ -55,7 +58,8 @@ class PFGeneralIntegrator():
                  integration_method='csr_ocl',
                  correctSolidAngle=True,
                  maskToNan = True,
-                 npts = 500):
+                 npts = 500,
+                 use_log_ish_binning=False):
         #energy units eV
         if(maskmethod == "nika"):
             self.loadNikaMask(maskpath)
@@ -65,6 +69,13 @@ class PFGeneralIntegrator():
         self.integration_method = integration_method
         self.wavelength = 1.239842e-6/energy
         self.npts = npts
+        self.use_log_ish_binning = use_log_ish_binning
+        if self.use_log_ish_binning:
+            register_radial_unit("arcsinh(q.µm)",
+                     scale=1.0,
+                     label=r"arcsinh($q$.µm)",
+                     formula="arcsinh(4.0e-6*π/λ*sin(arctan2(sqrt(x**2 + y**2), z)/2.0))")
+    
         self.maskToNan = maskToNan
         
         if geomethod == "nika":
@@ -88,7 +99,6 @@ class PFGeneralIntegrator():
 
     def __str__(self):
         return f"PyFAI general integrator wrapper SDD = {self.dist} m, poni1 = {self.poni1} m, poni2 = {self.poni2} m, rot1 = {self.rot1} rad, rot2 = {self.rot2} rad"
-
 
     def loadNikaMask(self,filetoload,rotate_image=True):
         '''

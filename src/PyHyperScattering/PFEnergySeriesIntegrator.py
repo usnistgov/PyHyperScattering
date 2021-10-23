@@ -45,8 +45,10 @@ class PFEnergySeriesIntegrator(PFGeneralIntegrator):
         self.createIntegrator(np.median(energies))
         # find the output q for the midpoint and set the final q binning
         self.dest_q = self.integrator_stack[np.median(energies)].integrate2d(np.zeros_like(self.mask).astype(int), self.npts, 
-                                               unit='q_A^-1',
+                                               unit='arcsinh(q.µm)' if self.use_log_ish_binning else 'q_A^-1',
                                                method=self.integration_method).radial
+        if self.use_log_ish_binning:
+            self.dest_q = np.sinh(self.dest_q)/10000
         
         # single image reduce each entry in the stack
         # + 
