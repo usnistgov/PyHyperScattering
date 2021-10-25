@@ -26,7 +26,7 @@ class SST1RSoXSLoader(FileLoader):
         Args:
             corr_mode (str): origin to use for the intensity correction.  Can be 'expt','i0','expt+i0','user_func','old',or 'none'
             user_corr_func (callable): takes the header dictionary and returns the value of the correction.
-            dark_pedestal (numeric): value to add(/subtract, if negative) to the whole image.  this should match the instrument setting for suitcased tiffs, typically 100.
+            dark_pedestal (numeric): value to subtract(/add, if negative) to the whole image.  this should match the instrument setting for suitcased tiffs, typically 100.
             exposure_offset (numeric): value to add to the exposure time.  Measured at 2ms with the piezo shutter in Dec 2019 by Jacob Thelen, NIST
             constant_md (dict): values to insert into every metadata load. 
         '''
