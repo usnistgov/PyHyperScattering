@@ -10,40 +10,66 @@ import matplotlib.pyplot as plt
 class PFGeneralIntegrator():
 
     def integrateSingleImage(self,img):
+        if type(img) == xr.Dataset:
+            for key in img.keys():
+                target_key=key
+            img=img[key]
         if(img.ndim>2):
             img_to_integ = img[0].values
         else:
             img_to_integ = img.values
-            
+        
         if(img.system.shape[0]>1):
             system_to_integ = [img[0].system]
             warnings.warn(f'There are two images for {img.system}, I am ONLY INTEGRATING THE FIRST.  This may cause the labels to be dropped and the result to need manual re-tagging in the index.',stacklevel=2)
         else:
             system_to_integ = img.system
-        TwoD = self.integrator.integrate2d(img_to_integ,
-                                               self.npts,
-                                               filename=None,
-                                               correctSolidAngle=self.correctSolidAngle,
-                                               error_model="azimuthal",
-                                               dummy=-8675309 if self.maskToNan else 0,
-                                               mask=self.mask,
-                                               unit='arcsinh(q.µm)' if self.use_log_ish_binning else 'q_A^-1',
-                                               method=self.integration_method
-                                              )
+        if self.do_1d_integration:
+            integ_func = self.integrator.integrate1d  
+        else:
+            integ_func = self.integrator.integrate2d
+            
+        frame = integ_func(img_to_integ,
+                           self.npts,
+                           filename=None,
+                           correctSolidAngle=self.correctSolidAngle,
+                           error_model="azimuthal",
+                           dummy=-8675309 if self.maskToNan else 0,
+                           mask=self.mask,
+                           unit='arcsinh(q.µm)' if self.use_log_ish_binning else 'q_A^-1',
+                           method=self.integration_method
+                          )
         
         if self.maskToNan:
                         #preexisting_nans = np.isnan(TwoD.intensity).sum()
-                        TwoD.intensity[TwoD.intensity==-8675309] = np.nan
+                        frame.intensity[frame.intensity==-8675309] = np.nan
                         #print(f'Patched dummy flag to NaN, number of NaNs = {np.isnan(TwoD.intensity).sum()}, preexisting {preexisting_nans}')
         if self.use_log_ish_binning:
-            radial_to_save = np.sinh(TwoD.radial)/10000 #was 1000 for inverse nm
+            radial_to_save = np.sinh(frame.radial)/10000 #was 1000 for inverse nm
         else:
-            radial_to_save = TwoD.radial
-        try:
-            return xr.DataArray([TwoD.intensity],dims=['system','chi','q'],coords={'q':radial_to_save,'chi':TwoD.azimuthal,'system':system_to_integ},attrs=img.attrs)
-        except AttributeError:
-            return xr.DataArray(TwoD.intensity,dims=['chi','q'],coords={'q':radial_to_save,'chi':TwoD.azimuthal},attrs=img.attrs)
-
+            radial_to_save = frame.radial
+        if self.do_1d_integration:
+            try:
+                res = xr.DataArray([frame.intensity],dims=['system','q'],coords={'q':radial_to_save,'system':system_to_integ},attrs=img.attrs)
+                if self.return_sigma:
+                    sigma = xr.DataArray([frame.sigma],dims=['system','q'],coords={'q':radial_to_save,'system':system_to_integ},attrs=img.attrs)
+            except AttributeError:
+                res = xr.DataArray(frame.intensity,dims=['q'],coords={'q':radial_to_save},attrs=img.attrs)
+                if self.return_sigma:
+                    res = xr.DataArray(frame.sigma,dims=['q'],coords={'q':radial_to_save},attrs=img.attrs)
+        else:
+            try:
+                res = xr.DataArray([frame.intensity],dims=['system','chi','q'],coords={'q':radial_to_save,'chi':frame.azimuthal,'system':system_to_integ},attrs=img.attrs)
+                if self.return_sigma:
+                    sigma = xr.DataArray([frame.sigma],dims=['system','chi','q'],coords={'q':radial_to_save,'chi':frame.azimuthal,'system':system_to_integ},attrs=img.attrs)
+            except AttributeError:
+                res = xr.DataArray(frame.intensity,dims=['chi','q'],coords={'q':radial_to_save,'chi':frame.azimuthal},attrs=img.attrs)
+                if self.return_sigma:
+                    sigma = xr.DataArray(frame.sigma,dims=['chi','q'],coords={'q':radial_to_save,'chi':frame.azimuthal},attrs=img.attrs)
+        if self.return_sigma:
+            res = res.to_dataset(name='I')
+            res['dI'] = sigma
+        return res
 
     def integrateImageStack(self,img_stack):
         int_stack = img_stack.groupby('system').map(self.integrateSingleImage)
@@ -59,7 +85,9 @@ class PFGeneralIntegrator():
                  correctSolidAngle=True,
                  maskToNan = True,
                  npts = 500,
-                 use_log_ish_binning=False):
+                 use_log_ish_binning=False,
+                 do_1d_integration=False,
+                 return_sigma=False):
         #energy units eV
         if(maskmethod == "nika"):
             self.loadNikaMask(maskpath)
@@ -70,6 +98,7 @@ class PFGeneralIntegrator():
         self.wavelength = 1.239842e-6/energy
         self.npts = npts
         self.use_log_ish_binning = use_log_ish_binning
+        self.do_1d_integration = do_1d_integration
         if self.use_log_ish_binning:
             register_radial_unit("arcsinh(q.µm)",
                      scale=1.0,
@@ -77,6 +106,7 @@ class PFGeneralIntegrator():
                      formula="arcsinh(4.0e-6*π/λ*sin(arctan2(sqrt(x**2 + y**2), z)/2.0))")
     
         self.maskToNan = maskToNan
+        self.return_sigma = return_sigma
         
         if geomethod == "nika":
             self.calibrationFromNikaParams(NIdistance, NIbcx, NIbcy, NItiltx, NItilty,pixsizex = NIpixsizex, pixsizey = NIpixsizey)
@@ -130,8 +160,8 @@ class PFGeneralIntegrator():
 
     def calibrationFromNikaParams(self,distance, bcx, bcy, tiltx, tilty,pixsizex, pixsizey):
         '''
-        Return a calibration array [dist,poni1,poni2,rot1,rot2,rot3] from a Nika detector geometry
-           if you change the CCD binning, pixsizexy params need to be given.  Default is for 4x4 binning which results in effective size of 27 um.
+        Return a calibration array [dist,poni1,poni2,rot1,rot2,rot3] from a Nika detector geometry.
+           
            this will probably only support rotations in the SAXS limit (i.e., where sin(x) ~ x, i.e., a couple degrees)
            since it assumes the PyFAI and Nika rotations are about the same origin point (which I think isn't true).
         
@@ -165,8 +195,8 @@ class PFGeneralIntegrator():
         
         '''
         self.dist = raw_xr.dist
-        self.poni1 = raw_xr.poni1#pyFAI uses the same 0,0 definition, so just pixel to m.  y = poni1, x = poni2
-        self.poni2 = raw_xr.poni2#
+        self.poni1 = raw_xr.poni1
+        self.poni2 = raw_xr.poni2
 
         self.rot1 = raw_xr.rot1
         self.rot2 = raw_xr.rot2
