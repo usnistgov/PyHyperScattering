@@ -40,11 +40,18 @@ jobs:
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Fetch and unzip example data
-      run: |
-        wget https://github.com/usnistgov/PyHyperScattering/releases/download/0.0.0-example-data/Example.zip
-        unzip Example.zip
-        wget https://github.com/usnistgov/PyHyperScattering/releases/download/0.0.0-example-data/cyrsoxs-example.zip
-        unzip cyrsoxs-example.zip
+      if: ${{ matrix.os != 'windows-latest' }}
+        run: |
+          wget https://github.com/usnistgov/PyHyperScattering/releases/download/0.0.0-example-data/Example.zip
+          unzip Example.zip
+          wget https://github.com/usnistgov/PyHyperScattering/releases/download/0.0.0-example-data/cyrsoxs-example.zip
+          unzip cyrsoxs-example.zip
+      if: ${{ matrix.os == 'windows-latest' }}
+        run: |
+          C:\msys64\usr\bin\wget.exe https://github.com/usnistgov/PyHyperScattering/releases/download/0.0.0-example-data/Example.zip
+          unzip Example.zip
+          C:\msys64\usr\bin\wget.exe https://github.com/usnistgov/PyHyperScattering/releases/download/0.0.0-example-data/cyrsoxs-example.zip
+          unzip cyrsoxs-example.zip
     - name: Test with pytest
       run: |
         coverage run -m pytest
