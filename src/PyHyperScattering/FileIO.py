@@ -11,6 +11,7 @@ import PyHyperScattering
 import pandas
 import json
 
+from collections import defaultdict
 from . import _version
 phs_version = _version.get_versions()['version']
 
@@ -33,10 +34,7 @@ class FileIO:
     def savePickle(self,filename):
         with open(filename, 'wb') as file:
             pickle.dump(self._obj, file)
-    
-    def loadPickle(filename):
-        return pickle.load( open( filename, "rb" ) )
-    
+            
     def saveNexus(self,fileName):
         data = self._obj
         timestamp = datetime.datetime.now()
@@ -137,9 +135,14 @@ class FileIO:
                 if type(data.indexes[axis]) == pandas.core.indexes.multi.MultiIndex:
                     idx = data.indexes[axis]
                     I_axes = I_axes[:-1]+'('
-                    for level in idx.levels:
-                        ds = nxdata.create_dataset(level.name, data=level.values)
-                        I_axes += f'{level.name},'
+                    lvls = idx.levels
+                    multiindex_arrays = defaultdict(list)
+                    for row in idx:
+                        for n,level in enumerate(lvls):
+                            multiindex_arrays[level.name].append(row[n])
+                    for level in lvls:
+                        ds = nxdata.create_dataset(level.name, data=multiindex_arrays[level.name])
+                        I_axes += f'{level.name};'
                         ds.attrs[u'PyHyper_origin'] = axis
                     I_axes = I_axes[:-1]+'),'
                 else:
@@ -167,9 +170,74 @@ class FileIO:
                         ds = residual_attrs.create_dataset(k, data=json.dumps(v))
                         ds.attrs['phs_encoding'] = 'json'
         print("wrote file:", fileName)
- 
-    def loadNexus(filename):
-        raise NotImplementedError
 
+def loadPickle(filename):
+    return pickle.load( open( filename, "rb" ) )
 
-            
+def loadNexus(filename):
+    with h5py.File(filename, "r") as f:    
+        ds = xr.DataArray(f['entry']['sasdata']['I'],
+                  dims=_parse_Iaxes(f['entry']['sasdata'].attrs['I_axes']),
+                 coords = _make_coords(f))
+
+        loaded_attrs = {}
+        for entry in f['entry']['attrs']:
+            #print(f'Processing attribute entry {entry}')
+            try:
+                encoding = f['entry']['attrs'][entry].attrs['phs_encoding']
+                #print(f'Found data with a labeled encoding: {encoding}')
+                if encoding == 'json':
+                    loaded_attrs[entry] = json.loads(f['entry']['attrs'][entry][()].decode())
+                elif 'strftime' in encoding:
+                    loaded_attrs[entry] = datetime.datetime.strptime(str(f['entry']['attrs'][entry][()].decode()),
+                                                           encoding.replace('strftime-',''))
+                else:
+                    warnings.warn(f'Unknown phs_encoding {encoding} while loading {entry}.  Possible version mismatch.  Loading as string.',stacklevel=2)
+                    loaded_attrs[entry] = f['entry']['attrs'][entry][()]
+            except KeyError:
+                loaded_attrs[entry] = f['entry']['attrs'][entry][()]
+        #print(f'Loaded: {loaded_attrs}')
+        ds.attrs.update(loaded_attrs)
+
+    return ds
+
+def _parse_Iaxes(axes,suppress_multiindex=True):
+    axes = axes.replace('[','').replace(']','')
+    axes_parts = axes.split(',')
+    axes = []
+    if suppress_multiindex:
+        for part in axes_parts:
+            if '(' in part:
+                #print(f'multiindex: {part}')
+                part = part.split('(')[0]
+                #print(f'set part to {part}')
+            axes.append(part)
+    else:
+        axes = axes_parts
+    return axes
+
+def _parse_multiindex_Iaxes(axis):
+    axis = axis.replace(')','')
+    axis = axis.split('(')[1]
+    return axis.split(';')
+
+def _make_coords(f):
+    axes = _parse_Iaxes(f['entry']['sasdata'].attrs['I_axes'],suppress_multiindex=True)
+    axes_raw = _parse_Iaxes(f['entry']['sasdata'].attrs['I_axes'],suppress_multiindex=False)
+
+    coords = {}
+    for n,axis in enumerate(axes_raw):
+        if '(' in axis:
+            levels = _parse_multiindex_Iaxes(axis)
+            vals = []
+            names = []
+            for level in levels:
+                names.append(level)
+                vals.append(f['entry']['sasdata'][level])
+            #print(names)
+            #print(vals)
+            coords[axes[n]] = pandas.MultiIndex.from_arrays(vals,names=names)
+        else:
+            coords[axes[n]] = f['entry']['sasdata'][axis]
+
+    return coords
