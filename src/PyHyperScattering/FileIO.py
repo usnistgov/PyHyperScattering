@@ -35,7 +35,7 @@ class FileIO:
         with open(filename, 'wb') as file:
             pickle.dump(self._obj, file)
             
-    def saveNexus(self,fileName):
+    def saveNexus(self,fileName,compression=5):
         data = self._obj
         timestamp = datetime.datetime.now()
         # figure out if xr is a raw or integrated array
@@ -121,7 +121,7 @@ class FileIO:
                     raise Exception(f'Invalid PyHyper_type {self.pyhyper_type}.  Cannot write Nexus.')
             '''
             
-            ds = nxdata.create_dataset(u'I', data=array_to_save)
+            ds = nxdata.create_dataset(u'I', data=array_to_save,compression=compression)
             ds.attrs[u'units'] = u'arbitrary'
             ds.attrs[u'long_name'] = u'Intensity (arbitrary units)'    # suggested X axis plot label
             # the following are to enable compatibility with Nika canSAS loading
