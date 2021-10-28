@@ -6,6 +6,7 @@ nodejs
 numpy
 pandas
 pyfai
+pybind11
 pyopencl
 scikit-image
 scipy
