@@ -6,7 +6,7 @@ nodejs
 numpy
 pandas
 pyfai
-pyopencl
+# temp disable for windows builds pyopencl
 scikit-image
 scipy
 xarray
