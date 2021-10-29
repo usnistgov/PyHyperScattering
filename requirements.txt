@@ -6,8 +6,10 @@ nodejs
 numpy
 pandas
 pyfai
-# temp disable for windows builds pyopencl
 scikit-image
 scipy
 xarray
-holoviews
+pyopencl[performance]
+cupy[performance]
+holoviews[ui]
+hvplot[ui]
