@@ -6,8 +6,6 @@ nodejs
 numpy
 pandas
 pyfai
-pyopencl
 scikit-image
 scipy
 xarray
-holoviews

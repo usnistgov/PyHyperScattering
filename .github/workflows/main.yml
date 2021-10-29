@@ -5,10 +5,11 @@ on: [push]
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os}}
     strategy:
       matrix:
         python-version: [3.6, 3.7, 3.8]
+        os: [ubuntu-latest, macOS-latest, windows-latest]
 
     steps:
     - uses: actions/checkout@v2
@@ -30,18 +31,27 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install flake8 pytest coverage
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        pip install pybind11 wheel
+        pip install -r requirements.txt
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    - name: Fetch and unzip example data
+    - name: Fetch and unzip example data (Mac/Linux)
+      if: ${{ matrix.os != 'windows-latest' }}
       run: |
         wget https://github.com/usnistgov/PyHyperScattering/releases/download/0.0.0-example-data/Example.zip
         unzip Example.zip
         wget https://github.com/usnistgov/PyHyperScattering/releases/download/0.0.0-example-data/cyrsoxs-example.zip
+        unzip cyrsoxs-example.zip
+    - name: Fetch and unzip example data (Windows)
+      if: ${{ matrix.os == 'windows-latest' }}
+      run: |
+        C:\msys64\usr\bin\wget.exe https://github.com/usnistgov/PyHyperScattering/releases/download/0.0.0-example-data/Example.zip
+        unzip Example.zip
+        C:\msys64\usr\bin\wget.exe https://github.com/usnistgov/PyHyperScattering/releases/download/0.0.0-example-data/cyrsoxs-example.zip
         unzip cyrsoxs-example.zip
     - name: Test with pytest
       run: |
