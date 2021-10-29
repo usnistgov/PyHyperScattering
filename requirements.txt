@@ -9,7 +9,3 @@ pyfai
 scikit-image
 scipy
 xarray
-pyopencl[performance]
-cupy[performance]
-holoviews[ui]
-hvplot[ui]
