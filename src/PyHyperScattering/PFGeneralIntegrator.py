@@ -6,6 +6,8 @@ import xarray as xr
 import numpy as np
 import math
 import matplotlib.pyplot as plt
+from tqdm.auto import tqdm
+tqdm.pandas()
 
 class PFGeneralIntegrator():
 

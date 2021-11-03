@@ -5,6 +5,8 @@ import warnings
 import xarray as xr
 import numpy as np
 import math
+from tqdm.auto import tqdm
+tqdm.pandas()
 
 class PFEnergySeriesIntegrator(PFGeneralIntegrator):
 
