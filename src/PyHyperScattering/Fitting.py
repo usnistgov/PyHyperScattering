@@ -16,6 +16,7 @@ def fit_lorentz(x,guess=None,pos_int_override=False):
         pos_int_override (bool): if True, overrides the peak center as the median q-value of the array, and intensity as the intensity at that q.
     '''
     # example guess: [500.,0.00665,0.0002] [int, q, width]
+    x = x.dropna('q')
     if guess == None:
         guess = [500.,0.00665,0.0002]
         pos_int_override=True
@@ -24,13 +25,18 @@ def fit_lorentz(x,guess=None,pos_int_override=False):
         guess[0] = x.sel(q=guess[1],method='nearest')
     print(f"Starting fit on {x.coords}")
     try:
-        coeff, var_matrix = scipy.optimize.curve_fit(lorentz,x.coords['q'],x.data,p0=guess)
+        coeff, var_matrix = scipy.optimize.curve_fit(lorentz,x.coords['q'].data,x.data,p0=guess)
     except RuntimeError:
         print("Fit failed to converge")
-        return xr.DataArray(data=np.nan,coords=x.coords)
+        retval = xr.DataArray(data=np.nan,coords=x.coords).to_dataset(name='intensity')
+        retval['pos'] = xr.DataArray(data=coeff[0],coords=x.coords)
+        retval['width'] = xr.DataArray(data=coeff[0],coords=x.coords)
+        return retval
     print(f"Fit completed, coeff = {coeff}")
-    return xr.DataArray(data=coeff[0],coords=x.coords)
-
+    retval = xr.DataArray(data=coeff[0],coords=x.coords).to_dataset(name='intensity')
+    retval['pos'] = xr.DataArray(data=coeff[1],coords=x.coords)
+    retval['width'] = xr.DataArray(data=coeff[2],coords=x.coords)
+    return retval
 def fit_lorentz_bg(x,guess=None,pos_int_override=False):
     '''
     Fit a lorentzian, constructed as a lambda function compatible with xarray.groupby([...]).apply().
@@ -44,6 +50,7 @@ def fit_lorentz_bg(x,guess=None,pos_int_override=False):
         pos_int_override (bool): if True, overrides the peak center as the median q-value of the array, and intensity as the intensity at that q.
     '''
     # example guess: [500.,0.00665,0.0002,0] [int, q, width, bg]
+    x = x.dropna('q')
     if guess == None:
         guess = [500.,0.00665,0.0002,0]
         pos_int_override=True
@@ -51,14 +58,23 @@ def fit_lorentz_bg(x,guess=None,pos_int_override=False):
         guess[1] = np.median(x.coords['q'])
         guess[0] = x.sel(q=guess[1],method='nearest')
     print(f"Starting fit on {x.coords}")
-    try:
-        coeff, var_matrix = scipy.optimize.curve_fit(lorentz_w_flat_bg,x.coords['q'],x.data,p0=guess)
+    try:        
+        print(f'q data type: {type(x.coords["q"].data.dtype)}')
+        print(f'I data type: {type(x.data.dtype)}')
+        coeff, var_matrix = scipy.optimize.curve_fit(lorentz_w_flat_bg,x.coords['q'].data,x.data,p0=guess)
     except RuntimeError:
         print("Fit failed to converge")
-        return xr.DataArray(data=np.nan,coords=x.coords)
+        retval = xr.DataArray(data=np.nan,coords=x.coords).to_dataset(name='intensity')
+        retval['pos'] = xr.DataArray(data=coeff[0],coords=x.coords)
+        retval['width'] = xr.DataArray(data=coeff[0],coords=x.coords)
+        retval['bg'] = xr.DataArray(data=coeff[0],coords=x.coords)
+        return retval
     print(f"Fit completed, coeff = {coeff}")
-    return xr.DataArray(data=coeff[0],coords=x.coords)
-
+    retval = xr.DataArray(data=coeff[0],coords=x.coords).to_dataset(name='intensity')
+    retval['pos'] = xr.DataArray(data=coeff[1],coords=x.coords)
+    retval['width'] = xr.DataArray(data=coeff[2],coords=x.coords)
+    retval['bg'] = xr.DataArray(data=coeff[3],coords=x.coords)
+    return retval
 
 def dummy_fit(x,guess=None,pos_int_override=False):
     '''
