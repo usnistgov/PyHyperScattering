@@ -56,7 +56,7 @@ class PFGeneralIntegrator():
             except AttributeError:
                 res = xr.DataArray(frame.intensity,dims=['q'],coords={'q':radial_to_save},attrs=img.attrs)
                 if self.return_sigma:
-                    res = xr.DataArray(frame.sigma,dims=['q'],coords={'q':radial_to_save},attrs=img.attrs)
+                    sigma = xr.DataArray(frame.sigma,dims=['q'],coords={'q':radial_to_save},attrs=img.attrs)
         else:
             try:
                 res = xr.DataArray([frame.intensity],dims=['system','chi','q'],coords={'q':radial_to_save,'chi':frame.azimuthal,'system':system_to_integ},attrs=img.attrs)
@@ -72,7 +72,7 @@ class PFGeneralIntegrator():
         return res
 
     def integrateImageStack(self,img_stack):
-        int_stack = img_stack.groupby('system').map(self.integrateSingleImage)
+        int_stack = img_stack.groupby('system').map_progress(self.integrateSingleImage)
         #PRSUtils.fix_unstacked_dims(int_stack,img_stack,'system',img_stack.attrs['dims_unpacked'])
         return int_stack
     def __init__(self,maskmethod = "none",maskpath = "",
