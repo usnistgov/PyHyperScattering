@@ -68,11 +68,12 @@ class SST1RSoXSLoader(FileLoader):
 
 
         Args:
-            filepath (str): path of the file to load
+            filepath (Pathlib.path): path of the file to load
             coords (dict-like): coordinate values to inject into the metadata
             return_q (bool): return qx / qy coords.  If false, returns pixel coords.
 
         '''
+        
         img = Image.open(filepath)
 
         headerdict = self.loadMd(filepath)
