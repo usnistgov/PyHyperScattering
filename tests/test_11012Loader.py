@@ -6,6 +6,7 @@ from PyHyperScattering.load import ALS11012RSoXSLoader
 from PyHyperScattering.integrate import PFEnergySeriesIntegrator
 
 import xarray as xr
+import numpy as np
 
 #import HDR
 
