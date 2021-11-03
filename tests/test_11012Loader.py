@@ -20,8 +20,8 @@ def test_custom_coord_creation():
 
 	filenumber_coord = {}
 	for file in files:
- 	   if '.fits' in file:
- 	       filenumber_coord.update({file:int(file[-10:-5])})
+		if '.fits' in file:
+			filenumber_coord.update({file:int(file[-10:-5])})
 
 	return filenumber_coord
 def test_11012_single_scan_import():
@@ -47,3 +47,19 @@ def test_examine_single_scan():
 
 	assert type(data)==xr.DataArray
 
+def test_load_insensitive_to_trailing_slash():
+		withslash = loader.loadFileSeries(
+                                'Example/11012/CCD/',
+                               ['energy','polarization','exposure','filenumber'],
+                               coords = {'filenumber':test_custom_coord_creation()},
+                               md_filter={'sampleid':1,'CCD Shutter Inhibit':0}
+                              )
+        
+		withoutslash = loader.loadFileSeries(
+                                'Example/11012/CCD',
+                               ['energy','polarization','exposure','filenumber'],
+                               coords = {'filenumber':test_custom_coord_creation()},
+                               md_filter={'sampleid':1,'CCD Shutter Inhibit':0}
+                              )
+        
+		assert np.allclose(withslash,withoutslash)

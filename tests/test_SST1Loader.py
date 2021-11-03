@@ -17,5 +17,12 @@ def test_SST1_single_scan_import():
 	return loader.loadFileSeries('Example/SST1/21792/',['energy','polarization'])
 
 def test_SST1_single_scan_qxy_import():
-        global loader
-        return loader.loadFileSeries('Example/SST1/21792/',['energy','polarization'],output_qxy=True)
+		global loader
+		return loader.loadFileSeries('Example/SST1/21792/',['energy','polarization'],output_qxy=True)
+
+def test_load_insensitive_to_trailing_slash():
+		withslash = loader.loadFileSeries('Example/SST1/21792/',['energy','polarization'])
+        
+		withoutslash = loader.loadFileSeries('Example/SST1/21792',['energy','polarization'])
+        
+		assert np.allclose(withslash,withoutslash)
