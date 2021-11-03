@@ -7,6 +7,7 @@ import warnings
 import math
 import numpy as np
 import pathlib
+from tqdm.auto import tqdm
 
 class FileLoader():
     '''
@@ -31,7 +32,7 @@ class FileLoader():
         return self.loadSingleImage(filepath,{})
     
 
-    def loadFileSeries(self,basepath,dims,coords={},file_filter='',file_skip='donotskip',md_filter={},quiet=False,output_qxy=False,dest_qx=None,dest_qy=None):
+    def loadFileSeries(self,basepath,dims,coords={},file_filter='',file_skip='donotskip',md_filter={},quiet=True,output_qxy=False,dest_qx=None,dest_qy=None):
         '''
         Load a series into a single xarray.
         
@@ -57,7 +58,7 @@ class FileLoader():
         data_rows = []
         qnew = None
         dest_coords = defaultdict(list)
-        for file in os.listdir(basepath):
+        for file in tqdm(os.listdir(basepath)):
             nprocessed += 1
             local_coords = {}
             if (re.match(self.file_ext,file) is not None) and file_filter in file and file_skip not in file:
