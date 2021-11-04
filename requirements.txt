@@ -9,3 +9,4 @@ pyfai
 scikit-image
 scipy
 xarray
+tqdm
