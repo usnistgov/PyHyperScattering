@@ -64,7 +64,7 @@ class Fitting:
         df = df.groupby('temp_fit_axis')
         df = df.progress_map(fit_func,**kwargs)
         df = df.unstack('temp_fit_axis')
-
+        df = df.mean('q')
         return df
 
 def fit_lorentz(x,guess=None,pos_int_override=False,silent=False):
