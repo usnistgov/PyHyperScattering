@@ -1,9 +1,73 @@
 import scipy.optimize
 import xarray as xr
 import numpy as np
+import pandas as pd
 
+from tqdm.auto import tqdm
+#tqdm.pandas()
 
-def fit_lorentz(x,guess=None,pos_int_override=False):
+# the following block monkey-patches xarray to add tqdm support.  This will not be needed once tqdm v5 releases.
+from xarray.core.groupby import DataArrayGroupBy,DatasetGroupBy
+
+def inner_generator(df_function='apply'):
+    def inner(df,func,*args,**kwargs):
+        t = tqdm(total=len(df))
+        def wrapper(*args,**kwargs):
+            t.update( n=1 if not t.total or t.n < t.total else 0)
+            return func(*args,**kwargs)
+        result = getattr(df,df_function)(wrapper, **kwargs)
+    
+        t.close()
+        return result
+    return inner
+
+DataArrayGroupBy.progress_apply = inner_generator()
+DatasetGroupBy.progress_apply = inner_generator()
+
+DataArrayGroupBy.progress_map = inner_generator(df_function='map')
+DatasetGroupBy.progress_map = inner_generator(df_function='map')
+#end monkey patch
+
+@xr.register_dataset_accessor('fit')
+@xr.register_dataarray_accessor('fit')
+class Fitting:
+    def __init__(self,xr_obj):
+        self._obj=xr_obj
+    def apply(self,fit_func,fit_axis = 'q',**kwargs):
+        '''
+        Apply a fit function to this PyHyperScattering dataset.
+        
+        This is intended to smooth over some of the gory xarray details of fitting.
+        
+        Args:
+            fit_func (callable): a function that takes any arguments passed as kwargs and returns an xarray Dataset or DataArray in the same coordinate space with the fit results.  See examples in Fitting.py.
+            fit_axis (str, default 'q'): the "special axis" along which fits should be applied, i.e, you wish to fit in intensity vs fit_axis space.
+            
+            kwargs (anything): passed through to fit_func
+            
+        
+        Example:
+            data.fit.apply(PyHyperScattering.Fitting.fit_lorentz_bg,silent=True)
+        '''
+        df = self._obj    
+        for name,idx in df.indexes.items():
+            if type(idx)==pd.core.indexes.multi.MultiIndex:
+                df = df.unstack(name)
+
+        dims_to_stack = []
+
+        for name in df.indexes.keys():
+            if name != fit_axis:
+                dims_to_stack.append(name)
+
+        df = df.stack(temp_fit_axis = dims_to_stack)
+        df = df.groupby('temp_fit_axis')
+        df = df.progress_map(fit_func,**kwargs)
+        df = df.unstack('temp_fit_axis')
+
+        return df
+
+def fit_lorentz(x,guess=None,pos_int_override=False,silent=False):
     '''
     Fit a lorentzian, constructed as a lambda function compatible with xarray.groupby([...]).apply().
 
@@ -23,21 +87,24 @@ def fit_lorentz(x,guess=None,pos_int_override=False):
     if pos_int_override:
         guess[1] = np.median(x.coords['q'])
         guess[0] = x.sel(q=guess[1],method='nearest')
-    print(f"Starting fit on {x.coords}")
+    if not silent: 
+        print(f"Starting fit on {x.coords}")
     try:
         coeff, var_matrix = scipy.optimize.curve_fit(lorentz,x.coords['q'].data,x.data,p0=guess)
     except RuntimeError:
-        print("Fit failed to converge")
+        if not silent:
+            print("Fit failed to converge")
         retval = xr.DataArray(data=np.nan,coords=x.coords).to_dataset(name='intensity')
-        retval['pos'] = xr.DataArray(data=coeff[0],coords=x.coords)
-        retval['width'] = xr.DataArray(data=coeff[0],coords=x.coords)
+        retval['pos'] = xr.DataArray(data=np.nan,coords=x.coords)
+        retval['width'] = xr.DataArray(data=np.nan,coords=x.coords)
         return retval
-    print(f"Fit completed, coeff = {coeff}")
+    if not silent:
+        print(f"Fit completed, coeff = {coeff}")
     retval = xr.DataArray(data=coeff[0],coords=x.coords).to_dataset(name='intensity')
     retval['pos'] = xr.DataArray(data=coeff[1],coords=x.coords)
     retval['width'] = xr.DataArray(data=coeff[2],coords=x.coords)
     return retval
-def fit_lorentz_bg(x,guess=None,pos_int_override=False):
+def fit_lorentz_bg(x,guess=None,pos_int_override=False,silent=False):
     '''
     Fit a lorentzian, constructed as a lambda function compatible with xarray.groupby([...]).apply().
 
@@ -57,19 +124,20 @@ def fit_lorentz_bg(x,guess=None,pos_int_override=False):
     if pos_int_override:
         guess[1] = np.median(x.coords['q'])
         guess[0] = x.sel(q=guess[1],method='nearest')
-    print(f"Starting fit on {x.coords}")
+    if not silent: 
+        print(f"Starting fit on {x.coords}")
     try:        
-        print(f'q data type: {type(x.coords["q"].data.dtype)}')
-        print(f'I data type: {type(x.data.dtype)}')
         coeff, var_matrix = scipy.optimize.curve_fit(lorentz_w_flat_bg,x.coords['q'].data,x.data,p0=guess)
     except RuntimeError:
-        print("Fit failed to converge")
+        if not silent:
+            print("Fit failed to converge")
         retval = xr.DataArray(data=np.nan,coords=x.coords).to_dataset(name='intensity')
-        retval['pos'] = xr.DataArray(data=coeff[0],coords=x.coords)
-        retval['width'] = xr.DataArray(data=coeff[0],coords=x.coords)
-        retval['bg'] = xr.DataArray(data=coeff[0],coords=x.coords)
+        retval['pos'] = xr.DataArray(data=np.nan,coords=x.coords)
+        retval['width'] = xr.DataArray(data=np.nan,coords=x.coords)
+        retval['bg'] = xr.DataArray(data=np.nan,coords=x.coords)
         return retval
-    print(f"Fit completed, coeff = {coeff}")
+    if not silent:
+        print(f"Fit completed, coeff = {coeff}")
     retval = xr.DataArray(data=coeff[0],coords=x.coords).to_dataset(name='intensity')
     retval['pos'] = xr.DataArray(data=coeff[1],coords=x.coords)
     retval['width'] = xr.DataArray(data=coeff[2],coords=x.coords)
