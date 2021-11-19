@@ -6,6 +6,26 @@ import xarray as xr
 import numpy as np
 import math
 import matplotlib.pyplot as plt
+from tqdm.auto import tqdm
+#tqdm.pandas()
+# the following block monkey-patches xarray to add tqdm support.  This will not be needed once tqdm v5 releases.
+from xarray.core.groupby import DataArrayGroupBy,DatasetGroupBy
+
+def inner_generator(df_function='apply'):
+    def inner(df,func,*args,**kwargs):
+        t = tqdm(total=len(df))
+        def wrapper(*args,**kwargs):
+            t.update( n=1 if not t.total or t.n < t.total else 0)
+            return func(*args,**kwargs)
+        result = getattr(df,df_function)(wrapper, **kwargs)
+    
+        t.close()
+        return result
+    return inner
+
+DataArrayGroupBy.progress_apply = inner_generator()
+DatasetGroupBy.progress_apply = inner_generator()
+#end monkey patch
 
 class PFGeneralIntegrator():
 
@@ -56,7 +76,7 @@ class PFGeneralIntegrator():
             except AttributeError:
                 res = xr.DataArray(frame.intensity,dims=['q'],coords={'q':radial_to_save},attrs=img.attrs)
                 if self.return_sigma:
-                    res = xr.DataArray(frame.sigma,dims=['q'],coords={'q':radial_to_save},attrs=img.attrs)
+                    sigma = xr.DataArray(frame.sigma,dims=['q'],coords={'q':radial_to_save},attrs=img.attrs)
         else:
             try:
                 res = xr.DataArray([frame.intensity],dims=['system','chi','q'],coords={'q':radial_to_save,'chi':frame.azimuthal,'system':system_to_integ},attrs=img.attrs)
@@ -72,7 +92,7 @@ class PFGeneralIntegrator():
         return res
 
     def integrateImageStack(self,img_stack):
-        int_stack = img_stack.groupby('system').map(self.integrateSingleImage)
+        int_stack = img_stack.groupby('system').map_progress(self.integrateSingleImage)
         #PRSUtils.fix_unstacked_dims(int_stack,img_stack,'system',img_stack.attrs['dims_unpacked'])
         return int_stack
     def __init__(self,maskmethod = "none",maskpath = "",
