@@ -32,7 +32,8 @@ class FileLoader():
         return self.loadSingleImage(filepath,{})
     
 
-    def loadFileSeries(self,basepath,dims,coords={},file_filter='',file_skip='donotskip',md_filter={},quiet=True,output_qxy=False,dest_qx=None,dest_qy=None):
+
+    def loadFileSeries(self,basepath,dims,coords={},file_filter='',file_skip='donotskip',md_filter={},quiet=True,output_qxy=False,dest_qx=None,dest_qy=None,output_raw=False):
         '''
         Load a series into a single xarray.
         
@@ -45,6 +46,7 @@ class FileLoader():
             md_filter (dict): dict of *required* metadata values; points without these metadata values will be dropped
             quiet (bool): skip printing most intermediate output if true.
             output_qxy (bool): output a qx/qy stack rather than a pix_x/pix_y stack.  This is a lossy operation, the array will be remeshed.  Not recommended.
+            output_raw (bool): Do not apply pixel or q coordinates to the final stack.
             dest_qx (array-like or None): set of qx points that you would like the final stack to have.  If None, will take the middle image and remesh to that.
             dest_qy (array-like or None): set of qy points that you would like the final stack to have.  If None, will take the middle image and remesh to that.
         
@@ -58,7 +60,7 @@ class FileLoader():
         data_rows = []
         qnew = None
         dest_coords = defaultdict(list)
-        for file in tqdm(os.listdir(basepath)):
+        for file in tqdm(sorted(os.listdir(basepath))):
             nprocessed += 1
             local_coords = {}
             if (re.match(self.file_ext,file) is not None) and file_filter in file and file_skip not in file:
@@ -151,6 +153,6 @@ class FileLoader():
             data_rows = data_rows_transformed
         out = xr.concat(data_rows,dim=index)
         out.attrs.update({'dims_unpacked':dims})
-        if not output_qxy:
+        if not output_qxy and not output_raw:
             out = out.assign_coords({'pix_x':np.arange(0,len(out.pix_x)),'pix_y':np.arange(0,len(out.pix_y))})
         return out

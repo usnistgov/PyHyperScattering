@@ -80,7 +80,7 @@ PyHyperScattering.integrate module
       PyHyperScattering.integrate.WPIntegrator module
    --------------------------------------------------------------------------------
 
-   .. automodule:: PyHyperScattering.WPIntegrator
+   .. automodule:: PyHyperScattering.integrate.WPIntegrator
       :members:
       :undoc-members:
       :show-inheritance:
@@ -117,10 +117,10 @@ PyHyperScattering.util module
       :undoc-members:
       :show-inheritance:
 
-   PyHyperScattering.util.Nexus module
+   PyHyperScattering.util.FileIO module
    -----------------------------------------------
 
-   .. automodule:: PyHyperScattering.util.Nexus
+   .. automodule:: PyHyperScattering.util.FileIO
       :members:
       :undoc-members:
       :show-inheritance:
