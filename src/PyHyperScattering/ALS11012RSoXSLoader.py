@@ -110,7 +110,7 @@ class ALS11012RSoXSLoader(FileLoader):
         Load a single image from filepath and return a single-image, raw xarray, performing dark subtraction if so configured.
 
         '''
-        if len(kwargs.keys()>0):
+        if len(kwargs.keys())>0:
             warnings.warn(f'Loader does not support features for args: {kwargs.keys()}',stacklevel=2)
         input_image = fits.open(filepath)
         headerdict =  self.normalizeMetadata(dict(zip(input_image[0].header.keys(),input_image[0].header.values())))

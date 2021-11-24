@@ -26,7 +26,7 @@ class FileLoader():
     md_loading_is_quick = False
     
     def loadSingleImage(self,filepath,coords=None,return_q=None,**kwargs):
-        if len(kwargs.keys()>0):
+        if len(kwargs.keys())>0:
             warnings.warn(f'Loader does not support features for args: {kwargs.keys()}',stacklevel=2)
         raise NotImplementedError
     

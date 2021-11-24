@@ -116,7 +116,7 @@ class ESRFID2Loader(FileLoader):
             return_q (bool): return qx / qy coords.  If false, returns pixel coords.
 
         '''
-        if len(kwargs.keys()>0):
+        if len(kwargs.keys())>0:
             warnings.warn(f'Loader does not support features for args: {kwargs.keys()}',stacklevel=2)
         if use_cached_md and (self.cached_md is not None):
             headerdict = copy.deepcopy(self.cached_md)

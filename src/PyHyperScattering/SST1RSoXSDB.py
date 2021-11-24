@@ -268,7 +268,7 @@ class SST1RSoXSDB:
 
             NOT FOR ACTIVE USE.  DOES NOT WORK.
         '''
-        if len(kwargs.keys()>0):
+        if len(kwargs.keys())>0:
             warnings.warn(f'Loader does not support features for args: {kwargs.keys()}',stacklevel=2)
         img = Image.open(filepath)
 
