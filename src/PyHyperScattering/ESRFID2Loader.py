@@ -105,7 +105,7 @@ class ESRFID2Loader(FileLoader):
         return params
             
         
-    def loadSingleImage(self,filepath,coords=None,return_q=True,image_slice=None,use_cached_md=False):
+    def loadSingleImage(self,filepath,coords=None,return_q=True,image_slice=None,use_cached_md=False,**kwargs):
         '''
         HELPER FUNCTION that loads a single image and returns an xarray with either pix_x / pix_y dimensions (if return_q == False) or qx / qy (if return_q == True)
 
@@ -116,6 +116,8 @@ class ESRFID2Loader(FileLoader):
             return_q (bool): return qx / qy coords.  If false, returns pixel coords.
 
         '''
+        if len(kwargs.keys()>0):
+            warnings.warn(f'Loader does not support features for args: {kwargs.keys()}',stacklevel=2)
         if use_cached_md and (self.cached_md is not None):
             headerdict = copy.deepcopy(self.cached_md)
         else:

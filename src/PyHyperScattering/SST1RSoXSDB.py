@@ -260,7 +260,7 @@ class SST1RSoXSDB:
         md.update(run.metadata)
         return md
 
-    def loadSingleImage(self,filepath,coords=None, return_q=False):
+    def loadSingleImage(self,filepath,coords=None, return_q=False,**kwargs):
         '''
             DO NOT USE
 
@@ -268,6 +268,8 @@ class SST1RSoXSDB:
 
             NOT FOR ACTIVE USE.  DOES NOT WORK.
         '''
+        if len(kwargs.keys()>0):
+            warnings.warn(f'Loader does not support features for args: {kwargs.keys()}',stacklevel=2)
         img = Image.open(filepath)
 
         headerdict = self.loadMd(filepath)
