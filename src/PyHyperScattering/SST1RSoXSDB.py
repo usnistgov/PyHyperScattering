@@ -152,6 +152,13 @@ class SST1RSoXSDB:
         retxr = retxr.assign_coords({'pix_x':np.arange(0,len(retxr.pix_x)),'pix_y':np.arange(0,len(retxr.pix_y))})
         
         retxr.attrs.update(md)
+        
+        # deal with the edge case where the LAST energy of a run is repeated... this may need modification to make it correct (did the energies shift when this happened??)
+        
+        if retxr.system[-1] == retxr.system[-2]:
+            retxr = retxr[:-1]
+            
+        
         return retxr
 
 
@@ -260,7 +267,7 @@ class SST1RSoXSDB:
         md.update(run.metadata)
         return md
 
-    def loadSingleImage(self,filepath,coords=None, return_q=False):
+    def loadSingleImage(self,filepath,coords=None, return_q=False,**kwargs):
         '''
             DO NOT USE
 
@@ -268,6 +275,8 @@ class SST1RSoXSDB:
 
             NOT FOR ACTIVE USE.  DOES NOT WORK.
         '''
+        if len(kwargs.keys())>0:
+            warnings.warn(f'Loader does not support features for args: {kwargs.keys()}',stacklevel=2)
         img = Image.open(filepath)
 
         headerdict = self.loadMd(filepath)
