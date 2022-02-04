@@ -152,6 +152,13 @@ class SST1RSoXSDB:
         retxr = retxr.assign_coords({'pix_x':np.arange(0,len(retxr.pix_x)),'pix_y':np.arange(0,len(retxr.pix_y))})
         
         retxr.attrs.update(md)
+        
+        # deal with the edge case where the LAST energy of a run is repeated... this may need modification to make it correct (did the energies shift when this happened??)
+        
+        if retxr.system[-1] == retxr.system[-2]:
+            retxr = retxr[:-1]
+            
+        
         return retxr
 
 
