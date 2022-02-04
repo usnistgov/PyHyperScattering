@@ -158,19 +158,47 @@ class FileIO:
             nxdata.attrs[u'Q_indices'] = Q_indices
                         
             residual_attrs = nxentry.create_group(u'attrs')
-            for k,v in data.attrs.items():
-                #print(f'Serializing {k}...')
+            residual_attrs = self._serialize_attrs(residual_attrs,data.attrs.items())
+            '''for k,v in data.attrs.items():
+                print(f'Serializing {k}...')
+                print(f'Data: type {type(v)}, data {v}')
                 if type(v)==datetime.datetime:
                     ds = residual_attrs.create_dataset(k,data=v.strftime('%Y-%m-%dT%H:%M:%SZ'))
                     ds.attrs['phs_encoding'] = 'strftime-%Y-%m-%dT%H:%M:%SZ'
+                elif type(v)==dict:
+                    ds = residual_attrs.create_group(k)
+                    
                 else:
                     try:
                         residual_attrs.create_dataset(k, data=v)
                     except TypeError:
                         ds = residual_attrs.create_dataset(k, data=json.dumps(v))
                         ds.attrs['phs_encoding'] = 'json'
+            '''
         print("wrote file:", fileName)
 
+    def _serialize_attrs(self,parent,items):
+        for k,v in items:
+            #print(f'Serializing {k}...')
+            #print(f'Data: type {type(v)}, data {v}')
+            if type(v)==datetime.datetime:
+                ds = parent.create_dataset(k,data=v.strftime('%Y-%m-%dT%H:%M:%SZ'))
+                ds.attrs['phs_encoding'] = 'strftime-%Y-%m-%dT%H:%M:%SZ'
+            elif type(v)==dict:
+                grp = parent.create_group(k)
+                grp.attrs['phs_encoding'] = 'dict-expanded'
+                grp = self._serialize_attrs(grp,v.items())
+            else:
+                try:
+                    parent.create_dataset(k, data=v)
+                except TypeError:
+                    try:
+                        ds = parent.create_dataset(k, data=json.dumps(v))
+                        ds.attrs['phs_encoding'] = 'json'
+                    except TypeError:
+                        warnings.warn('Failed to serialize {k} with type {type(v)} and value {v} as JSON.  Skipping.',stacklevel=2)
+        return parent
+        
 def loadPickle(filename):
     return pickle.load( open( filename, "rb" ) )
 
@@ -180,14 +208,18 @@ def loadNexus(filename):
                   dims=_parse_Iaxes(f['entry']['sasdata'].attrs['I_axes']),
                  coords = _make_coords(f))
 
-        loaded_attrs = {}
-        for entry in f['entry']['attrs']:
+        
+        loaded_attrs = _unserialize_attrs(f['entry']['attrs'],{})
+        
+        '''        for entry in f['entry']['attrs']:
             #print(f'Processing attribute entry {entry}')
             try:
                 encoding = f['entry']['attrs'][entry].attrs['phs_encoding']
                 #print(f'Found data with a labeled encoding: {encoding}')
                 if encoding == 'json':
                     loaded_attrs[entry] = json.loads(f['entry']['attrs'][entry][()].decode())
+                elif encoding == 'dict-expanded':
+                    loaded_attrs[entry] = self.load_attrs(entry)
                 elif 'strftime' in encoding:
                     loaded_attrs[entry] = datetime.datetime.strptime(str(f['entry']['attrs'][entry][()].decode()),
                                                            encoding.replace('strftime-',''))
@@ -195,12 +227,31 @@ def loadNexus(filename):
                     warnings.warn(f'Unknown phs_encoding {encoding} while loading {entry}.  Possible version mismatch.  Loading as string.',stacklevel=2)
                     loaded_attrs[entry] = f['entry']['attrs'][entry][()]
             except KeyError:
-                loaded_attrs[entry] = f['entry']['attrs'][entry][()]
+                loaded_attrs[entry] = f['entry']['attrs'][entry][()]'''
         #print(f'Loaded: {loaded_attrs}')
         ds.attrs.update(loaded_attrs)
 
     return ds
 
+def _unserialize_attrs(hdf,attrdict):
+    for entry in hdf:
+        #print(f'Processing attribute entry {entry}')
+        try:
+            encoding = hdf[entry].attrs['phs_encoding']
+            #print(f'Found data with a labeled encoding: {encoding}')
+            if encoding == 'json':
+                attrdict[entry] = json.loads(hdf[entry][()].decode())
+            elif encoding == 'dict-expanded':
+                attrdict[entry] = _unserialize_attrs(hdf[entry],{})
+            elif 'strftime' in encoding:
+                attrdict[entry] = datetime.datetime.strptime(str(hdf[entry][()].decode()),
+                                                       encoding.replace('strftime-',''))
+            else:
+                warnings.warn(f'Unknown phs_encoding {encoding} while loading {entry}.  Possible version mismatch.  Loading as string.',stacklevel=2)
+                attrdict[entry] = hdf[entry][()]
+        except KeyError:
+            attrdict[entry] = hdf[entry][()]        
+    return attrdict
 def _parse_Iaxes(axes,suppress_multiindex=True):
     axes = axes.replace('[','').replace(']','')
     axes_parts = axes.split(',')
