@@ -143,108 +143,108 @@ def fit_lorentz_bg(x,guess=None,pos_int_override=False,silent=False):
     retval['width'] = xr.DataArray(data=coeff[2],coords=x.coords)
     retval['bg'] = xr.DataArray(data=coeff[3],coords=x.coords)
     return retval
-	
+    
 def fit_cos_anisotropy(data,qL,qU,qspacing,Enlist,ChiL,ChiU,binnumber,Chilim):
-	'''
-	Will determine ansiotropy as a function of the q slicing and spacing given
-	data= Xarray input with dimensions of Chi, q, Energy, Polarization
-	qL, qU = upper and lower bounds for the q range
-	qspacing = distance between q points 
-	Enlist = list of energies that will be fit
-	ChiL, ChiU = allows you to cut out any problematic points around the mask
-	binnumber = gives you the option of binning the data in chi - 0 keeps it as is
-	Chilim = an upper limit for the goodness of fit beyond which all results will be set to 0, implies that the data does not reflect a cos function for whatever reason
-	'''
-	
-	#generates arrays to store the final results
-	qarray=np.arange(qL,qU,qspacing)
-	anisotropy=np.zeros([len(Enlist),len(qarray)])
-	chisq=np.zeros([len(Enlist),len(qarray)])
-	anisotropyU=np.zeros([len(Enlist),len(qarray)])
-	
-	for Ecount,En in enumerate(Enlist):
-		for i in range(len(qarray)):
-			
-			qmin=qarray[i]-qspacing/2
-			qmax=qarray[i]+qspacing/2
-			r=data.sel(energy=En,q=slice(qmin,qmax)).mean('q')
-			
-			if binnumber >0:
-				rc=r.coarsen(chi=binnumber,boundary='trim').mean()
-				intensity=rc.values
-				chi=rc['chi'].values
-			else:
-				intensity=r.values
-				chi=r['chi'].values
-			# removes any nans	
-			a_infs = np.where(np.isnan(intensity))
-			intensity=np.delete(intensity,a_infs)
-			chi=np.delete(chi,a_infs)
-			
-			#removes any problematic points around the edge of the mask
-			check=np.where(np.logical_and(chi>=ChiU, chi<=ChiL))
-			chi=np.delete(chi,check)
-			intensity=np.delete(intensity,check)
-			
-			chi=np.radians(chi) # switches chi from degrees to radians for the fitting function
-			
-			params, ani, ani_unc, gf=fit_cos(chi, intensity) # calls the fitting function on the selected I vs Chi cut
-			
-			# Check to compare the Chi value to a upper limit where the fit is assumed to ha
-			if gf > Chilim:
-				anisotropy[Ecount,i]=0
-				anisotropyU[Ecount,i]=ani_unc
-				chisq[Ecount,i]=gf
-			else: 
-				anisotropy[Ecount,i]=ani
-				anisotropyU[Ecount,i]=ani_unc
-				chisq[Ecount,i]=gf
-	if data['polarization'].values[0]==0:
-		anisotropy=-1*anisotropy
-	return qarray, anisotropy, anisotropyU, chisq
-	
-	
+    '''
+    Will determine ansiotropy as a function of the q slicing and spacing given
+    data= Xarray input with dimensions of Chi, q, Energy, Polarization
+    qL, qU = upper and lower bounds for the q range
+    qspacing = distance between q points 
+    Enlist = list of energies that will be fit
+    ChiL, ChiU = allows you to cut out any problematic points around the mask
+    binnumber = gives you the option of binning the data in chi - 0 keeps it as is
+    Chilim = an upper limit for the goodness of fit beyond which all results will be set to 0, implies that the data does not reflect a cos function for whatever reason
+    '''
+    
+    #generates arrays to store the final results
+    qarray=np.arange(qL,qU,qspacing)
+    anisotropy=np.zeros([len(Enlist),len(qarray)])
+    chisq=np.zeros([len(Enlist),len(qarray)])
+    anisotropyU=np.zeros([len(Enlist),len(qarray)])
+    
+    for Ecount,En in enumerate(Enlist):
+        for i in range(len(qarray)):
+            
+            qmin=qarray[i]-qspacing/2
+            qmax=qarray[i]+qspacing/2
+            r=data.sel(energy=En,q=slice(qmin,qmax)).mean('q')
+            
+            if binnumber >0:
+                rc=r.coarsen(chi=binnumber,boundary='trim').mean()
+                intensity=rc.values
+                chi=rc['chi'].values
+            else:
+                intensity=r.values
+                chi=r['chi'].values
+            # removes any nans    
+            a_infs = np.where(np.isnan(intensity))
+            intensity=np.delete(intensity,a_infs)
+            chi=np.delete(chi,a_infs)
+            
+            #removes any problematic points around the edge of the mask
+            check=np.where(np.logical_and(chi>=ChiU, chi<=ChiL))
+            chi=np.delete(chi,check)
+            intensity=np.delete(intensity,check)
+            
+            chi=np.radians(chi) # switches chi from degrees to radians for the fitting function
+            
+            params, ani, ani_unc, gf=fit_cos(chi, intensity) # calls the fitting function on the selected I vs Chi cut
+            
+            # Check to compare the Chi value to a upper limit where the fit is assumed to ha
+            if gf > Chilim:
+                anisotropy[Ecount,i]=0
+                anisotropyU[Ecount,i]=ani_unc
+                chisq[Ecount,i]=gf
+            else: 
+                anisotropy[Ecount,i]=ani
+                anisotropyU[Ecount,i]=ani_unc
+                chisq[Ecount,i]=gf
+    if data['polarization'].values[0]==0:
+        anisotropy=-1*anisotropy
+    return qarray, anisotropy, anisotropyU, chisq
+    
+    
 def fit_cos_anisotropy_single(data,q,qspacing,En,ChiL,ChiU,binnumber,Chilim):
-	'''
-	fits the anisotropy with a cos function for a single energy/q position
-	q = qposition that will be fit
-	qspacing = distance between q points 
-	En = energy that will be fit
-	ChiL, ChiU = allows you to cut out any problematic points around the mask
-	binnumber = gives you the option of binning the data in chi - 0 keeps it as is
-	Chilim = an upper limit for the goodness of fit beyond which all results will be set to 0, implies that the data does not reflect a cos function for whatever reason
-	
-	'''
-	
-	#qarray=np.arange(qL,qU,qspacing)
-	#anisotropy=np.zeros([len(Enlist),len(qarray)])
-	#chisq=np.zeros([len(Enlist),len(qarray)])
-	#anisotropyU=np.zeros([len(Enlist),len(qarray)])
-	
-	
-			
-	qmin=q-qspacing/2
-	qmax=q+qspacing/2
-	r=data.sel(energy=En,q=slice(qmin,qmax)).mean('q')
-		
-	if binnumber >0:
-		rc=r.coarsen(chi=binnumber,boundary='trim').mean()
-		intensity=rc.values
-		chi=rc['chi'].values
-	else:
-		intensity=r.values
-		chi=r['chi'].values
-	a_infs = np.where(np.isnan(intensity))
-	intensity=np.delete(intensity,a_infs)
-	chi=np.delete(chi,a_infs)
-	check=np.where(np.logical_and(chi>=ChiU, chi<=ChiL))
-	chi=np.delete(chi,check)
-	intensity=np.delete(intensity,check)
-	chi=np.radians(chi)
-	#print(intensity)
-	params, ani, ani_unc, gf=fit_cos(chi, intensity)
-	
-	return chi,intensity,params, ani, ani_unc, gf
+    '''
+    fits the anisotropy with a cos function for a single energy/q position
+    q = qposition that will be fit
+    qspacing = distance between q points 
+    En = energy that will be fit
+    ChiL, ChiU = allows you to cut out any problematic points around the mask
+    binnumber = gives you the option of binning the data in chi - 0 keeps it as is
+    Chilim = an upper limit for the goodness of fit beyond which all results will be set to 0, implies that the data does not reflect a cos function for whatever reason
+    
+    '''
+    
+    #qarray=np.arange(qL,qU,qspacing)
+    #anisotropy=np.zeros([len(Enlist),len(qarray)])
+    #chisq=np.zeros([len(Enlist),len(qarray)])
+    #anisotropyU=np.zeros([len(Enlist),len(qarray)])
+    
+    
+            
+    qmin=q-qspacing/2
+    qmax=q+qspacing/2
+    r=data.sel(energy=En,q=slice(qmin,qmax)).mean('q')
+        
+    if binnumber >0:
+        rc=r.coarsen(chi=binnumber,boundary='trim').mean()
+        intensity=rc.values
+        chi=rc['chi'].values
+    else:
+        intensity=r.values
+        chi=r['chi'].values
+    a_infs = np.where(np.isnan(intensity))
+    intensity=np.delete(intensity,a_infs)
+    chi=np.delete(chi,a_infs)
+    check=np.where(np.logical_and(chi>=ChiU, chi<=ChiL))
+    chi=np.delete(chi,check)
+    intensity=np.delete(intensity,check)
+    chi=np.radians(chi)
+    #print(intensity)
+    params, ani, ani_unc, gf=fit_cos(chi, intensity)
+    
+    return chi,intensity,params, ani, ani_unc, gf
 
 def dummy_fit(x,guess=None,pos_int_override=False):
     '''
@@ -282,37 +282,37 @@ def lorentz_w_flat_bg( x, *p ):
     '''
     a, x0, gam, bg = p
     return bg+(a * gam**2 / ( gam**2 + ( x - x0 )**2))
-	
+    
 def sin_func(x,a,c):
-	'''
-	Helper function - sin function
+    '''
+    Helper function - sin function
 
     Args:
         x (numeric): the input in radians
         a,c: parameters [a,c] where the sin function is = a * np.sin(2*x)+c
     '''
-	
-	return a* np.sin(2*x)+c
-	
+    
+    return a* np.sin(2*x)+c
+    
 def cos_func(x,a,c):
-	'''
-	Helper function - cos function
+    '''
+    Helper function - cos function
     Args:
         x (numeric): the input in radians
         a,c: parameters where the sin function is = a * np.cos(2*x)+c
     '''
-	
-	
-	return a* np.cos(2*x)+c
-	
+    
+    
+    return a* np.cos(2*x)+c
+    
 def fit_cos(x_data, y_data):
-	'''
-	Fits the Intensity vs chi plot with a cosine finction using the scipy.optimize.curve_fit module
-	automatically estimates the initial values for the amplitude(a) and offset(c)
-	
-	Calculates the anisotropy as the ratio between the fitted values for a and the offset
-	Ani_unc is the propogated uncertainty
-	'''
+    '''
+    Fits the Intensity vs chi plot with a cosine finction using the scipy.optimize.curve_fit module
+    automatically estimates the initial values for the amplitude(a) and offset(c)
+    
+    Calculates the anisotropy as the ratio between the fitted values for a and the offset
+    Ani_unc is the propogated uncertainty
+    '''
     a_init=np.max(y_data)-np.min(y_data)
     c_init=np.mean(y_data)
     try:
