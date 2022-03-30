@@ -86,23 +86,28 @@ class SST1RSoXSDB:
         q = RawMongo(**kwargs)
         return self.c.search(q)
     
-    def loadRun(self,run,dims,coords={}):
+    def loadRun(self,run,dims=None,coords={}):
         '''
         Loads a run entry from a catalog result into a raw xarray.
 
         Args:
             run (DataBroker result): a single run from BlueSky
-            dims (list): list of dimensions you'd like in the resulting xarray.  See list of allowed dimensions in documentation.
+            dims (list): list of dimensions you'd like in the resulting xarray.  See list of allowed dimensions in documentation.  If not set or None, tries to auto-hint the dims from the RSoXS plan_name.
             coords (dict): user-supplied dimensions, see syntax examples in documentation.
 
         Returns:
             raw (xarray): raw xarray containing your scan in PyHyper-compliant format
 
         '''
-        md = self.loadMd(run)  
-
-        
-
+        md = self.loadMd(run)
+        if 'NEXAFS' in md['start']['plan_name']:
+            raise NotImplementedError(f"Scan {md['start']['scan_id']} is a {md['start']['plan_name']} NEXAFS scan.  NEXAFS loading is not yet supported.")
+        elif ('full' in md['start']['plan_name'] or 'short' in md['start']['plan_name']) and dims is None:
+            dims = ['energy']
+        elif 'spiralsearch' in md['start']['plan_name'] and dims is None:
+            dims = ['sam_x','sam_y']
+        elif dims is None:
+            raise NotImplementedError(f"Cannot infer dimensions for a {md['start']['plan_name']} plan.  If this should be broadly supported, please raise an issue with the expected dimensions on the project GitHub.")
         #data = run['primary']['data'][md['detector']+'_image'] 
         #if self.dark_subtract:
         #    dark = run['dark']['data'][md['detector']+'_image'].mean('time') #@TODO: change to correct dark indexing
@@ -146,6 +151,9 @@ class SST1RSoXSDB:
                 dims_to_join,
                 names=dim_names_to_join)
 
+        #handle the edge case of a partly-finished scan
+        if len(index) != len(data['time']):
+            index = index[:len(data['time'])]
         retxr = data.squeeze('dim_0').rename({'dim_1':'pix_y','dim_2':'pix_x'}).rename({'time':'system'}).assign_coords(system=index)#,md['detector']+'_image':'intensity'})
         
         #this is needed for holoviews compatibility, hopefully does not break other features.
