@@ -13,6 +13,9 @@ OrientationRunDec2019/**
 **/*.p
 **/.*
 **/*.ipynb
+*.png
+*.h5
+*.nxs
 Example/**
 example-data/**
 src/__pycache__
