@@ -216,7 +216,7 @@ class SST1RSoXSDB:
                 md['sdd'] = run.start['RSoXS_WAXS_SDD']
 
         else:
-            md['rsoxs_config'] == 'unknown'
+            md['rsoxs_config'] = 'unknown'
             warnings.warn(f'RSoXS_Config is neither SAXS or WAXS. Looks to be {start["RSoXS_Config"]}.  Might want to check that out.',stacklevel=2)
 
         if md['rsoxs_config']=='saxs':
