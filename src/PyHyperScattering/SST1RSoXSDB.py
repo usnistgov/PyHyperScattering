@@ -106,6 +106,8 @@ class SST1RSoXSDB:
             dims = ['energy']
         elif 'spiralsearch' in md['start']['plan_name'] and dims is None:
             dims = ['sam_x','sam_y']
+        elif 'count' in md['start']['plan_name'] and dims is None:
+            dims = ['epoch']
         elif dims is None:
             raise NotImplementedError(f"Cannot infer dimensions for a {md['start']['plan_name']} plan.  If this should be broadly supported, please raise an issue with the expected dimensions on the project GitHub.")
         #data = run['primary']['data'][md['detector']+'_image'] 
@@ -162,10 +164,11 @@ class SST1RSoXSDB:
         retxr.attrs.update(md)
         
         # deal with the edge case where the LAST energy of a run is repeated... this may need modification to make it correct (did the energies shift when this happened??)
-        
-        if retxr.system[-1] == retxr.system[-2]:
-            retxr = retxr[:-1]
-            
+        try:
+            if retxr.system[-1] == retxr.system[-2]:
+                retxr = retxr[:-1]
+        except IndexError:
+            pass
         
         return retxr
 
@@ -231,8 +234,10 @@ class SST1RSoXSDB:
         baseline = run['baseline']['data']
 
         # items coming from primary
-        primary = run['primary']['data']
-
+        try:
+            primary = run['primary']['data']
+        except KeyError:
+            raise Exception('No primary stream --> probably you caught run before image was written.  Try again.')
         md_lookup = {
             'sam_x':'RSoXS Sample Outboard-Inboard',
             'sam_y':'RSoXS Sample Up-Down',
@@ -256,6 +261,7 @@ class SST1RSoXSDB:
                 except KeyError:
                     warnings.warn(f'Could not find {rsoxs} in either baseline or primary.  Needed to infill value {phs}.  Setting to None.',stacklevel=2)
                     md[phs] = None
+        md['epoch'] = md['meas_time'].timestamp()
                     
         md['wavelength'] = 1.239842e-6 / md['energy']
         #md['sampleid'] = scan_id@todo this should be easy
