@@ -309,13 +309,13 @@ class PFGeneralIntegrator():
             pixsizex: pixel size in x, microns
             pixsizey: pixel size in y, microns
         '''
-        self.ni_distance = NIdistance
-        self.ni_beamcenter_x = NIbcx
-        self.ni_beamcenter_y = NIbcy
-        self.ni_tilt_x = NItiltx
-        self.ni_tilt_y = NItilty
-        self.ni_pixel_x = NIpixsizex
-        self.ni_pixel_y = NIpixsizey
+        self.ni_distance = distance
+        self.ni_beamcenter_x = bcx
+        self.ni_beamcenter_y = bcy
+        self.ni_tilt_x = tiltx
+        self.ni_tilt_y = tilty
+        self.ni_pixel_x = pixsizex
+        self.ni_pixel_y = pixsizey
         
         ''' preserved for reference
         self.dist = distance / 1000 # mm in Nika, m in pyFAI
