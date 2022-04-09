@@ -98,7 +98,7 @@ class PFGeneralIntegrator():
     def __init__(self,maskmethod = "none",maskpath = "",
                  geomethod = "none",
                  NIdistance=0, NIbcx=0, NIbcy=0, NItiltx=0, NItilty=0,
-                 NIpixsizex = 0.027, NIpixsizey = 0.027,
+                 NIpixsizex = 0, NIpixsizey = 0,
                  template_xr = None,
                  energy = 2000,
                  integration_method='csr_ocl',
@@ -115,7 +115,7 @@ class PFGeneralIntegrator():
             self.mask = None
         self.correctSolidAngle = correctSolidAngle
         self.integration_method = integration_method
-        self.wavelength = 1.239842e-6/energy
+        self._energy = energy
         self.npts = npts
         self.use_log_ish_binning = use_log_ish_binning
         self.do_1d_integration = do_1d_integration
@@ -127,10 +127,15 @@ class PFGeneralIntegrator():
     
         self.maskToNan = maskToNan
         self.return_sigma = return_sigma
-        
+        #self._energy = 0
         if geomethod == "nika":
-            self.calibrationFromNikaParams(NIdistance, NIbcx, NIbcy, NItiltx, NItilty,pixsizex = NIpixsizex, pixsizey = NIpixsizey)
-            self.wavelength = 1.239842e-6/energy
+            self.ni_distance = NIdistance
+            self.ni_beamcenter_x = NIbcx
+            self.ni_beamcenter_y = NIbcy
+            self.ni_tilt_x = NItiltx
+            self.ni_tilt_y = NItilty
+            self.ni_pixel_x = NIpixsizex
+            self.ni_pixel_y = NIpixsizey
         elif geomethod == 'template_xr':
             self.calibrationFromTemplateXRParams(template_xr)
         elif geomethod == "none":
@@ -177,38 +182,10 @@ class PFGeneralIntegrator():
         boolmask = np.invert(convertedmask.astype(bool))
         print(f"Imported Nika mask of type {type}, dimensions {str(np.shape(boolmask))}")
         self.mask = boolmask
-
-    def calibrationFromNikaParams(self,distance, bcx, bcy, tiltx, tilty,pixsizex, pixsizey):
-        '''
-        Return a calibration array [dist,poni1,poni2,rot1,rot2,rot3] from a Nika detector geometry.
-           
-           this will probably only support rotations in the SAXS limit (i.e., where sin(x) ~ x, i.e., a couple degrees)
-           since it assumes the PyFAI and Nika rotations are about the same origin point (which I think isn't true).
-        
-        Args:
-            distance: sample-detector distance in mm
-            bcx: beam center x in pixels
-            bcy: beam center y in pixels
-            tiltx: detector x tilt in deg, see note above
-            tilty: detector y tilt in deg, see note above
-            pixsizex: pixel size in x, microns
-            pixsizey: pixel size in y, microns
-        '''
-        self.dist = distance / 1000 # mm in Nika, m in pyFAI
-        self.poni1 = bcy * pixsizey / 1000#pyFAI uses the same 0,0 definition, so just pixel to m.  y = poni1, x = poni2
-        self.poni2 = bcx * pixsizex / 1000
-
-        self.rot1 = tiltx * (math.pi/180)
-        self.rot2 = tilty * (math.pi/180) #degree to radian and flip x/y
-        self.rot3 = 0 #don't support this, it's only relevant for multi-detector geometries
-
-        self.pixel1 = pixsizey/1e3
-        self.pixel2 = pixsizex/1e3
-        self.recreateIntegrator()
         
     def calibrationFromTemplateXRParams(self,raw_xr):
         '''
-        Return a calibration array [dist,poni1,poni2,rot1,rot2,rot3] from a pyFAI values in a template xarray
+        Sets calibration from a pyFAI values in a template xarray
         
         Args:
             raw_xr (raw format xarray): a raw_xr bearing the metadata in members
@@ -226,9 +203,129 @@ class PFGeneralIntegrator():
         self.pixel2 = raw_xr.pixel2
         
         self.recreateIntegrator()
+
+    @property
+    def wavelength(self):
+        return 1.239842e-6 / self._energy # = wl ; energy = 1.239842e-6 / wl
+    
+    @wavelength.setter
+    def wavelength(self,value):
+        self._energy = 1.239842e-6 / value
+        self.recreateIntegrator()
+        
+    @property
+    def energy(self):
+        return self._energy
+    
+    @energy.setter
+    def energy(self,value):
+        self._energy = value  
+        self.recreateIntegrator()
+        
+    @property
+    def ni_beamcenter_x(self):
+        return self.poni2 / self.ni_pixelx * 1000
+        
+    @ni_beamcenter_x.setter
+    def ni_beamcenter_x(self,value):
+        self.poni2 = self.ni_pixelx * value / 1000
+        self.recreateIntegrator()
+        
+    @property
+    def ni_beamcenter_y(self):
+        return self.poni1 / self.ni_pixely *1000
+        
+    @ni_beamcenter_y.setter
+    def ni_beamcenter_y(self,value):
+        self.poni1 = self.ni_pixely * value / 1000
+        self.recreateIntegrator()
+        
+    @property
+    def ni_distance(self):
+        return self.dist * 1000
+        
+    @ni_distance.setter
+    def ni_distance(self,value):
+        self.dist = value / 1000
+        self.recreateIntegrator()
+    
+    @property
+    def ni_tilt_x(self):
+        return self.rot1 / (math.pi/180)
+        
+    @ni_tilt_x.setter
+    def ni_tilt_x(self,value):
+        self.rot1 = value * (math.pi/180)
+        self.recreateIntegrator()
+
+    @property
+    def ni_tilt_y(self):
+        return self.rot2 / (math.pi/180) # tilt = rot / const, rot = tilt * const
+        
+    @ni_tilt_y.setter
+    def ni_tilt_y(self,value):
+        self.rot2 = value * (math.pi/180)
+        self.recreateIntegrator()
+
+    @property
+    def ni_pixel_x(self):
+        return self.pixel2 * 1e3
+        
+    @ni_pixel_x.setter
+    def ni_pixel_x(self,value):
+        self.pixel2 = value / 1e3
+        self.recreateIntegrator()
+
+    @property
+    def ni_pixel_y(self):
+        return self.pixel1 * 1e3
+        
+    @ni_pixel_y.setter
+    def ni_pixel_y(self,value):
+        self.pixel1 = value / 1e3
+        self.recreateIntegrator()
+                
     def recreateIntegrator(self):
         '''
         recreate the integrator, after geometry change
         '''
         self.integrator = azimuthalIntegrator.AzimuthalIntegrator(
             self.dist, self.poni1, self.poni2, self.rot1, self.rot2, self.rot3 ,pixel1=self.pixel1,pixel2=self.pixel2, wavelength = self.wavelength)
+
+    def calibrationFromNikaParams(self,distance, bcx, bcy, tiltx, tilty,pixsizex, pixsizey):
+        '''
+        DEPRECATED as of 0.2
+        
+       Set the local calibrations using Nika parameters.
+           this will probably only support rotations in the SAXS limit (i.e., where sin(x) ~ x, i.e., a couple degrees)
+           since it assumes the PyFAI and Nika rotations are about the same origin point (which I think isn't true).
+        
+        Args:
+            distance: sample-detector distance in mm
+            bcx: beam center x in pixels
+            bcy: beam center y in pixels
+            tiltx: detector x tilt in deg, see note above
+            tilty: detector y tilt in deg, see note above
+            pixsizex: pixel size in x, microns
+            pixsizey: pixel size in y, microns
+        '''
+        self.ni_distance = NIdistance
+        self.ni_beamcenter_x = NIbcx
+        self.ni_beamcenter_y = NIbcy
+        self.ni_tilt_x = NItiltx
+        self.ni_tilt_y = NItilty
+        self.ni_pixel_x = NIpixsizex
+        self.ni_pixel_y = NIpixsizey
+        
+        ''' preserved for reference
+        self.dist = distance / 1000 # mm in Nika, m in pyFAI
+        self.poni1 = bcy * pixsizey / 1000#pyFAI uses the same 0,0 definition, so just pixel to m.  y = poni1, x = poni2
+        self.poni2 = bcx * pixsizex / 1000
+
+        self.rot1 = tiltx * (math.pi/180)
+        self.rot2 = tilty * (math.pi/180) #degree to radian and flip x/y
+        self.rot3 = 0 #don't support this, it's only relevant for multi-detector geometries
+
+        self.pixel1 = pixsizey/1e3
+        self.pixel2 = pixsizex/1e3
+        self.recreateIntegrator()'''
