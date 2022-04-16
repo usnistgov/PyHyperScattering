@@ -224,20 +224,20 @@ class PFGeneralIntegrator():
         
     @property
     def ni_beamcenter_x(self):
-        return self.poni2 / self.ni_pixelx * 1000
+        return self.poni2 / self.ni_pixel_x * 1000
         
     @ni_beamcenter_x.setter
     def ni_beamcenter_x(self,value):
-        self.poni2 = self.ni_pixelx * value / 1000
+        self.poni2 = self.ni_pixel_x * value / 1000
         self.recreateIntegrator()
         
     @property
     def ni_beamcenter_y(self):
-        return self.poni1 / self.ni_pixely *1000
+        return self.poni1 / self.ni_pixel_y *1000
         
     @ni_beamcenter_y.setter
     def ni_beamcenter_y(self,value):
-        self.poni1 = self.ni_pixely * value / 1000
+        self.poni1 = self.ni_pixel_y * value / 1000
         self.recreateIntegrator()
         
     @property
