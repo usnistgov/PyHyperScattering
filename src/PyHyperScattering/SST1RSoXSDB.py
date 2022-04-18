@@ -242,8 +242,6 @@ class SST1RSoXSDB:
             'sam_x':'RSoXS Sample Outboard-Inboard',
             'sam_y':'RSoXS Sample Up-Down',
             'sam_z':'RSoXS Sample Downstream-Upstream',
-            'sam_th':'RSoXS Sample Rotation',
-            'energy':'en_energy_setpoint',
             'polarization':'en_polarization_setpoint',
             'exposure':'RSoXS Shutter Opening Time (ms)' #md['detector']+'_cam_acquire_time'
         }
@@ -255,7 +253,7 @@ class SST1RSoXSDB:
             except KeyError:
                 try:
                     blval = baseline[rsoxs]
-                    md[phs] = blval.mean().data
+                    md[phs] = blval.mean().data.round(4)
                     if blval.var() > 0:
                         warnings.warn(f'While loading {rsoxs} to infill metadata entry for {phs}, found beginning and end values unequal: {baseline[rsoxs]}.  It is possible something is messed up.',stacklevel=2)
                 except KeyError:
