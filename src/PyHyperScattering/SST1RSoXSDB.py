@@ -242,7 +242,9 @@ class SST1RSoXSDB:
             'sam_x':'RSoXS Sample Outboard-Inboard',
             'sam_y':'RSoXS Sample Up-Down',
             'sam_z':'RSoXS Sample Downstream-Upstream',
+            'sam_th':'RSoXS Sample Rotation',
             'polarization':'en_polarization_setpoint',
+            'energy':'en_energy_setpoint',
             'exposure':'RSoXS Shutter Opening Time (ms)' #md['detector']+'_cam_acquire_time'
         }
 
@@ -262,7 +264,7 @@ class SST1RSoXSDB:
         md['epoch'] = md['meas_time'].timestamp()
                     
         md['wavelength'] = 1.239842e-6 / md['energy']
-        #md['sampleid'] = scan_id@todo this should be easy
+        md['sampleid'] = start['scan_id']
 
         md['dist'] = md['sdd'] / 1000
 

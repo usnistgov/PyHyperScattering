@@ -71,7 +71,7 @@ class DrawMask:
         '''
         if len(frame.shape) > 2:
             warnings.warn('This tool needs a single frame, not a stack!  .sel down to a single frame before starting!',stacklevel=2)
-        
+            
         self.frame=frame
         
         self.fig = frame.hvplot(cmap='terrain',clim=(5,5000),logz=True,data_aspect=1)
