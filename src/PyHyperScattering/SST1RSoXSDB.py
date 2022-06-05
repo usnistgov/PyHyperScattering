@@ -163,11 +163,13 @@ class SST1RSoXSDB:
         retxr.attrs.update(md)
           
         #now do corrections:
+        frozen_attrs = retxr.attrs
         if self.corr_mode == 'i0':
             retxr = retxr / monitors['RSoXS Au Mesh Current']
         elif self.corr_mode != 'none':
             warnings.warn('corrections other than none are not supported at the moment',stacklevel=2)
-
+        
+        retxr.attrs.update(frozen_attrs)
 
         # deal with the edge case where the LAST energy of a run is repeated... this may need modification to make it correct (did the energies shift when this happened??)
         try:
@@ -178,7 +180,9 @@ class SST1RSoXSDB:
         
         if return_dataset:
             #retxr = (index,monitors,retxr)
+            monitors.attrs.update(retxr.attrs)
             retxr = monitors.merge(retxr)
+            
             
         return retxr
 
