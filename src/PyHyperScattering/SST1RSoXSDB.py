@@ -86,7 +86,7 @@ class SST1RSoXSDB:
         q = RawMongo(**kwargs)
         return self.c.search(q)
     
-    def loadRun(self,run,dims=None,coords={}):
+    def loadRun(self,run,dims=None,coords={},return_dataset=False):
         '''
         Loads a run entry from a catalog result into a raw xarray.
 
@@ -94,15 +94,16 @@ class SST1RSoXSDB:
             run (DataBroker result): a single run from BlueSky
             dims (list): list of dimensions you'd like in the resulting xarray.  See list of allowed dimensions in documentation.  If not set or None, tries to auto-hint the dims from the RSoXS plan_name.
             coords (dict): user-supplied dimensions, see syntax examples in documentation.
-
+            return_dataset (bool,default False): return both the data and the monitors as a xr.dataset.  If false (default), just returns the data.
         Returns:
             raw (xarray): raw xarray containing your scan in PyHyper-compliant format
 
         '''
         md = self.loadMd(run)
+        monitors = self.loadMonitors(run)
         if 'NEXAFS' in md['start']['plan_name']:
             raise NotImplementedError(f"Scan {md['start']['scan_id']} is a {md['start']['plan_name']} NEXAFS scan.  NEXAFS loading is not yet supported.")
-        elif ('full' in md['start']['plan_name'] or 'short' in md['start']['plan_name']) and dims is None:
+        elif ('full' in md['start']['plan_name'] or 'short' in md['start']['plan_name'] or 'custom_rsoxs_scan' in md['start']['plan_name']) and dims is None:
             dims = ['energy']
         elif 'spiralsearch' in md['start']['plan_name'] and dims is None:
             dims = ['sam_x','sam_y']
@@ -129,9 +130,7 @@ class SST1RSoXSDB:
                 return img + pedestal - darks[int(img.dark_id.values)]
             data = data.groupby('time').map(subtract_dark,darks=dark,pedestal=self.dark_pedestal)
 
-        if self.corr_mode != 'none':
-            warnings.warn('corrections other than none are not supported at the moment',stacklevel=2)
-
+      
 
         dims_to_join = []
         dim_names_to_join = []
@@ -160,9 +159,16 @@ class SST1RSoXSDB:
         
         #this is needed for holoviews compatibility, hopefully does not break other features.
         retxr = retxr.assign_coords({'pix_x':np.arange(0,len(retxr.pix_x)),'pix_y':np.arange(0,len(retxr.pix_y))})
-        
+        monitors = monitors.rename({'time':'system'}).reset_index('system').assign_coords(system=index).drop('system_')
         retxr.attrs.update(md)
-        
+          
+        #now do corrections:
+        if self.corr_mode == 'i0':
+            retxr = retxr / monitors['RSoXS Au Mesh Current']
+        elif self.corr_mode != 'none':
+            warnings.warn('corrections other than none are not supported at the moment',stacklevel=2)
+
+
         # deal with the edge case where the LAST energy of a run is repeated... this may need modification to make it correct (did the energies shift when this happened??)
         try:
             if retxr.system[-1] == retxr.system[-2]:
@@ -170,13 +176,27 @@ class SST1RSoXSDB:
         except IndexError:
             pass
         
+        if return_dataset:
+            #retxr = (index,monitors,retxr)
+            retxr = monitors.merge(retxr)
+            
         return retxr
 
 
     def peekAtMd(self,run):
         return self.loadMd(run)
 
-
+    def loadMonitors(self,entry):
+        monitors = None
+        for stream_name in list(entry.keys()):
+            if 'monitor' in stream_name:
+                if monitors is None:
+                    monitors = entry[stream_name].data.read()
+                else:
+                    monitors = xr.merge((monitors,entry[stream_name].data.read()))
+        monitors = monitors.ffill('time')
+        return monitors.interp(time=entry.primary.data['time'])
+    
     def loadMd(self,run):
         '''
         return a dict of metadata entries from the databroker run xarray

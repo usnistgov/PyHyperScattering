@@ -25,6 +25,10 @@ def inner_generator(df_function='apply'):
 
 DataArrayGroupBy.progress_apply = inner_generator()
 DatasetGroupBy.progress_apply = inner_generator()
+
+DataArrayGroupBy.progress_apply_ufunc = inner_generator(df_function='apply_ufunc')
+DatasetGroupBy.progress_apply_ufunc = inner_generator(df_function='apply_ufunc')
+
 #end monkey patch
 
 class PFEnergySeriesIntegrator(PFGeneralIntegrator):
