@@ -49,7 +49,8 @@ class PFGeneralIntegrator():
         else:
             integ_func = self.integrator.integrate2d
             
-        frame = integ_func(img_to_integ,
+        try:
+            frame = integ_func(img_to_integ,
                            self.npts,
                            filename=None,
                            correctSolidAngle=self.correctSolidAngle,
@@ -59,6 +60,11 @@ class PFGeneralIntegrator():
                            unit='arcsinh(q.µm)' if self.use_log_ish_binning else 'q_A^-1',
                            method=self.integration_method
                           )
+        except TypeError as e:
+            if 'diffSolidAngle() missing 2 required positional arguments: ' in str(e):
+                raise TypeError('Geometry is incorrect, cannot integrate.\n \n - Do your mask dimensions match your image dimensions? \n - Do you have pixel sizes set that are not zero?\n - Is SDD, beamcenter/poni, and tilt set correctly?') from e
+            else:
+                raise e
         
         if self.maskToNan:
                         #preexisting_nans = np.isnan(TwoD.intensity).sum()
@@ -145,8 +151,8 @@ class PFGeneralIntegrator():
             self.rot1 = 0
             self.rot2 = 0
             self.rot3 = 0
-            self.pixel1 = 0.027/1e3
-            self.pixel2 = 0.027/1e3
+            self.pixel1 = 0/1e3
+            self.pixel2 = 0/1e3
             warnings.warn('Initializing geometry with default values.  This is probably NOT what you want.',stacklevel=2)
 
 
