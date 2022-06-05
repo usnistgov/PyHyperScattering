@@ -10,12 +10,15 @@ import json
 import numpy as np
 import pandas as pd
 from tqdm.auto import tqdm
-from databroker.queries import Key, FullText, Contains,Regex
+import asyncio
+import time
+
+
 
 try:
     os.environ["TILED_SITE_PROFILES"] = '/nsls2/software/etc/tiled/profiles'
     from tiled.client import from_profile
-    from databroker.queries import RawMongo
+    from databroker.queries import RawMongo, Key, FullText, Contains,Regex
 except:
     print('Imports failed.  Are you running on a machine with proper libraries for databroker, tiled, etc.?')
     
@@ -88,51 +91,76 @@ class SST1RSoXSDB:
         '''
         q = RawMongo(**kwargs)
         return self.c.search(q)
+ 
     def summarize_run(self,proposal=None,saf=None,user=None,institution=None,project=None,sample=None,plan=None):
-        '''
-        Returns a Pandas dataframe with a summary of runs matching a set of search criteria.
-            
-        Args:
-            proposal, saf, user, institution (str or None): if str, adds an exact match search on the appropriate parameter to the set
-            project,sample,plan (str or None): if str, adds a regex match search on the appropriate parameter to the set.
-                example: project='*Liquid*' matches 'Liquid','Liquids','Liquid-RSoXS')
-        
-        Returns:
-            pd.Dataframe containing the results of the search.
-        '''
-        catalog = self.c
-        if proposal is not None:
-            catalog = catalog.search(Key('proposal_id')==proposal)
-        if saf is not None:
-            catalog = catalog.search(Key('saf_id')==saf)
-        if user is not None:
-            catalog = catalog.search(Key('user_name')==user)
-        if institution is not None:
-            catalog = catalog.search(Key('institution')==institution)
-        if project is not None:
-            catalog = catalog.search(Regex("project_name",project))
-        if sample is not None:
-            catalog = catalog.search(Regex('sample_name',sample))
-        if plan is not None:
-            catalog = catalog.search(Regex('plan_name',plan))
-        cat = catalog
-        #print(cat)
-        #print('#    scan_id        sample_id           plan_name')
-        scan_ids = []
-        sample_ids = []
-        plan_names = []
-        start_times = []
-        for num,entry in tqdm(enumerate(cat),total=len(cat)):
-            #print(entry)
-            scan_ids.append(cat[entry].start["scan_id"])
-            sample_ids.append(cat[entry].start["sample_id"])
-            plan_names.append(cat[entry].start["plan_name"])
-            start_times.append(cat[entry].start["time"])
-            #print(f'{num}  {cat[entry].start["scan_id"]}  {cat[entry].start["sample_id"]} {cat[entry].start["plan_name"]}')
-        return pd.DataFrame(list(zip(scan_ids,sample_ids,plan_names,start_times)),
-                   columns =['scan_id', 'sample_id','plan_name','time'])
+            '''
+            Returns a Pandas dataframe with a summary of runs matching a set of search criteria.
 
+            Args:
+                proposal, saf, user, institution (str or None): if str, adds an exact match search on the appropriate parameter to the set
+                project,sample,plan (str or None): if str, adds a regex match search on the appropriate parameter to the set.
+                    example: project='*Liquid*' matches 'Liquid','Liquids','Liquid-RSoXS')
 
+            Returns:
+                pd.Dataframe containing the results of the search.
+            '''
+            catalog = self.c
+            if proposal is not None:
+                catalog = catalog.search(Key('proposal_id')==proposal)
+            if saf is not None:
+                catalog = catalog.search(Key('saf_id')==saf)
+            if user is not None:
+                catalog = catalog.search(Key('user_name')==user)
+            if institution is not None:
+                catalog = catalog.search(Key('institution')==institution)
+            if project is not None:
+                catalog = catalog.search(Regex("project_name",project))
+            if sample is not None:
+                catalog = catalog.search(Regex('sample_name',sample))
+            if plan is not None:
+                catalog = catalog.search(Regex('plan_name',plan))
+            cat = catalog
+            #print(cat)
+            #print('#    scan_id        sample_id           plan_name')
+            scan_ids = []
+            sample_ids = []
+            plan_names = []
+            start_times = []
+            npts = []
+            uids = []
+            for num,entry in tqdm((enumerate(cat)),total=len(cat)):
+                doc = catalog[entry].start
+                scan_ids.append(doc["scan_id"])
+                sample_ids.append(doc["sample_id"])
+                plan_names.append(doc["plan_name"])
+                uids.append(doc["uid"])
+                try:
+                    npts.append(catalog[entry].stop['num_events']['primary'])
+                except KeyError:
+                    npts.append(0)
+                start_times.append(doc["time"])
+                #do_list_append(catalog[entry],scan_ids,sample_ids,plan_names,uids,npts,start_times)
+                #print(f'{num}  {cat[entry].start["scan_id"]}  {cat[entry].start["sample_id"]} {cat[entry].start["plan_name"]}')
+            return pd.DataFrame(list(zip(scan_ids,sample_ids,plan_names,npts,uids,start_times)),
+                       columns =['scan_id', 'sample_id','plan_name','npts','uid','time'])
+
+    def background(f):
+        def wrapped(*args, **kwargs):
+            return asyncio.get_event_loop().run_in_executor(None, f, *args, **kwargs)
+
+        return wrapped
+    @background
+    def do_list_append(run,scan_ids,sample_ids,plan_names,uids,npts,start_times):
+        doc = run.start
+        scan_ids.append(doc["scan_id"])
+        sample_ids.append(doc["sample_id"])
+        plan_names.append(doc["plan_name"])
+        uids.append(doc["uid"])
+        try:
+            npts.append(run.stop['num_events']['primary'])
+        except KeyError:
+            npts.append(0)
+        start_times.append(doc["time"])
     def loadRun(self,run,dims=None,coords={},return_dataset=False):
         '''
         Loads a run entry from a catalog result into a raw xarray.
