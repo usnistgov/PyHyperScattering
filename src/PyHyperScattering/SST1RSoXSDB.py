@@ -8,6 +8,9 @@ import warnings
 import json
 #from pyFAI import azimuthalIntegrator
 import numpy as np
+import pandas as pd
+from tqdm.auto import tqdm
+from databroker.queries import Key, FullText, Contains,Regex
 
 try:
     os.environ["TILED_SITE_PROFILES"] = '/nsls2/software/etc/tiled/profiles'
@@ -85,7 +88,40 @@ class SST1RSoXSDB:
         '''
         q = RawMongo(**kwargs)
         return self.c.search(q)
-    
+    def summarize_run(self,proposal=None,saf=None,user=None,institution=None,project=None,sample=None,plan=None):
+        catalog = self.c
+        if proposal is not None:
+            catalog = catalog.search(Key('proposal_id')==proposal)
+        if saf is not None:
+            catalog = catalog.search(Key('saf_id')==saf)
+        if user is not None:
+            catalog = catalog.search(Key('user_name')==user)
+        if institution is not None:
+            catalog = catalog.search(Key('institution')==institution)
+        if project is not None:
+            catalog = catalog.search(Regex("project_name",project))
+        if sample is not None:
+            catalog = catalog.search(Regex('sample_name',sample))
+        if plan is not None:
+            catalog = catalog.search(Regex('plan_name',plan))
+        cat = catalog
+        #print(cat)
+        #print('#    scan_id        sample_id           plan_name')
+        scan_ids = []
+        sample_ids = []
+        plan_names = []
+        start_times = []
+        for num,entry in tqdm(enumerate(cat),total=len(cat)):
+            #print(entry)
+            scan_ids.append(cat[entry].start["scan_id"])
+            sample_ids.append(cat[entry].start["sample_id"])
+            plan_names.append(cat[entry].start["plan_name"])
+            start_times.append(cat[entry].start["time"])
+            #print(f'{num}  {cat[entry].start["scan_id"]}  {cat[entry].start["sample_id"]} {cat[entry].start["plan_name"]}')
+        return pd.DataFrame(list(zip(scan_ids,sample_ids,plan_names,start_times)),
+                   columns =['scan_id', 'sample_id','plan_name','time'])
+
+
     def loadRun(self,run,dims=None,coords={},return_dataset=False):
         '''
         Loads a run entry from a catalog result into a raw xarray.
