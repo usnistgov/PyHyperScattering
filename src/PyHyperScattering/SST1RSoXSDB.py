@@ -89,6 +89,17 @@ class SST1RSoXSDB:
         q = RawMongo(**kwargs)
         return self.c.search(q)
     def summarize_run(self,proposal=None,saf=None,user=None,institution=None,project=None,sample=None,plan=None):
+        '''
+        Returns a Pandas dataframe with a summary of runs matching a set of search criteria.
+            
+        Args:
+            proposal, saf, user, institution (str or None): if str, adds an exact match search on the appropriate parameter to the set
+            project,sample,plan (str or None): if str, adds a regex match search on the appropriate parameter to the set.
+                example: project='*Liquid*' matches 'Liquid','Liquids','Liquid-RSoXS')
+        
+        Returns:
+            pd.Dataframe containing the results of the search.
+        '''
         catalog = self.c
         if proposal is not None:
             catalog = catalog.search(Key('proposal_id')==proposal)
