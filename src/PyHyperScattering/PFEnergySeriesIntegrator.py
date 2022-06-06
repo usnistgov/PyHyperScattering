@@ -25,6 +25,10 @@ def inner_generator(df_function='apply'):
 
 DataArrayGroupBy.progress_apply = inner_generator()
 DatasetGroupBy.progress_apply = inner_generator()
+
+DataArrayGroupBy.progress_apply_ufunc = inner_generator(df_function='apply_ufunc')
+DatasetGroupBy.progress_apply_ufunc = inner_generator(df_function='apply_ufunc')
+
 #end monkey patch
 
 class PFEnergySeriesIntegrator(PFGeneralIntegrator):
@@ -65,12 +69,17 @@ class PFEnergySeriesIntegrator(PFGeneralIntegrator):
             self.createIntegrator(en)
         self.createIntegrator(np.median(energies))
         # find the output q for the midpoint and set the final q binning
-        self.dest_q = self.integrator_stack[np.median(energies)].integrate2d(np.zeros_like(self.mask).astype(int), self.npts, 
+        try:
+            self.dest_q = self.integrator_stack[np.median(energies)].integrate2d(np.zeros_like(self.mask).astype(int), self.npts, 
                                                unit='arcsinh(q.µm)' if self.use_log_ish_binning else 'q_A^-1',
                                                method=self.integration_method).radial
+        except TypeError as e:
+            if 'diffSolidAngle() missing 2 required positional arguments: ' in str(e):
+                raise TypeError('Geometry is incorrect, cannot integrate.\n \n - Do your mask dimensions match your image dimensions? \n - Do you have pixel sizes set that are not zero?\n - Is SDD, beamcenter/poni, and tilt set correctly?') from e
+            else:
+                raise e
         if self.use_log_ish_binning:
             self.dest_q = np.sinh(self.dest_q)/10000
-        
         # single image reduce each entry in the stack
         # + 
         # restack the reduced data
