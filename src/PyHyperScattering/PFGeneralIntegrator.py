@@ -28,7 +28,7 @@ DatasetGroupBy.progress_apply = inner_generator()
 #end monkey patch
 
 class PFGeneralIntegrator():
-
+    
     def integrateSingleImage(self,img):
         if type(img) == xr.Dataset:
             for key in img.keys():
@@ -38,6 +38,8 @@ class PFGeneralIntegrator():
             img_to_integ = img[0].values
         else:
             img_to_integ = img.values
+        
+        assert np.shape(self.mask)==np.shape(img_to_integ),f'Error!  Mask has shape {np.shape(self.mask)} but you are attempting to integrate data with shape {np.shape(img_to_integ)}.  Try changing mask orientation or updating mask.'
         
         if(img.system.shape[0]>1):
             system_to_integ = [img[0].system]
@@ -119,6 +121,15 @@ class PFGeneralIntegrator():
             self.loadNikaMask(maskpath)
         elif(maskmethod == "none"):
             self.mask = None
+
+        self.dist = 0.1
+        self.poni1 = 0
+        self.poni2 = 0
+        self.rot1 = 0
+        self.rot2 = 0
+        self.rot3 = 0
+        self.pixel1 = 0/1e3
+        self.pixel2 = 0/1e3
         self.correctSolidAngle = correctSolidAngle
         self.integration_method = integration_method
         self._energy = energy
@@ -145,14 +156,6 @@ class PFGeneralIntegrator():
         elif geomethod == 'template_xr':
             self.calibrationFromTemplateXRParams(template_xr)
         elif geomethod == "none":
-            self.dist = 0.1
-            self.poni1 = 0
-            self.poni2 = 0
-            self.rot1 = 0
-            self.rot2 = 0
-            self.rot3 = 0
-            self.pixel1 = 0/1e3
-            self.pixel2 = 0/1e3
             warnings.warn('Initializing geometry with default values.  This is probably NOT what you want.',stacklevel=2)
 
 
@@ -230,7 +233,11 @@ class PFGeneralIntegrator():
         
     @property
     def ni_beamcenter_x(self):
-        return self.poni2 / self.ni_pixel_x * 1000
+        try:
+            return self.poni2 / self.ni_pixel_x * 1000
+        except ZeroDivisionError:
+            warnings.warn('x pixel size is 0, cannot set beam center, fix pixel size first',stacklevel=2)
+            return 0
         
     @ni_beamcenter_x.setter
     def ni_beamcenter_x(self,value):
@@ -239,7 +246,11 @@ class PFGeneralIntegrator():
         
     @property
     def ni_beamcenter_y(self):
-        return self.poni1 / self.ni_pixel_y *1000
+        try:
+            return self.poni1 / self.ni_pixel_y *1000        
+        except ZeroDivisionError:
+            warnings.warn('y pixel size is 0, cannot set beam center, fix pixel size first',stacklevel=2)
+            return 0
         
     @ni_beamcenter_y.setter
     def ni_beamcenter_y(self,value):
