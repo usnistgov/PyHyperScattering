@@ -154,7 +154,7 @@ class SST1RSoXSLoader(FileLoader):
             elif (meas_time > datetime.datetime(2022,5,1)) and (meas_time < datetime.datetime(2022,7,7)):
                 # these params determined by Camille from Igor
                 json_dict['beamcenter_x'] = 397.91
-                json_dict['beamcenter_y'] = 547.76
+                json_dict['beamcenter_y'] = 549.76
                 json_dict['sdd'] = 34.5 # GUESS; SOMEONE SHOULD CONFIRM WITH A BCP MAYBE??
             else:
                 json_dict['beamcenter_x'] = data[1]['RSoXS_WAXS_BCX'] # 399 #
