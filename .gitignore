@@ -46,3 +46,5 @@ example_data/11012/PBL1_3A_WRSoXS_56378-AI.txt
 example_data/11012/PBL1_Naedge_56379-AI.txt
 example_data/11012/PBL1_Oedge_56375-AI.txt
 example_data/11012/PBL1_Oedge_56376-AI.txt
+tutorial/DrawMask tutorial.ipynb
+tutorial/SST1 data tutorial.ipynb

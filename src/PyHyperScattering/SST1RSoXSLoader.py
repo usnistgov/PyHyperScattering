@@ -135,6 +135,11 @@ class SST1RSoXSLoader(FileLoader):
                 json_dict['beamcenter_x'] = 371.52
                 json_dict['beamcenter_y'] = 491.17
                 json_dict['sdd'] = 512.12
+            elif (meas_time > datetime.datetime(2022,5,1)) and (meas_time < datetime.datetime(2022,7,7)):
+                # these params determined by Camille from Igor
+                json_dict['beamcenter_x'] = 498 # not the best estimate; I didn't have great data
+                json_dict['beamcenter_y'] = 498
+                json_dict['sdd'] = 512.12 # GUESS; SOMEONE SHOULD CONFIRM WITH A BCP MAYBE??
             else:
                 json_dict['beamcenter_x'] = data[1]['RSoXS_SAXS_BCX']
                 json_dict['beamcenter_y'] = data[1]['RSoXS_SAXS_BCY']
@@ -146,6 +151,11 @@ class SST1RSoXSLoader(FileLoader):
                 json_dict['beamcenter_x'] = 400.46
                 json_dict['beamcenter_y'] = 530.99
                 json_dict['sdd'] = 38.745
+            elif (meas_time > datetime.datetime(2022,5,1)) and (meas_time < datetime.datetime(2022,7,7)):
+                # these params determined by Camille from Igor
+                json_dict['beamcenter_x'] = 397.91
+                json_dict['beamcenter_y'] = 549.76
+                json_dict['sdd'] = 34.5 # GUESS; SOMEONE SHOULD CONFIRM WITH A BCP MAYBE??
             else:
                 json_dict['beamcenter_x'] = data[1]['RSoXS_WAXS_BCX'] # 399 #
                 json_dict['beamcenter_y'] = data[1]['RSoXS_WAXS_BCY'] # 526
