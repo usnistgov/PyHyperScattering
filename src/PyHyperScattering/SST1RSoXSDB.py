@@ -10,6 +10,7 @@ import json
 import numpy as np
 import pandas as pd
 from tqdm.auto import tqdm
+import scipy.ndimage
 import asyncio
 import time
 
@@ -265,7 +266,15 @@ class SST1RSoXSDB:
     def peekAtMd(self,run):
         return self.loadMd(run)
 
-    def loadMonitors(self,entry):
+    def loadMonitors(self,entry,integrate_onto_images=True,n_thinning_iters=20):
+        '''
+        Load the monitor streams for entry.
+        Args:
+           entry (Bluesky document): run to extract monitors from
+           integrate_onto_images (bool, default True): return integral of monitors while shutter was open for images.  if false, returns raw data.
+           n_thinning_iters (int, default 20): how many iterations of binary thinning to use to exclude shutter edges.
+        
+        '''
         monitors = None
         for stream_name in list(entry.keys()):
             if 'monitor' in stream_name:
@@ -273,8 +282,16 @@ class SST1RSoXSDB:
                     monitors = entry[stream_name].data.read()
                 else:
                     monitors = xr.merge((monitors,entry[stream_name].data.read()))
-        monitors = monitors.ffill('time')
-        return monitors.interp(time=entry.primary.data['time'])
+        monitors = monitors.ffill('time').bfill('time')
+        if integrate_onto_images:
+            monitors['RSoXS Shutter Toggle_thinned'] = monitors['RSoXS Shutter Toggle']
+            monitors['RSoXS Shutter Toggle_thinned'].values = scipy.ndimage.binary_erosion(monitors['RSoXS Shutter Toggle'].values,iterations=n_thinning_iters,border_value=0)
+            monitors = monitors.where(monitors['RSoXS Shutter Toggle_thinned']>0).dropna('time')
+            monitors = monitors.groupby_bins('time',
+np.insert(entry.primary.data['time'].values,0,0)).mean().rename_dims({'time_bins':'time'})
+            monitors = monitors.assign_coords({'time':entry.primary.data['time']}).reset_coords('time_bins',drop=True)
+
+        return monitors
     
     def loadMd(self,run):
         '''
