@@ -16,14 +16,14 @@ import pandas as pd
 
 import json
 
-class CheckMask:
+class Check:
     '''
     Quick Utility to display a mask next to an image, to sanity check the orientation of e.g. an imported mask
     
     '''
-    def checkMask(integrator,img,img_min=1,img_max=10000,img_scaling='log'):
+    def checkMask(integrator,img,img_min=1,img_max=10000,img_scaling='log',alpha=1):
         '''
-            draw a side-by-side of the mask and an image
+            draw an overlay of the mask and an image
 
             Args:
                 integrator: a PyHyper integrator object
@@ -35,15 +35,69 @@ class CheckMask:
         if len(img.shape) > 2:
                 warnings.warn('This tool needs a single frame, not a stack!  .sel down to a single frame before starting!',stacklevel=2)
 
-        fig,ax=plt.subplots(1,2)
-        ax[0].imshow(integrator.mask)
+        fig,ax=plt.subplots(1,1)
         if img_scaling == 'log':
             norm=LogNorm(img_min,img_max)
         else:
             norm=Normalize(img_min,img_max)
-        img.plot(norm=norm,ax=ax[1])
-        ax[1].set_aspect(1)
-    
+        img.plot(norm=norm,ax=ax)
+        ax.set_aspect(1)
+        ax.imshow(integrator.mask,origin='lower',alpha=alpha)
+    def checkCenter(integrator,img,img_min=1,img_max=10000,img_scaling='log'):
+        '''
+            draw the beamcenter on an image
+
+            Args:
+                integrator: a PyHyper integrator object
+                img: a PyHyper raw image (single frame, please!) to draw
+                img_min: min value to display
+                img_max: max value to display
+                img_scaling: 'lin' or 'log'
+        '''
+        if len(img.shape) > 2:
+                warnings.warn('This tool needs a single frame, not a stack!  .sel down to a single frame before starting!',stacklevel=2)
+
+        fig,ax=plt.subplots()
+        if img_scaling == 'log':
+            norm=LogNorm(img_min,img_max)
+        else:
+            norm=Normalize(img_min,img_max)
+        img.plot(norm=norm,ax=ax)
+        ax.set_aspect(1)
+        beamcenter = plt.Circle((integrator.ni_beamcenter_x, integrator.ni_beamcenter_y), 5, color='lawngreen')
+        guide1 = plt.Circle((integrator.ni_beamcenter_x, integrator.ni_beamcenter_y), 150, color='lawngreen',fill=False)
+        guide2 = plt.Circle((integrator.ni_beamcenter_x, integrator.ni_beamcenter_y), 150, color='lawngreen',fill=False)
+        ax.add_patch(beamcenter)
+        ax.add_patch(guide1)
+        ax.add_patch(guide2)
+    def checkAll(integrator,img,img_min=1,img_max=10000,img_scaling='log',alpha=1):
+        '''
+            draw the beamcenter on an image
+
+            Args:
+                integrator: a PyHyper integrator object
+                img: a PyHyper raw image (single frame, please!) to draw
+                img_min: min value to display
+                img_max: max value to display
+                img_scaling: 'lin' or 'log'
+        '''
+        if len(img.shape) > 2:
+                warnings.warn('This tool needs a single frame, not a stack!  .sel down to a single frame before starting!',stacklevel=2)
+
+        fig,ax=plt.subplots()
+        if img_scaling == 'log':
+            norm=LogNorm(img_min,img_max)
+        else:
+            norm=Normalize(img_min,img_max)
+        img.plot(norm=norm,ax=ax)
+        ax.set_aspect(1)
+        beamcenter = plt.Circle((integrator.ni_beamcenter_x, integrator.ni_beamcenter_y), 5, color='lawngreen')
+        guide1 = plt.Circle((integrator.ni_beamcenter_x, integrator.ni_beamcenter_y), 150, color='lawngreen',fill=False)
+        guide2 = plt.Circle((integrator.ni_beamcenter_x, integrator.ni_beamcenter_y), 150, color='lawngreen',fill=False)
+        ax.add_patch(beamcenter)
+        ax.add_patch(guide1)
+        ax.add_patch(guide2)
+        ax.imshow(integrator.mask,origin='lower',alpha=alpha)
 class DrawMask:
     '''
     Utility class for interactively drawing a mask in a Jupyter notebook.
