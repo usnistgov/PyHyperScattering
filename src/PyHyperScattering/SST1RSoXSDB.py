@@ -137,7 +137,7 @@ class SST1RSoXSDB:
                 uids.append(doc["uid"])
                 try:
                     npts.append(catalog[entry].stop['num_events']['primary'])
-                except KeyError:
+                except (KeyError,TypeError):
                     npts.append(0)
                 start_times.append(doc["time"])
                 #do_list_append(catalog[entry],scan_ids,sample_ids,plan_names,uids,npts,start_times)
@@ -159,7 +159,7 @@ class SST1RSoXSDB:
         uids.append(doc["uid"])
         try:
             npts.append(run.stop['num_events']['primary'])
-        except KeyError:
+        except (KeyError,TypeError):
             npts.append(0)
         start_times.append(doc["time"])
     def loadRun(self,run,dims=None,coords={},return_dataset=False):
@@ -235,7 +235,10 @@ class SST1RSoXSDB:
         
         #this is needed for holoviews compatibility, hopefully does not break other features.
         retxr = retxr.assign_coords({'pix_x':np.arange(0,len(retxr.pix_x)),'pix_y':np.arange(0,len(retxr.pix_y))})
-        monitors = monitors.rename({'time':'system'}).reset_index('system').assign_coords(system=index).drop('system_')
+        try:
+            monitors = monitors.rename({'time':'system'}).reset_index('system').assign_coords(system=index).drop('system_')
+        except:
+            warnings.warn('Error assigning monitor readings to system.  Problem with monitors.  Please check.',stacklevel=2)
         retxr.attrs.update(md)
           
         #now do corrections:
@@ -284,13 +287,15 @@ class SST1RSoXSDB:
                     monitors = xr.merge((monitors,entry[stream_name].data.read()))
         monitors = monitors.ffill('time').bfill('time')
         if integrate_onto_images:
-            monitors['RSoXS Shutter Toggle_thinned'] = monitors['RSoXS Shutter Toggle']
-            monitors['RSoXS Shutter Toggle_thinned'].values = scipy.ndimage.binary_erosion(monitors['RSoXS Shutter Toggle'].values,iterations=n_thinning_iters,border_value=0)
-            monitors = monitors.where(monitors['RSoXS Shutter Toggle_thinned']>0).dropna('time')
-            monitors = monitors.groupby_bins('time',
-np.insert(entry.primary.data['time'].values,0,0)).mean().rename_dims({'time_bins':'time'})
-            monitors = monitors.assign_coords({'time':entry.primary.data['time']}).reset_coords('time_bins',drop=True)
-
+            try:
+                monitors['RSoXS Shutter Toggle_thinned'] = monitors['RSoXS Shutter Toggle']
+                monitors['RSoXS Shutter Toggle_thinned'].values = scipy.ndimage.binary_erosion(monitors['RSoXS Shutter Toggle'].values,iterations=n_thinning_iters,border_value=0)
+                monitors = monitors.where(monitors['RSoXS Shutter Toggle_thinned']>0).dropna('time')
+                monitors = monitors.groupby_bins('time',
+    np.insert(entry.primary.data['time'].values,0,0)).mean().rename_dims({'time_bins':'time'})
+                monitors = monitors.assign_coords({'time':entry.primary.data['time']}).reset_coords('time_bins',drop=True)
+            except:
+                warnings.warn('Error while time-integrating onto images.  Check data.',stacklevel=2)
         return monitors
     
     def loadMd(self,run):
