@@ -323,6 +323,11 @@ class SST1RSoXSDB:
                 md['beamcenter_x'] = 371.52
                 md['beamcenter_y'] = 491.17
                 md['sdd'] = 512.12
+            elif (meas_time > datetime.datetime(2022,5,1)) and (meas_time < datetime.datetime(2022,7,7)):
+                # these params determined by Camille from Igor
+                md['beamcenter_x'] = 498 # not the best estimate; I didn't have great data
+                md['beamcenter_y'] =  498
+                md['sdd'] = 512.12 # GUESS; SOMEONE SHOULD CONFIRM WITH A BCP MAYBE??
             else:
                 md['beamcenter_x'] = run.start['RSoXS_SAXS_BCX']
                 md['beamcenter_y'] = run.start['RSoXS_SAXS_BCY']
@@ -334,6 +339,11 @@ class SST1RSoXSDB:
                 md['beamcenter_x'] = 400.46
                 md['beamcenter_y'] = 530.99
                 md['sdd'] = 38.745
+            elif (meas_time > datetime.datetime(2022,5,1)) and (meas_time < datetime.datetime(2022,7,7)):
+                # these params determined by Camille from Igor
+                md['beamcenter_x'] = 397.91
+                md['beamcenter_y'] = 549.76
+                md['sdd'] = 34.5 # GUESS; SOMEONE SHOULD CONFIRM WITH A BCP MAYBE??
             else:
                 md['beamcenter_x'] = run.start['RSoXS_WAXS_BCX'] # 399 #
                 md['beamcenter_y'] = run.start['RSoXS_WAXS_BCY'] # 526
