@@ -6,28 +6,22 @@ import xarray as xr
 import numpy as np
 import math
 import matplotlib.pyplot as plt
-from PIL import Image
-from skimage import draw
 from tqdm.auto import tqdm
 #tqdm.pandas()
 # the following block monkey-patches xarray to add tqdm support.  This will not be needed once tqdm v5 releases.
 from xarray.core.groupby import DataArrayGroupBy,DatasetGroupBy
 
 def inner_generator(df_function='apply'):
-    def inner(df, func, *args, **kwargs):
+    def inner(df,func,*args,**kwargs):
         t = tqdm(total=len(df))
-
-        def wrapper(*args, **kwargs):
-            t.update(n=1 if not t.total or t.n < t.total else 0)
-            return func(*args, **kwargs)
-
-        result = getattr(df, df_function)(wrapper, **kwargs)
-
+        def wrapper(*args,**kwargs):
+            t.update( n=1 if not t.total or t.n < t.total else 0)
+            return func(*args,**kwargs)
+        result = getattr(df,df_function)(wrapper, **kwargs)
+    
         t.close()
         return result
-
     return inner
-
 
 DataArrayGroupBy.progress_apply = inner_generator()
 DatasetGroupBy.progress_apply = inner_generator()
@@ -109,7 +103,7 @@ class PFGeneralIntegrator():
         int_stack = img_stack.groupby('system').map_progress(self.integrateSingleImage)
         #PRSUtils.fix_unstacked_dims(int_stack,img_stack,'system',img_stack.attrs['dims_unpacked'])
         return int_stack
-    def __init__(self,mask = None,rotate_image=False,
+    def __init__(self,maskmethod = "none",maskpath = "",
                  geomethod = "none",
                  NIdistance=0, NIbcx=0, NIbcy=0, NItiltx=0, NItilty=0,
                  NIpixsizex = 0, NIpixsizey = 0,
@@ -123,10 +117,11 @@ class PFGeneralIntegrator():
                  do_1d_integration=False,
                  return_sigma=False):
         #energy units eV
-        if isinstance(mask,str):
-            self.mask = self.load_mask(path = mask,rotate_image=rotate_image)
-        else:
-            self.mask = self.load_mask(*mask.update({'rotate_image':rotate_image}))
+        if(maskmethod == "nika"):
+            self.loadNikaMask(maskpath)
+        elif(maskmethod == "none"):
+            self.mask = None
+
         self.dist = 0.1
         self.poni1 = 0
         self.poni2 = 0
@@ -169,51 +164,7 @@ class PFGeneralIntegrator():
     def __str__(self):
         return f"PyFAI general integrator wrapper SDD = {self.dist} m, poni1 = {self.poni1} m, poni2 = {self.poni2} m, rot1 = {self.rot1} rad, rot2 = {self.rot2} rad"
 
-    def load_mask(self,**kwargs):
-        '''
-        loads a mask either from a path, from a NIKA file, or from a list of polygon points
-        the mask dictionary should have keys indicating which method to use and the necessary information
-        for a path, mask itself can be a string, or a dictionary with the key path whose value is the string
-        for NIKA, there should be a key "nika" with the path to that file
-        for a polygon, there should be a key "points" with a list of lists of points i.e.
-            [[[1050,480],[500,480],[500,520],[1050,520]],[[1050,80],[500,80],[500,120],[1050,120]]]
-
-        '''
-
-        if 'points' in kwargs:
-            points = kwargs['points']
-            xs = []
-            ys = []
-            for polygon in points:
-                x, y = zip(*polygon)
-                xs += x
-                ys += y
-            if 'shape' in kwargs:
-                shape = kwargs['shape']
-            else:
-                shape = (max(xs), max(ys))
-            image = np.zeros(shape)
-            for polygon in points:
-                image += draw.polygon2mask(shape, polygon)
-            image[image > 1] = 1
-        elif 'image' in kwargs:
-            path = kwargs['image']
-            im = Image.open(path)
-            image = np.array(im)
-        elif 'nika' in kwargs:
-            image = self.loadNikaMask(kwargs['nika'])
-        else:
-            warnings.warn("no valid inputs to load or create a mask", stacklevel=2)
-            image = None
-        if 'rotate_image' in kwargs:
-            if kwargs['rotate_image']:
-                image = np.flipud(np.rot90(image))
-        boolmask = np.invert(image.astype(bool))
-        print(f"Imported or created mask with dimensions {str(np.shape(boolmask))}")
-        self.mask = boolmask
-
-
-    def loadNikaMask(self,filetoload):
+    def loadNikaMask(self,filetoload,rotate_image=True):
         '''
         Loads a Nika-generated HDF5 or tiff mask and converts it to an array that matches the local conventions.
         
@@ -221,7 +172,6 @@ class PFGeneralIntegrator():
             filetoload (pathlib.Path or string): path to hdf5/tiff format mask from Nika.
             rotate_image (bool, default True): rotate image as should work
         '''
-        mask=None
         if 'h5' in str(filetoload) or 'hdf' in str(filetoload):
             type='h5'
             maskhdf = h5py.File(filetoload,'r')
@@ -232,8 +182,15 @@ class PFGeneralIntegrator():
             mask = plt.imread(filetoload)
         else:
             warnings.warn('Unsupported mask type...',stacklevel=2)
-        return mask
 
+            
+        if rotate_image: 
+            convertedmask = np.flipud(np.rot90(mask))
+        else:
+            convertedmask = mask
+        boolmask = np.invert(convertedmask.astype(bool))
+        print(f"Imported Nika mask of type {type}, dimensions {str(np.shape(boolmask))}")
+        self.mask = boolmask
         
     def calibrationFromTemplateXRParams(self,raw_xr):
         '''
