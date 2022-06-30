@@ -6,8 +6,6 @@ import xarray as xr
 import numpy as np
 import math
 import matplotlib.pyplot as plt
-from PIL import Image
-from skimage import draw
 from tqdm.auto import tqdm
 # tqdm.pandas()
 # the following block monkey-patches xarray to add tqdm support.  This will not be needed once tqdm v5 releases.
@@ -15,20 +13,16 @@ from xarray.core.groupby import DataArrayGroupBy, DatasetGroupBy
 
 
 def inner_generator(df_function='apply'):
-    def inner(df, func, *args, **kwargs):
+    def inner(df,func,*args,**kwargs):
         t = tqdm(total=len(df))
-
-        def wrapper(*args, **kwargs):
-            t.update(n=1 if not t.total or t.n < t.total else 0)
-            return func(*args, **kwargs)
-
-        result = getattr(df, df_function)(wrapper, **kwargs)
-
+        def wrapper(*args,**kwargs):
+            t.update( n=1 if not t.total or t.n < t.total else 0)
+            return func(*args,**kwargs)
+        result = getattr(df,df_function)(wrapper, **kwargs)
+    
         t.close()
         return result
-
     return inner
-
 
 DataArrayGroupBy.progress_apply = inner_generator()
 DatasetGroupBy.progress_apply = inner_generator()
@@ -239,6 +233,7 @@ class PFGeneralIntegrator():
         self.mask = boolmask
 
     def loadNikaMask(self, filetoload):
+
         '''
         Loads a Nika-generated HDF5 or tiff mask and converts it to an array that matches the local conventions.
 
@@ -247,6 +242,7 @@ class PFGeneralIntegrator():
             rotate_image (bool, default True): rotate image as should work
         '''
         mask = None
+
         if 'h5' in str(filetoload) or 'hdf' in str(filetoload):
             type = 'h5'
             maskhdf = h5py.File(filetoload, 'r')
@@ -260,6 +256,7 @@ class PFGeneralIntegrator():
         return mask
 
     def calibrationFromTemplateXRParams(self, raw_xr):
+
         '''
         Sets calibration from a pyFAI values in a template xarray
 
