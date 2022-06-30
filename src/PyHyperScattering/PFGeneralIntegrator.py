@@ -109,7 +109,9 @@ class PFGeneralIntegrator():
         int_stack = img_stack.groupby('system').map_progress(self.integrateSingleImage)
         #PRSUtils.fix_unstacked_dims(int_stack,img_stack,'system',img_stack.attrs['dims_unpacked'])
         return int_stack
-    def __init__(self,mask = None,rotate_image=False,
+    def __init__(self,
+                 maskmethod = 'none',maskpath = "", # deprecated way to load mask
+                 mask = None,rotate_image=False, # new way
                  geomethod = "none",
                  NIdistance=0, NIbcx=0, NIbcy=0, NItiltx=0, NItilty=0,
                  NIpixsizex = 0, NIpixsizey = 0,
@@ -126,7 +128,15 @@ class PFGeneralIntegrator():
         if isinstance(mask,str):
             self.mask = self.load_mask(path = mask,rotate_image=rotate_image)
         else:
-            self.mask = self.load_mask(*mask.update({'rotate_image':rotate_image}))
+            if maskmethod == 'nika':
+                if not isinstance(mask,dict):
+                    mask = {}
+                self.mask = self.load_mask(*mask.update({'nika':maskpath,'rotate_image':rotate_image}))
+            else:
+                if not isinstance(mask,dict):
+                    self.mask=None
+                else:
+                    self.mask = self.load_mask(*mask.update({'rotate_image':rotate_image}))
         self.dist = 0.1
         self.poni1 = 0
         self.poni2 = 0
