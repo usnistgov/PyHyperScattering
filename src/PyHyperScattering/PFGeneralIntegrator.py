@@ -7,6 +7,9 @@ import numpy as np
 import math
 import matplotlib.pyplot as plt
 from tqdm.auto import tqdm
+from PIL import Image
+from skimage import draw
+
 # tqdm.pandas()
 # the following block monkey-patches xarray to add tqdm support.  This will not be needed once tqdm v5 releases.
 from xarray.core.groupby import DataArrayGroupBy, DatasetGroupBy
