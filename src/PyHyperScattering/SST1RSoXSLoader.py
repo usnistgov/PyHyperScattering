@@ -116,7 +116,8 @@ class SST1RSoXSLoader(FileLoader):
             # now, match up the dims and coords
             return xr.DataArray(image_data,dims=['qy','qx'],coords={'qy':qy,'qx':qx},attrs=headerdict)
         else:
-            return xr.DataArray(image_data,dims=['pix_x','pix_y'],attrs=headerdict)
+            # dim order changed by ktoth17 to reflect SST1RSoXSDB.py. See Issue #34 for more details. 
+            return xr.DataArray(image_data,dims=['pix_y','pix_x'],attrs=headerdict)
 
     def read_json(self,jsonfile):
         json_dict = {}

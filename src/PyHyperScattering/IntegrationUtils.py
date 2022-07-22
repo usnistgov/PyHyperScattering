@@ -185,6 +185,14 @@ class DrawMask:
         print(dflist)
         self.poly = hv.Polygons(dflist)
         
+        self.path_annotator(
+                self.fig * self.poly.opts(
+                            width=self.frame.shape[1], 
+                            height=self.frame.shape[0], 
+                            responsive=False), 
+                annotations=['Label'], 
+            vertex_annotations=['Value'])
+        
         
     @property
     def mask(self):
