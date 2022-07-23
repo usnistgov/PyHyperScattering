@@ -15,10 +15,11 @@ import asyncio
 import time
 
 
-
 try:
     os.environ["TILED_SITE_PROFILES"] = '/nsls2/software/etc/tiled/profiles'
     from tiled.client import from_profile
+    from httpx import HTTPStatusError
+    import tiled
     from databroker.queries import RawMongo, Key, FullText, Contains,Regex
 except:
     print('Imports failed.  Are you running on a machine with proper libraries for databroker, tiled, etc.?')
@@ -193,11 +194,17 @@ class SST1RSoXSDB:
         #    image = data - dark - self.dark_pedestal
         #else:
         #    image = data - self.dark_pedestal
-            
-        data = run['primary']['data'][md['detector']+'_image'].astype(int) # convert from uint to handle dark subtraction
         
+
+        data = run['primary']['data'][md['detector']+'_image']
+        if type(data) == tiled.client.array.ArrayClient:
+            data = xr.DataArray(data)
+        data = data.astype(int)   # convert from uint to handle dark subtraction
+
         if self.dark_subtract:
             dark = run['dark']['data'][md['detector']+'_image']
+            if type(dark) == tiled.client.array.ArrayClient:
+                dark = xr.DataArray(dark)
             darkframe = np.copy(data.time)
             for n,time in enumerate(dark.time):
                 darkframe[(data.time - time)>0]=int(n)
@@ -367,7 +374,7 @@ class SST1RSoXSDB:
         # items coming from primary
         try:
             primary = run['primary']['data']
-        except KeyError:
+        except (KeyError,HTTPStatusError):
             raise Exception('No primary stream --> probably you caught run before image was written.  Try again.')
         md_lookup = {
             'sam_x':'RSoXS Sample Outboard-Inboard',
@@ -381,15 +388,17 @@ class SST1RSoXSDB:
 
         for phs,rsoxs in md_lookup.items():
             try:
-                md[phs] = primary[rsoxs].values
+                md[phs] = primary[rsoxs].read()
                 #print(f'Loading from primary: {phs}, value {primary[rsoxs].values}')
-            except KeyError:
+            except (KeyError,HTTPStatusError):
                 try:
                     blval = baseline[rsoxs]
-                    md[phs] = blval.mean().data.round(4)
+                    if type(blval) == tiled.client.array.ArrayClient:
+                        blval = blval.read()
+                    md[phs] = blval.mean().round(4)
                     if blval.var() > 0:
                         warnings.warn(f'While loading {rsoxs} to infill metadata entry for {phs}, found beginning and end values unequal: {baseline[rsoxs]}.  It is possible something is messed up.',stacklevel=2)
-                except KeyError:
+                except (KeyError,HTTPStatusError):
                     warnings.warn(f'Could not find {rsoxs} in either baseline or primary.  Needed to infill value {phs}.  Setting to None.',stacklevel=2)
                     md[phs] = None
         md['epoch'] = md['meas_time'].timestamp()
