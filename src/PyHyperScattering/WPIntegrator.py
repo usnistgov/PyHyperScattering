@@ -126,8 +126,16 @@ class WPIntegrator():
         #int_stack = img_stack.groupby('system').map(self.integrateSingleImage)   
         #return int_stack
         indexes = list(data.indexes.keys())
-        indexes.remove('pix_x')
-        indexes.remove('pix_y')
+        try:
+            axis.remove('pix_x')
+            axis.remove('pix_y')
+        except ValueError:
+            pass
+        try:
+            axis.remove('qx')
+            axis.remove('qy')
+        except ValueError:
+            pass
         
         if len(indexes) == 1:
             if data.__getattr__(indexes[0]).to_pandas().drop_duplicates().shape[0] != data.__getattr__(indexes[0]).shape[0]:
