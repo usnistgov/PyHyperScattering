@@ -89,13 +89,12 @@ class PFEnergySeriesIntegrator(PFGeneralIntegrator):
         if len(indexes) == 1:
             if img_stack.__getattr__(indexes[0]).to_pandas().drop_duplicates().shape[0] != img_stack.__getattr__(indexes[0]).shape[0]:
                 warnings.warn(f'Axis {indexes[0]} contains duplicate conditions.  This is not supported and may not work.  Try adding additional coords to separate image conditions',stacklevel=2)
-        
             data_int = data.groupby(indexes[0],squeeze=False).progress_apply(self.integrateSingleImage)
         else:
             #some kinda logic to check for existing multiindexes and stack into them appropriately maybe
             data = data.stack({'pyhyper_internal_multiindex':indexes})
             if img_stack.pyhyper_internal_multiindex.to_pandas().drop_duplicates().shape[0] != img_stack.pyhyper_internal_multiindex.shape[0]:
-            warnings.warn('Your index set contains duplicate conditions.  This is not supported and may not work.  Try adding additional coords to separate image conditions',stacklevel=2)
+                warnings.warn('Your index set contains duplicate conditions.  This is not supported and may not work.  Try adding additional coords to separate image conditions',stacklevel=2)
         
             data_int = data.groupby('pyhyper_internal_multiindex',squeeze=False).progress_apply(self.integrateSingleImage).unstack('pyhyper_internal_multiindex')
         return data_int
