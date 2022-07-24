@@ -127,13 +127,13 @@ class WPIntegrator():
         #return int_stack
         indexes = list(data.indexes.keys())
         try:
-            axis.remove('pix_x')
-            axis.remove('pix_y')
+            indexes.remove('pix_x')
+            indexes.remove('pix_y')
         except ValueError:
             pass
         try:
-            axis.remove('qx')
-            axis.remove('qy')
+            indexes.remove('qx')
+            indexes.remove('qy')
         except ValueError:
             pass
         
