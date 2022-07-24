@@ -35,7 +35,8 @@ class PFGeneralIntegrator():
                 target_key=key
             img=img[key]
         if(img.ndim>2):
-            img_to_integ = img[0].values
+            
+            img_to_integ = np.squeeze(img.values)
         else:
             img_to_integ = img.values
         
