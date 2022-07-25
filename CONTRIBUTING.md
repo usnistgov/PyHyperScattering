@@ -21,7 +21,19 @@ Once you do that, you can follow these instructions to set up a development envi
 
 		git checkout -b qxy_support
 
-2) Set up your development environment to import from your local, development copy (and not any pip installed production release).
+
+2) Install the package in pip
+	From a terminal, change directory to where you just cloned PyHyper and run:
+		
+		pip install -e .
+
+	This should install the development copy in place of any distribution PyHyper you have, where applicable.
+
+	To revert, simply
+		
+		pip install PyHyperScattering==(production release version)
+
+2a) Set up your development environment to import from your local, development copy (and not any pip installed production release).
 
 	The maintainers mostly develop in Jupyter (Sorry!!).
 
@@ -31,12 +43,10 @@ Once you do that, you can follow these instructions to set up a development envi
 
 		%load_ext autoreload
 		%autoreload 2
-		import sys
-		sys.path.insert(0,'./PyHyperScattering/src/')
 		from PyHyperScattering import __version__
 		print(f'USING PYHYPER VERSION: {__version__}')
 
-	__version__ will prints as either a release number (if sourced from pip), or a longer string if sourced from a working tree, something like: 0.6+2.g6d02fb3.dirty
+	__version__ will prints as either a release number (if sourced from production packages), or a longer string if sourced from a working tree, something like: 0.6+2.g6d02fb3.dirty
 
 	 If it prints a git hash, you're working from your development copy. 
 	 (the format is [last tag]+[number of untagged commits].[commit hash].[dirty if there are unstaged changes])
