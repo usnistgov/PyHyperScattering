@@ -196,9 +196,18 @@ class SST1RSoXSLoader(FileLoader):
         primary_dict = {}
         df_primary = pd.read_csv(primary_csv)
         if json_dict['rsoxs_config'] == 'waxs':
-            primary_dict['exposure'] = df_primary['RSoXS Shutter Opening Time (ms)'][seq_num]
+            try:
+                primary_dict['exposure'] = df_primary['RSoXS Shutter Opening Time (ms)'][seq_num]
+            except KeyError:
+                primary_dict['exposure'] = 1
+                warnings.warn('No exposure time found in primary csv. Assigning dummy exposure of 1s', stacklevel=2)
+                
         elif json_dict['rsoxs_config'] == 'saxs':
-            primary_dict['exposure'] = df_primary['RSoXS Shutter Opening Time (ms)'][seq_num]
+            try:
+                primary_dict['exposure'] = df_primary['RSoXS Shutter Opening Time (ms)'][seq_num]
+            except KeyError:
+                primary_dict['exposure'] = 1
+                warnings.warn('No exposure time found in primary csv. Assigning dummy exposure of 1s', stacklevel=2)
         else:
             warnings.warn('Check rsoxs_config in json file',stacklevel=2)
 
