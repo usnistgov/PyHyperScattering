@@ -114,7 +114,10 @@ class cyrsoxsLoader():
                     
             if i==0:
                 with h5py.File(directory/'HDF5'/hd5files[i],'r') as h5:
-                    img = h5['K0']['projection'][()]
+                    try:
+                        img = h5['K0']['projection'][()]
+                    except KeyError:
+                        img = h5['projection'][()]
                     NumY, NumX = img.shape
                 Qx = 2.0*np.pi*np.fft.fftshift(np.fft.fftfreq(NumX,d=PhysSize))
                 Qy = 2.0*np.pi*np.fft.fftshift(np.fft.fftfreq(NumY,d=PhysSize))
@@ -122,7 +125,10 @@ class cyrsoxsLoader():
                 
             else:
                 with h5py.File(directory/'HDF5'/hd5files[i],'r') as h5:
-                    img = h5['K0']['projection'][()]
+                    try:
+                        img = h5['K0']['projection'][()]
+                    except KeyError:
+                        img = h5['projection'][()]
                 #remeshed = warp_polar_gpu(img)
 
 
