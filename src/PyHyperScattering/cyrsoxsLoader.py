@@ -61,7 +61,7 @@ class cyrsoxsLoader():
 
    
 
-    def loadDirectory(self,directory,output_dir='HDF5',morphology_file=None):
+    def loadDirectory(self,directory,output_dir='HDF5',morphology_file=None, PhysSize=None):
         '''
         Loads a CyRSoXS simulation output directory into a qx/qy xarray.
         
@@ -90,14 +90,19 @@ class cyrsoxsLoader():
 #         NumX = int(config['NumX'])
 #         NumY = int(config['NumY'])
 
-        if morphology_file is None:
+        if (PhysSize is None) & (morphology_file is None):
+            read_morphology = True
             morphology_list = list(directory.glob('*hdf5'))
-            if len(morphology_list) > 1:
+            if len(morphology_list) == 0:
+                warnings.warn('No morphology file found. Using default PhysSize of 5 nm.')
+                PhysSize = 5
+                read_morphology = False
+            elif len(morphology_list) > 1:
                 warnings.warn(f'More than one morphology.hdf5 file in directory. Choosing {morphology_list[0]}. Specify morphology_file if this is not the correct one',stacklevel=2)
-            morphology_file = morphology_list[0]
-
-        with h5py.File(morphology_file,'r') as f:
-            PhysSize = f['Morphology_Parameters/PhysSize'][()]
+                
+            if read_morphology:
+                with h5py.File(morphology_list[0],'r') as f:
+                        PhysSize = f['Morphology_Parameters/PhysSize'][()]
 
         #Synthesize list of filenames; note this is not using glob to see what files are there so you are at the mercy of config.txt
         hd5files = [f'Energy_{e:0.2f}.h5' for e in elist]
