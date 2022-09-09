@@ -61,7 +61,7 @@ class cyrsoxsLoader():
 
    
 
-    def loadDirectory(self,directory,output_dir='HDF5'):
+    def loadDirectory(self,directory,output_dir='HDF5',morphology_file=None):
         '''
         Loads a CyRSoXS simulation output directory into a qx/qy xarray.
         
@@ -90,6 +90,15 @@ class cyrsoxsLoader():
 #         NumX = int(config['NumX'])
 #         NumY = int(config['NumY'])
 
+        if morphology_file is None:
+            morphology_list = list(directory.glob('*hdf5'))
+            if len(morphology_list) > 1:
+                warnings.warn(f'More than one morphology.hdf5 file in directory. Choosing {morphology_list[0]}. Specify morphology_file if this is not the correct one',stacklevel=2)
+            morphology_file = morphology_list[0]
+
+        with h5py.File(morphology_file,'r') as f:
+            PhysSize = f['Morphology_Parameters/PhysSize'][()]
+
         #Synthesize list of filenames; note this is not using glob to see what files are there so you are at the mercy of config.txt
         hd5files = [f'Energy_{e:0.2f}.h5' for e in elist]
 
@@ -101,14 +110,13 @@ class cyrsoxsLoader():
             if i==0:
                 with h5py.File(directory/'HDF5'/hd5files[i],'r') as h5:
                     img = h5['K0']['projection'][()]
-                    PhysSize = h5['Morphology_Parameters/PhysSize'][()]
                     NumY, NumX = img.shape
                 Qx = 2.0*np.pi*np.fft.fftshift(np.fft.fftfreq(NumX,d=PhysSize))
                 Qy = 2.0*np.pi*np.fft.fftshift(np.fft.fftfreq(NumY,d=PhysSize))
                 data = np.zeros([NumX*NumY*num_energies])
                 
             else:
-                with h5py.FIle(directory/'HDF5'/hdf5files[i],'r') as h5:
+                with h5py.File(directory/'HDF5'/hd5files[i],'r') as h5:
                     img = h5['K0']['projection'][()]
                 #remeshed = warp_polar_gpu(img)
 
