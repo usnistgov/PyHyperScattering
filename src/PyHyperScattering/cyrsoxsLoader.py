@@ -85,9 +85,10 @@ class cyrsoxsLoader():
 
         elist = config['Energies']
         num_energies = len(elist)
-        PhysSize = float(config['PhysSize'])
-        NumX = int(config['NumX'])
-        NumY = int(config['NumY'])
+######### No longer contained in config.txt ###########        
+#         PhysSize = float(config['PhysSize']) 
+#         NumX = int(config['NumX'])
+#         NumY = int(config['NumY'])
 
         #Synthesize list of filenames; note this is not using glob to see what files are there so you are at the mercy of config.txt
         hd5files = [f'Energy_{e:0.2f}.h5' for e in elist]
@@ -96,23 +97,27 @@ class cyrsoxsLoader():
             if self.eager_load:
                 while not (directory/'HDF5'/hd5files[i]).is_dir():
                     time.sleep(0.5)
-            with h5py.File(directory/'HDF5'/hd5files[i],'r') as h5:
-                img = h5['projection'][()]
-                #remeshed = warp_polar_gpu(img)
+                    
             if i==0:
-                Qx = 2.0*np.pi*np.fft.fftshift(np.fft.fftfreq(img.shape[1],d=PhysSize))
-                Qy = 2.0*np.pi*np.fft.fftshift(np.fft.fftfreq(img.shape[0],d=PhysSize))
-                #q = np.sqrt(Qy**2+Qx**2)
-                #output_chi = np.linspace(0,360,360)
-                #output_q = np.linspace(0,np.amax(q), remeshed.shape[1])
+                with h5py.File(directory/'HDF5'/hd5files[i],'r') as h5:
+                    img = h5['K0']['projection'][()]
+                    PhysSize = h5['Morphology_Parameters/PhysSize'][()]
+                    NumY, NumX = img.shape
+                Qx = 2.0*np.pi*np.fft.fftshift(np.fft.fftfreq(NumX,d=PhysSize))
+                Qy = 2.0*np.pi*np.fft.fftshift(np.fft.fftfreq(NumY,d=PhysSize))
                 data = np.zeros([NumX*NumY*num_energies])
-                #data_remeshed = np.zeros([len(output_chi)*len(output_q)*num_energies])
+                
+            else:
+                with h5py.FIle(directory/'HDF5'/hdf5files[i],'r') as h5:
+                    img = h5['K0']['projection'][()]
+                #remeshed = warp_polar_gpu(img)
+
+
 
             data[i*NumX*NumY:(i+1)*NumX*NumY] = img[:,:].reshape(-1, order='C')
-            #data_remeshed[i*len(output_chi)*len(output_q):(i+1)*len(output_chi)*len(output_q)] = remeshed[:,:].reshape(-1, order='C')
 
         data = np.moveaxis(data.reshape(-1, NumY, NumX, order ='C'),0,-1)
-        #data_remeshed = np.moveaxis(data_remeshed.reshape(-1, len(output_chi), len(output_q), order ='C'),0,-1)
+
         if self.profile_time: 
              print(f'Finished reading ' + str(num_energies) + ' energies. Time required: ' + str(datetime.datetime.now()-start))
         index = pd.MultiIndex.from_arrays([elist],names=['energy'])
