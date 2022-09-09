@@ -97,9 +97,9 @@ class WPIntegrator():
                     .data)        
         try:
             stacked_axis = list(img.indexes.keys())
-            stacked_axis.remove('pix_x')
-            stacked_axis.remove('pix_y')
-            assert len(stacked_axis)==1, "More than one axis left after removing pix_x and pix_y, not sure how to handle"
+            stacked_axis.remove('qx')
+            stacked_axis.remove('qy')
+            assert len(stacked_axis)==1, "More than one axis left after removing qx and qy, not sure how to handle"
             stacked_axis = stacked_axis[0]
             system_to_integ = img.__getattr__(stacked_axis)
         except AttributeError:
