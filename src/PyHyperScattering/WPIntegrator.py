@@ -117,8 +117,8 @@ class WPIntegrator():
         q = np.linspace(0,np.amax(q), TwoD.shape[1])
 
         # warp_polar maps to 0-360 instead of -180-180
-        # chi = np.linspace(-179.5,179.5,360)
-        chi = np.linspace(0.5,359.5,360)
+        chi = np.linspace(-179.5,179.5,360)
+        # chi = np.linspace(0.5,359.5,360)
         
         try:
             return xr.DataArray([TwoD],dims=[stacked_axis,'chi','q'],coords={'q':q,'chi':chi,stacked_axis:system_to_integ},attrs=img.attrs)
