@@ -90,19 +90,33 @@ class cyrsoxsLoader():
 #         NumX = int(config['NumX'])
 #         NumY = int(config['NumY'])
 
-        if (PhysSize is None) & (morphology_file is None):
+        # if we have a PhysSize, we don't need to read it in from the morphology file
+        if (PhysSize is not None):
+            read_morphology = False
+        # if we don't have a PhysSize and no morphology file is specified, find the morphology file in the directory
+        elif (morphology_file is None):
             read_morphology = True
             morphology_list = list(directory.glob('*hdf5'))
-            if len(morphology_list) == 0:
+            
+            if len(morphology_list) == 1:
+                morphology_file = morphology_list[0]
+
+            # if we don't find a morphology file, warn and use default value for PhysSize
+            elif len(morphology_list) == 0:
                 warnings.warn('No morphology file found. Using default PhysSize of 5 nm.')
                 PhysSize = 5
                 read_morphology = False
+
+            # if we find more than one morphology, warn and use first in list
             elif len(morphology_list) > 1:
                 warnings.warn(f'More than one morphology.hdf5 file in directory. Choosing {morphology_list[0]}. Specify morphology_file if this is not the correct one',stacklevel=2)
-                
-            if read_morphology:
-                with h5py.File(morphology_list[0],'r') as f:
-                        PhysSize = f['Morphology_Parameters/PhysSize'][()]
+                morphology_file = morphology_list[0]
+
+
+        # read in PhysSize from morphology file if we need to
+        if read_morphology:
+            with h5py.File(morphology_file,'r') as f:
+                    PhysSize = f['Morphology_Parameters/PhysSize'][()]
 
         #Synthesize list of filenames; note this is not using glob to see what files are there so you are at the mercy of config.txt
         hd5files = [f'Energy_{e:0.2f}.h5' for e in elist]
@@ -139,9 +153,9 @@ class cyrsoxsLoader():
 
         if self.profile_time: 
              print(f'Finished reading ' + str(num_energies) + ' energies. Time required: ' + str(datetime.datetime.now()-start))
-        index = pd.MultiIndex.from_arrays([elist],names=['energy'])
-        index.name = 'system'
-        return xr.DataArray(data, dims=("qx", "qy", "system"), coords={"qx":Qx, "qy":Qy, "system":index},attrs=config)
+        # index = pd.MultiIndex.from_arrays([elist],names=['energy'])
+        # index.name = 'system'
+        return xr.DataArray(data, dims=("qx", "qy","energy"), coords={ "qx":Qx, "qy":Qy, "energy":elist},attrs=config)
         
         #bar = xr.DataArray(data_remeshed, dims=("chi", "q", "energy"), coords={"chi":output_chi, "q":output_q, "energy":elist})        
 '''
