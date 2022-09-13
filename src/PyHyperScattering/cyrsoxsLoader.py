@@ -96,7 +96,7 @@ class cyrsoxsLoader():
         # if we don't have a PhysSize and no morphology file is specified, find the morphology file in the directory
         elif (morphology_file is None):
             read_morphology = True
-            morphology_list = list(directory.glob('*hdf5'))
+            morphology_list = list(directory.glob('*.hdf5'))
             
             if len(morphology_list) == 1:
                 morphology_file = morphology_list[0]
