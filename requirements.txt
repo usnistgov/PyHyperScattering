@@ -8,5 +8,5 @@ pandas
 pyfai
 scikit-image
 scipy
-xarray
+xarray != 2022.6.0
 tqdm
