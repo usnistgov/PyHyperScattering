@@ -15,10 +15,11 @@ import asyncio
 import time
 
 
-
 try:
     os.environ["TILED_SITE_PROFILES"] = '/nsls2/software/etc/tiled/profiles'
     from tiled.client import from_profile
+    from httpx import HTTPStatusError
+    import tiled
     from databroker.queries import RawMongo, Key, FullText, Contains,Regex
 except:
     print('Imports failed.  Are you running on a machine with proper libraries for databroker, tiled, etc.?')
@@ -162,6 +163,52 @@ class SST1RSoXSDB:
         except (KeyError,TypeError):
             npts.append(0)
         start_times.append(doc["time"])
+        
+    def loadSeries(self,run_list,meta_dim,loadrun_kwargs={},):
+        '''
+        Loads a series of runs into a single xarray object, stacking along meta_dim.
+        
+        Useful for a set of samples, or a set of polarizations, etc., taken in different scans.
+        
+        Args:
+        
+            run_list (list): list of scan ids to load
+            
+            meta_dim (str): dimension to stack along.  must be a valid attribute/metadata value, such as polarization or sample_name
+            
+        Returns:
+            raw: xarray.Dataset with all scans stacked
+        
+        '''
+        
+        scans = []
+        axes = []
+        label_vals = []
+        for run in run_list:
+            loaded = self.loadRun(self.c[run],**loadrun_kwargs).unstack('system')
+            axis = list(loaded.indexes.keys())
+            try:
+                axis.remove('pix_x')
+                axis.remove('pix_y')
+            except ValueError:
+                pass
+            try:
+                axis.remove('qx')
+                axis.remove('qy')
+            except ValueError:
+                pass
+            axes.append(axis)
+            scans.append(loaded)
+            label_vals.append(loaded.__getattr__(meta_dim))
+        assert len(axes) == axes.count(axes[0]), f'Error: not all loaded data have the same axes.  This is not supported yet.\n {axes}'
+        axes[0].insert(0,meta_dim)
+        new_system = axes[0]
+        #print(f'New system to be stacked as: {new_system}')
+        #print(f'meta_dimension = {meta_dim}')
+        #print(f'labels in this dim are {label_vals}')
+        return xr.concat(scans,dim=meta_dim).assign_coords({meta_dim:label_vals}).stack(system=new_system)
+        
+        
     def loadRun(self,run,dims=None,coords={},return_dataset=False):
         '''
         Loads a run entry from a catalog result into a raw xarray.
@@ -193,11 +240,17 @@ class SST1RSoXSDB:
         #    image = data - dark - self.dark_pedestal
         #else:
         #    image = data - self.dark_pedestal
-            
-        data = run['primary']['data'][md['detector']+'_image'].astype(int) # convert from uint to handle dark subtraction
         
+
+        data = run['primary']['data'][md['detector']+'_image']
+        if type(data) == tiled.client.array.ArrayClient:
+            data = xr.DataArray(data)
+        data = data.astype(int)   # convert from uint to handle dark subtraction
+
         if self.dark_subtract:
             dark = run['dark']['data'][md['detector']+'_image']
+            if type(dark) == tiled.client.array.ArrayClient:
+                dark = xr.DataArray(dark)
             darkframe = np.copy(data.time)
             for n,time in enumerate(dark.time):
                 darkframe[(data.time - time)>0]=int(n)
@@ -367,7 +420,7 @@ class SST1RSoXSDB:
         # items coming from primary
         try:
             primary = run['primary']['data']
-        except KeyError:
+        except (KeyError,HTTPStatusError):
             raise Exception('No primary stream --> probably you caught run before image was written.  Try again.')
         md_lookup = {
             'sam_x':'RSoXS Sample Outboard-Inboard',
@@ -381,15 +434,17 @@ class SST1RSoXSDB:
 
         for phs,rsoxs in md_lookup.items():
             try:
-                md[phs] = primary[rsoxs].values
+                md[phs] = primary[rsoxs].read()
                 #print(f'Loading from primary: {phs}, value {primary[rsoxs].values}')
-            except KeyError:
+            except (KeyError,HTTPStatusError):
                 try:
                     blval = baseline[rsoxs]
-                    md[phs] = blval.mean().data.round(4)
+                    if type(blval) == tiled.client.array.ArrayClient:
+                        blval = blval.read()
+                    md[phs] = blval.mean().round(4)
                     if blval.var() > 0:
                         warnings.warn(f'While loading {rsoxs} to infill metadata entry for {phs}, found beginning and end values unequal: {baseline[rsoxs]}.  It is possible something is messed up.',stacklevel=2)
-                except KeyError:
+                except (KeyError,HTTPStatusError):
                     warnings.warn(f'Could not find {rsoxs} in either baseline or primary.  Needed to infill value {phs}.  Setting to None.',stacklevel=2)
                     md[phs] = None
         md['epoch'] = md['meas_time'].timestamp()

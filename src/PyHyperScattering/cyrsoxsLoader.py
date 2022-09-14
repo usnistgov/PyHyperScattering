@@ -61,7 +61,7 @@ class cyrsoxsLoader():
 
    
 
-    def loadDirectory(self,directory,output_dir='HDF5'):
+    def loadDirectory(self,directory,output_dir='HDF5',morphology_file=None, PhysSize=None):
         '''
         Loads a CyRSoXS simulation output directory into a qx/qy xarray.
         
@@ -85,9 +85,38 @@ class cyrsoxsLoader():
 
         elist = config['Energies']
         num_energies = len(elist)
-        PhysSize = float(config['PhysSize'])
-        NumX = int(config['NumX'])
-        NumY = int(config['NumY'])
+######### No longer contained in config.txt ###########        
+#         PhysSize = float(config['PhysSize']) 
+#         NumX = int(config['NumX'])
+#         NumY = int(config['NumY'])
+
+        # if we have a PhysSize, we don't need to read it in from the morphology file
+        if (PhysSize is not None):
+            read_morphology = False
+        # if we don't have a PhysSize and no morphology file is specified, find the morphology file in the directory
+        elif (morphology_file is None):
+            read_morphology = True
+            morphology_list = list(directory.glob('*.hdf5'))
+            
+            if len(morphology_list) == 1:
+                morphology_file = morphology_list[0]
+
+            # if we don't find a morphology file, warn and use default value for PhysSize
+            elif len(morphology_list) == 0:
+                warnings.warn('No morphology file found. Using default PhysSize of 5 nm.')
+                PhysSize = 5
+                read_morphology = False
+
+            # if we find more than one morphology, warn and use first in list
+            elif len(morphology_list) > 1:
+                warnings.warn(f'More than one morphology.hdf5 file in directory. Choosing {morphology_list[0]}. Specify morphology_file if this is not the correct one',stacklevel=2)
+                morphology_file = morphology_list[0]
+
+
+        # read in PhysSize from morphology file if we need to
+        if read_morphology:
+            with h5py.File(morphology_file,'r') as f:
+                    PhysSize = f['Morphology_Parameters/PhysSize'][()]
 
         #Synthesize list of filenames; note this is not using glob to see what files are there so you are at the mercy of config.txt
         hd5files = [f'Energy_{e:0.2f}.h5' for e in elist]
@@ -96,28 +125,37 @@ class cyrsoxsLoader():
             if self.eager_load:
                 while not (directory/'HDF5'/hd5files[i]).is_dir():
                     time.sleep(0.5)
-            with h5py.File(directory/'HDF5'/hd5files[i],'r') as h5:
-                img = h5['projection'][()]
-                #remeshed = warp_polar_gpu(img)
+                    
             if i==0:
-                Qx = 2.0*np.pi*np.fft.fftshift(np.fft.fftfreq(img.shape[1],d=PhysSize))
-                Qy = 2.0*np.pi*np.fft.fftshift(np.fft.fftfreq(img.shape[0],d=PhysSize))
-                #q = np.sqrt(Qy**2+Qx**2)
-                #output_chi = np.linspace(0,360,360)
-                #output_q = np.linspace(0,np.amax(q), remeshed.shape[1])
+                with h5py.File(directory/'HDF5'/hd5files[i],'r') as h5:
+                    try:
+                        img = h5['K0']['projection'][()]
+                    except KeyError:
+                        img = h5['projection'][()]
+                    NumY, NumX = img.shape
+                Qx = 2.0*np.pi*np.fft.fftshift(np.fft.fftfreq(NumX,d=PhysSize))
+                Qy = 2.0*np.pi*np.fft.fftshift(np.fft.fftfreq(NumY,d=PhysSize))
                 data = np.zeros([NumX*NumY*num_energies])
-                #data_remeshed = np.zeros([len(output_chi)*len(output_q)*num_energies])
+                
+            else:
+                with h5py.File(directory/'HDF5'/hd5files[i],'r') as h5:
+                    try:
+                        img = h5['K0']['projection'][()]
+                    except KeyError:
+                        img = h5['projection'][()]
+                #remeshed = warp_polar_gpu(img)
+
+
 
             data[i*NumX*NumY:(i+1)*NumX*NumY] = img[:,:].reshape(-1, order='C')
-            #data_remeshed[i*len(output_chi)*len(output_q):(i+1)*len(output_chi)*len(output_q)] = remeshed[:,:].reshape(-1, order='C')
 
         data = np.moveaxis(data.reshape(-1, NumY, NumX, order ='C'),0,-1)
-        #data_remeshed = np.moveaxis(data_remeshed.reshape(-1, len(output_chi), len(output_q), order ='C'),0,-1)
+
         if self.profile_time: 
              print(f'Finished reading ' + str(num_energies) + ' energies. Time required: ' + str(datetime.datetime.now()-start))
-        index = pd.MultiIndex.from_arrays([elist],names=['energy'])
-        index.name = 'system'
-        return xr.DataArray(data, dims=("qx", "qy", "system"), coords={"qx":Qx, "qy":Qy, "system":index},attrs=config)
+        # index = pd.MultiIndex.from_arrays([elist],names=['energy'])
+        # index.name = 'system'
+        return xr.DataArray(data, dims=("qx", "qy","energy"), coords={ "qx":Qx, "qy":Qy, "energy":elist},attrs=config)
         
         #bar = xr.DataArray(data_remeshed, dims=("chi", "q", "energy"), coords={"chi":output_chi, "q":output_q, "energy":elist})        
 '''
