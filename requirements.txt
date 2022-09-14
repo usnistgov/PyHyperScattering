@@ -9,4 +9,5 @@ pyfai
 scikit-image
 scipy
 xarray
+pillow
 tqdm
