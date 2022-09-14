@@ -127,7 +127,9 @@ class PFGeneralIntegrator():
         #int_stack = img_stack.groupby('system').map_progress(self.integrateSingleImage)
         #PRSUtils.fix_unstacked_dims(int_stack,img_stack,'system',img_stack.attrs['dims_unpacked'])
         #return int_stack
-    def __init__(self,maskmethod = "none",maskpath = "",
+    def __init__(self,
+                 maskmethod='none', maskpath="",  # deprecated way to load mask
+                 mask=None, rotate_image=False,  # new way         
                  geomethod = "none",
                  NIdistance=0, NIbcx=0, NIbcy=0, NItiltx=0, NItilty=0,
                  NIpixsizex=0, NIpixsizey=0,
