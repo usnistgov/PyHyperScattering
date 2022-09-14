@@ -38,25 +38,23 @@ class PFGeneralIntegrator():
     def integrateSingleImage(self, img):
         if type(img) == xr.Dataset:
             for key in img.keys():
-                target_key=key
-            img=img[key]
-        if(img.ndim>2):
-            
-            img_to_integ = np.squeeze(img.values)
+                target_key = key
+            img = img[key]
+        if (img.ndim > 2):
+            img_to_integ = img[0].values
         else:
             img_to_integ = img.values
-        
-        assert np.shape(self.mask)==np.shape(img_to_integ),f'Error!  Mask has shape {np.shape(self.mask)} but you are attempting to integrate data with shape {np.shape(img_to_integ)}.  Try changing mask orientation or updating mask.'
-        stacked_axis = list(img.indexes.keys())
-        stacked_axis.remove('pix_x')
-        stacked_axis.remove('pix_y')
-        assert len(stacked_axis)==1, "More than one axis left after removing pix_x and pix_y, not sure how to handle"
-        stacked_axis = stacked_axis[0]
-        if(img.__getattr__(stacked_axis).shape[0]>1):
-            system_to_integ = [img[0].__getattr__(stacked_axis)]
-            warnings.warn(f'There are two images for {img.__getattr__(stacked_axis)}, I am ONLY INTEGRATING THE FIRST.  This may cause the labels to be dropped and the result to need manual re-tagging in the index.',stacklevel=2)
+
+        assert np.shape(self.mask) == np.shape(
+            img_to_integ), f'Error!  Mask has shape {np.shape(self.mask)} but you are attempting to integrate data with shape {np.shape(img_to_integ)}.  Try changing mask orientation or updating mask.'
+
+        if (img.system.shape[0] > 1):
+            system_to_integ = [img[0].system]
+            warnings.warn(
+                f'There are two images for {img.system}, I am ONLY INTEGRATING THE FIRST.  This may cause the labels to be dropped and the result to need manual re-tagging in the index.',
+                stacklevel=2)
         else:
-            system_to_integ = img.__getattr__(stacked_axis)
+            system_to_integ = img.system
         if self.do_1d_integration:
             integ_func = self.integrator.integrate1d
         else:
@@ -90,18 +88,24 @@ class PFGeneralIntegrator():
             radial_to_save = frame.radial
         if self.do_1d_integration:
             try:
-                res = xr.DataArray([frame.intensity],dims=[stacked_axis,'q'],coords={'q':radial_to_save,stacked_axis:system_to_integ},attrs=img.attrs)
+                res = xr.DataArray([frame.intensity], dims=['system', 'q'],
+                                   coords={'q': radial_to_save, 'system': system_to_integ}, attrs=img.attrs)
                 if self.return_sigma:
-                    sigma = xr.DataArray([frame.sigma],dims=[stacked_axis,'q'],coords={'q':radial_to_save,stacked_axis:system_to_integ},attrs=img.attrs)
+                    sigma = xr.DataArray([frame.sigma], dims=['system', 'q'],
+                                         coords={'q': radial_to_save, 'system': system_to_integ}, attrs=img.attrs)
             except AttributeError:
                 res = xr.DataArray(frame.intensity, dims=['q'], coords={'q': radial_to_save}, attrs=img.attrs)
                 if self.return_sigma:
                     sigma = xr.DataArray(frame.sigma, dims=['q'], coords={'q': radial_to_save}, attrs=img.attrs)
         else:
             try:
-                res = xr.DataArray([frame.intensity],dims=[stacked_axis,'chi','q'],coords={'q':radial_to_save,'chi':frame.azimuthal,stacked_axis:system_to_integ},attrs=img.attrs)
+                res = xr.DataArray([frame.intensity], dims=['system', 'chi', 'q'],
+                                   coords={'q': radial_to_save, 'chi': frame.azimuthal, 'system': system_to_integ},
+                                   attrs=img.attrs)
                 if self.return_sigma:
-                    sigma = xr.DataArray([frame.sigma],dims=[stacked_axis,'chi','q'],coords={'q':radial_to_save,'chi':frame.azimuthal,stacked_axis:system_to_integ},attrs=img.attrs)
+                    sigma = xr.DataArray([frame.sigma], dims=['system', 'chi', 'q'],
+                                         coords={'q': radial_to_save, 'chi': frame.azimuthal,
+                                                 'system': system_to_integ}, attrs=img.attrs)
             except AttributeError:
                 res = xr.DataArray(frame.intensity, dims=['chi', 'q'],
                                    coords={'q': radial_to_save, 'chi': frame.azimuthal}, attrs=img.attrs)
@@ -113,22 +117,15 @@ class PFGeneralIntegrator():
             res['dI'] = sigma
         return res
 
-    def integrateImageStack(self,data):
-        indexes = list(data.indexes.keys())
-        indexes.remove('pix_x')
-        indexes.remove('pix_y')
-        if len(indexes) == 1:
-            data_int = data.groupby(indexes[0],squeeze=False).progress_apply(self.integrateSingleImage)
-        else:
-            #some kinda logic to check for existing multiindexes and stack into them appropriately maybe
-            data = data.stack({'pyhyper_internal_multiindex':indexes})
-            data_int = data.groupby('pyhyper_internal_multiindex',squeeze=False).progress_apply(self.integrateSingleImage).unstack('pyhyper_internal_multiindex')
-        return data_int
-        #int_stack = img_stack.groupby('system').map_progress(self.integrateSingleImage)
-        #PRSUtils.fix_unstacked_dims(int_stack,img_stack,'system',img_stack.attrs['dims_unpacked'])
-        #return int_stack
-    def __init__(self,maskmethod = "none",maskpath = "",
-                 geomethod = "none",
+    def integrateImageStack(self, img_stack):
+        int_stack = img_stack.groupby('system').map_progress(self.integrateSingleImage)
+        # PRSUtils.fix_unstacked_dims(int_stack,img_stack,'system',img_stack.attrs['dims_unpacked'])
+        return int_stack
+
+    def __init__(self,
+                 maskmethod='none', maskpath="",  # deprecated way to load mask
+                 mask=None, rotate_image=False,  # new way
+                 geomethod="none",
                  NIdistance=0, NIbcx=0, NIbcy=0, NItiltx=0, NItilty=0,
                  NIpixsizex=0, NIpixsizey=0,
                  template_xr=None,
