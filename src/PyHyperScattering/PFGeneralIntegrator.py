@@ -202,7 +202,7 @@ class PFGeneralIntegrator():
         return f"PyFAI general integrator wrapper SDD = {self.dist} m, poni1 = {self.poni1} m, poni2 = {self.poni2} m, rot1 = {self.rot1} rad, rot2 = {self.rot2} rad"
 
 
-    def loadPolyMask(self, maskpoints, **kwargs):
+    def loadPolyMask(self,maskpoints = [], **kwargs):
         '''
         loads a polygon mask from a list of polygon points
         
@@ -217,7 +217,7 @@ class PFGeneralIntegrator():
         (tuple) maskshape: (x,y) dimensions of mask to create 
                 if not passed, will assume that the maximum point is included in the mask
         '''
-        points = kwargs['maskpoints']
+        points = maskpoints
         xs = []
         ys = []
         for polygon in points:
@@ -227,7 +227,7 @@ class PFGeneralIntegrator():
             if 'maskshape' in kwargs:
                 shape = kwargs['maskshape']
             else:
-                shape = (max(xs), max(ys))
+                shape = (math.ceil(max(xs)), math.ceil(max(ys)))
             image = np.zeros(shape)
             for polygon in points:
                  image += draw.polygon2mask(shape, polygon)
@@ -278,7 +278,7 @@ class PFGeneralIntegrator():
         if 'rotate_image' in kwargs:
             if kwargs['rotate_image']:
                 mask = np.flipud(np.rot90(mask))
-        boolmask = np.invert(mask.astype(bool))
+        boolmask = np.invert(mask.astype(bool)[:])
         print(f"Imported or created mask with dimensions {str(np.shape(boolmask))}")
         self.mask = boolmask
 
@@ -293,11 +293,19 @@ class PFGeneralIntegrator():
         '''
         with open(kwargs['maskpath'],'r') as f:
             strlist = json.load(f)
-        print(strlist)
+        #print(strlist)
         dflist = []
         for item in strlist:
             dflist.append(pd.read_json(item))
-        self.loadPolyMask(maskpoints=dflist,**kwargs)
+        #print(dflist)
+        pyhyperlist = []
+        for shape in dflist:
+            pyhyper_shape = []
+            for index,xval in enumerate(shape.x):
+                yval = shape.y[index]
+                pyhyper_shape.append([xval,yval])
+            pyhyperlist.append(pyhyper_shape)
+        self.loadPolyMask(maskpoints=pyhyperlist,**kwargs)
     def calibrationFromTemplateXRParams(self, raw_xr):
 
         '''
