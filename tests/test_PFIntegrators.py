@@ -45,8 +45,8 @@ def test_integrator_loads_pyhyper_mask(pfesint):
 def test_integrator_beamcenter_to_poni(pfesint):
     pfesint.nika_beamcenter_x = 400
     pfesint.nika_beamcenter_y = 600
-    assert(pfesint.poni1 == 0.029445)
-    assert(pfesint.poni2 == 0.024)
+    assert(math.isclose(pfesint.poni1,0.029445))
+    assert(math.isclose(pfesint.poni2,0.0293916))
     pass
 
 def test_integration_runs(sst_data,pfesint):
