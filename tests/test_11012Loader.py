@@ -38,7 +38,7 @@ def test_11012_single_scan_import(alsloader,filenumber_coord):
     return res
 
 
-def test_11012_single_scan_qxy_import(loader):
+def test_11012_single_scan_qxy_import(alsloader):
     return alsloader.loadFileSeries(
                                 'Example/11012/CCD/',
                                ['energy','polarization','exposure','filenumber'],
@@ -46,7 +46,7 @@ def test_11012_single_scan_qxy_import(loader):
                                md_filter={'sampleid':1,'CCD Shutter Inhibit':0},
                               output_qxy=True)
 
-def test_load_insensitive_to_trailing_slash(loader):
+def test_load_insensitive_to_trailing_slash(alsloader):
     withslash = alsloader.loadFileSeries(
                                 'Example/11012/CCD/',
                                ['energy','polarization','exposure','filenumber'],
