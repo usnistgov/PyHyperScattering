@@ -7,6 +7,7 @@ from PyHyperScattering.integrate import WPIntegrator
 import xarray as xr
 import pathlib
 import numpy as np
+import math
 import unittest
 import pytest
 
