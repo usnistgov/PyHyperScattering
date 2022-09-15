@@ -46,6 +46,8 @@ jobs:
         unzip Example.zip
         wget https://github.com/usnistgov/PyHyperScattering/releases/download/0.0.0-example-data/cyrsoxs-example.zip
         unzip cyrsoxs-example.zip
+        wget https://github.com/usnistgov/PyHyperScattering/releases/download/0.0.0-example-data/mask-test-pack.zip
+        unzip mask-test-pack.zip
     - name: Fetch and unzip example data (Windows)
       if: ${{ matrix.os == 'windows-latest' }}
       run: |
@@ -53,6 +55,8 @@ jobs:
         unzip Example.zip
         C:\msys64\usr\bin\wget.exe https://github.com/usnistgov/PyHyperScattering/releases/download/0.0.0-example-data/cyrsoxs-example.zip
         unzip cyrsoxs-example.zip
+        C:\msys64\usr\bin\wget.exe https://github.com/usnistgov/PyHyperScattering/releases/download/0.0.0-example-data/mask-test-pack.zip
+        unzip mask-test-pack.zip
     - name: Test with pytest
       run: |
         coverage run -m pytest
