@@ -35,13 +35,13 @@ def pfesint(sst_data):
 def test_integrator_loads_nika_mask_tiff(pfesint):
     pfesint.loadNikaMask(filetoload=pathlib.Path('mask-test-pack/37738-CB_TPD314K1_mask.tif'))
 def test_integrator_loads_nika_mask_hdf5(pfesint):
-    pfesint.loadNikaMask(filetoload=pathlib.Path('mask-test-pack/SST1_SAXS.h5'))
+    pfesint.loadNikaMask(filetoload=pathlib.Path('mask-test-pack/SST1-SAXS_mask.hdf'))
     
 def test_integrator_loads_polygon_mask(pfesint):
-    pfesint.loadPolyMask(maskpoints=[[[367, 545], [406, 578], [880, 0], [810, 0]]],maskshape=(1026,1024))
+    pfesint.loadPolyMask(maskpoints=[[[367, 545], [406, 578], [880, 0], [810, 0]]],maskshape=(1024,1026))
                          
 def test_integrator_loads_pyhyper_mask(pfesint):
-    pfesint.loadPyHyperMask(maskpath=pathlib.Path('mask-test-pack/liquidMask.json'),maskshape=(1026,1024))                      
+    pfesint.loadPyHyperMask(maskpath=pathlib.Path('mask-test-pack/liquidMask.json'),maskshape=(1024,1026))                      
 def test_integrator_beamcenter_to_poni(pfesint):
     pfesint.nika_beamcenter_x = 400
     pfesint.nika_beamcenter_y = 600
