@@ -7,6 +7,7 @@ from PyHyperScattering.integrate import PFEnergySeriesIntegrator
 import numpy as np
 import pandas as pd
 import xarray as xr
+import pytest
 
 @pytest.fixture(autouse=True,scope='module')
 def sstloader():
