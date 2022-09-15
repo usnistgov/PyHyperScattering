@@ -9,6 +9,8 @@ import matplotlib.pyplot as plt
 from tqdm.auto import tqdm
 from PIL import Image
 from skimage import draw
+import json
+import pandas as pd
 
 # tqdm.pandas()
 # the following block monkey-patches xarray to add tqdm support.  This will not be needed once tqdm v5 releases.
@@ -128,8 +130,9 @@ class PFGeneralIntegrator():
         #PRSUtils.fix_unstacked_dims(int_stack,img_stack,'system',img_stack.attrs['dims_unpacked'])
         #return int_stack
     def __init__(self,
-                 maskmethod='none', maskpath="",  # deprecated way to load mask
-                 mask=None, rotate_image=False,  # new way         
+                 maskmethod='none', 
+                 maskpath= '',
+                 maskrotate = True,
                  geomethod = "none",
                  NIdistance=0, NIbcx=0, NIbcy=0, NItiltx=0, NItilty=0,
                  NIpixsizex=0, NIpixsizey=0,
@@ -141,20 +144,21 @@ class PFGeneralIntegrator():
                  npts=500,
                  use_log_ish_binning=False,
                  do_1d_integration=False,
-                 return_sigma=False):
+                 return_sigma=False,
+                 **kwargs):
         # energy units eV
-        if isinstance(mask, str):
-            self.mask = self.load_mask(path=mask, rotate_image=rotate_image)
+        if maskmethod == 'nika':
+            self.loadNikaMask(filetoload=maskpath,rotate_image =maskrotate,**kwargs) 
+        elif maskmethod == 'polygon':
+            self.loadPolyMask(**kwargs)
+        elif maskmethod == 'image':
+            self.loadImageMask(**kwargs)
+        elif maskmethod == 'pyhyper':
+            self.loadPyHyperSavedMask(**kwargs)
+        elif maskmethod == 'none':
+            self.mask = None
         else:
-            if maskmethod == 'nika':
-                if not isinstance(mask, dict):
-                    mask = {}
-                self.mask = self.load_mask(*mask.update({'nika': maskpath, 'rotate_image': rotate_image}))
-            else:
-                if not isinstance(mask, dict):
-                    self.mask = None
-                else:
-                    self.mask = self.load_mask(*mask.update({'rotate_image': rotate_image}))
+            raise ValueError(f'Invalid or unsupported maskmethod {maskmethod}.')
         self.dist = 0.1
         self.poni1 = 0
         self.poni2 = 0
@@ -197,50 +201,60 @@ class PFGeneralIntegrator():
     def __str__(self):
         return f"PyFAI general integrator wrapper SDD = {self.dist} m, poni1 = {self.poni1} m, poni2 = {self.poni2} m, rot1 = {self.rot1} rad, rot2 = {self.rot2} rad"
 
-    def load_mask(self, **kwargs):
-        '''
-        loads a mask either from a path, from a NIKA file, or from a list of polygon points
-        the mask dictionary should have keys indicating which method to use and the necessary information
-        for a path, mask itself can be a string, or a dictionary with the key path whose value is the string
-        for NIKA, there should be a key "nika" with the path to that file
-        for a polygon, there should be a key "points" with a list of lists of points i.e.
-            [[[1050,480],[500,480],[500,520],[1050,520]],[[1050,80],[500,80],[500,120],[1050,120]]]
 
+    def loadPolyMask(self, maskpoints, **kwargs):
         '''
-
-        if 'points' in kwargs:
-            points = kwargs['points']
-            xs = []
-            ys = []
-            for polygon in points:
-                x, y = zip(*polygon)
-                xs += x
-                ys += y
-            if 'shape' in kwargs:
-                shape = kwargs['shape']
+        loads a polygon mask from a list of polygon points
+        
+        Args:
+        (list) maskpoints: a list of lists of points, e.g.
+                [
+                    [ #begin polygon 1
+                        [0,0],[0,10],[10,10],[10,0]
+                    ],
+                    [ #later polygons]
+                ]
+        (tuple) maskshape: (x,y) dimensions of mask to create 
+                if not passed, will assume that the maximum point is included in the mask
+        '''
+        points = kwargs['maskpoints']
+        xs = []
+        ys = []
+        for polygon in points:
+            x, y = zip(*polygon)
+            xs += x
+            ys += y
+            if 'maskshape' in kwargs:
+                shape = kwargs['maskshape']
             else:
                 shape = (max(xs), max(ys))
             image = np.zeros(shape)
             for polygon in points:
-                image += draw.polygon2mask(shape, polygon)
+                 image += draw.polygon2mask(shape, polygon)
             image[image > 1] = 1
-        elif 'image' in kwargs:
-            path = kwargs['image']
-            im = Image.open(path)
-            image = np.array(im)
-        elif 'nika' in kwargs:
-            image = self.loadNikaMask(kwargs['nika'])
-        else:
-            warnings.warn("no valid inputs to load or create a mask", stacklevel=2)
-            image = None
-        if 'rotate_image' in kwargs:
-            if kwargs['rotate_image']:
-                image = np.flipud(np.rot90(image))
         boolmask = np.invert(image.astype(bool))
-        print(f"Imported or created mask with dimensions {str(np.shape(boolmask))}")
+        print(f"Created mask with dimensions {str(np.shape(boolmask))}")
         self.mask = boolmask
 
-    def loadNikaMask(self, filetoload):
+    def loadImageMask(self, **kwargs):
+        '''
+        loads a mask from a generic image
+        
+        Args:
+            (pathlib.Path or String) maskpath: path to load
+            (bool) maskrotate: rotate mask using np.flipud(np.rot90(mask))
+        '''
+
+        im = Image.open(kwargs['maskpath'])
+        image = np.array(im)
+        if 'maskrotate' in kwargs:
+            if kwargs['maskrotate']:
+                image = np.flipud(np.rot90(image))
+        boolmask = np.invert(image.astype(bool))
+        print(f"Imported mask with dimensions {str(np.shape(boolmask))}")
+        self.mask = boolmask
+
+    def loadNikaMask(self, filetoload, rotate_image = True,**kwargs):
 
         '''
         Loads a Nika-generated HDF5 or tiff mask and converts it to an array that matches the local conventions.
@@ -261,8 +275,29 @@ class PFGeneralIntegrator():
             mask = plt.imread(filetoload)
         else:
             warnings.warn('Unsupported mask type...', stacklevel=2)
-        return mask
+        if 'rotate_image' in kwargs:
+            if kwargs['rotate_image']:
+                mask = np.flipud(np.rot90(mask))
+        boolmask = np.invert(mask.astype(bool))
+        print(f"Imported or created mask with dimensions {str(np.shape(boolmask))}")
+        self.mask = boolmask
 
+    def loadPyHyperMask(self, **kwargs):
+        '''
+        Loads a mask json file saved by PyHyper's drawMask routines.
+
+        Args:
+            (pathlib.Path or string) maskpath: path to load json file from
+
+
+        '''
+        with open(kwargs['maskpath'],'r') as f:
+            strlist = json.load(f)
+        print(strlist)
+        dflist = []
+        for item in strlist:
+            dflist.append(pd.read_json(item))
+        self.loadPolyMask(maskpoints=dflist,**kwargs)
     def calibrationFromTemplateXRParams(self, raw_xr):
 
         '''
