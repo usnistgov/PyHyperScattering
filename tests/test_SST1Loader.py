@@ -7,22 +7,22 @@ from PyHyperScattering.integrate import PFEnergySeriesIntegrator
 import numpy as np
 import pandas as pd
 import xarray as xr
+import pytest
 
-def test_loader_imports_cleanly():
-	global loader
-	loader = SST1RSoXSLoader(corr_mode='none')
+@pytest.fixture(autouse=True,scope='module')
+def sstloader():
+    sstloader = SST1RSoXSLoader(corr_mode='none')
+    return sstloader
 
-def test_SST1_single_scan_import():
-	global loader
-	return loader.loadFileSeries('Example/SST1/21792/',['energy','polarization'])
+def test_SST1_single_scan_import(sstloader):
+    return sstloader.loadFileSeries('Example/SST1/21792/',['energy','polarization'])
 
-def test_SST1_single_scan_qxy_import():
-		global loader
-		return loader.loadFileSeries('Example/SST1/21792/',['energy','polarization'],output_qxy=True)
+def test_SST1_single_scan_qxy_import(sstloader):
+    return sstloader.loadFileSeries('Example/SST1/21792/',['energy','polarization'],output_qxy=True)
 
-def test_load_insensitive_to_trailing_slash():
-		withslash = loader.loadFileSeries('Example/SST1/21792/',['energy','polarization'])
+def test_load_insensitive_to_trailing_slash(sstloader):
+    withslash = sstloader.loadFileSeries('Example/SST1/21792/',['energy','polarization'])
         
-		withoutslash = loader.loadFileSeries('Example/SST1/21792',['energy','polarization'])
+    withoutslash = sstloader.loadFileSeries('Example/SST1/21792',['energy','polarization'])
         
-		assert np.allclose(withslash,withoutslash)
+    assert np.allclose(withslash,withoutslash)
