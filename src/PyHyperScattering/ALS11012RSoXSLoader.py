@@ -26,7 +26,7 @@ class ALS11012RSoXSLoader(FileLoader):
     md_loading_is_quick = True
     
     
-    def __init__(self,corr_mode=None,user_corr_func=None,dark_pedestal=0,exposure_offset=0.002,constant_md={}):
+    def __init__(self,corr_mode=None,user_corr_func=None,dark_pedestal=0,exposure_offset=0.002,dark_subtract=False,constant_md={}):
         '''
         Args:
             corr_mode (str): origin to use for the intensity correction.  Can be 'expt','i0','expt+i0','user_func','old',or 'none'
@@ -46,6 +46,7 @@ class ALS11012RSoXSLoader(FileLoader):
         self.exposure_offset = exposure_offset
         self.darks = {}
         self.constant_md = constant_md
+        self.dark_subtract = dark_subtract
     
     def loadDarks(self,basepath,dark_base_name):
         '''
@@ -143,21 +144,16 @@ class ALS11012RSoXSLoader(FileLoader):
 
         
         # step 2: dark subtraction
-        try:
-            darkimg = self.darks[headerdict['EXPOSURE']]
-        except KeyError:
-            warnings.warn(f"Could not find a dark image with exposure time {headerdict['EXPOSURE']}.  Using zeros.",stacklevel=2)
-            darkimg = np.zeros_like(img)
+        if self.dark_subtract:
+            try:
+                darkimg = self.darks[headerdict['EXPOSURE']]
+            except KeyError:
+                warnings.warn(f"Could not find a dark image with exposure time {headerdict['EXPOSURE']}.  Using zeros.",stacklevel=2)
+                darkimg = np.zeros_like(img)
 
-        img = (img-darkimg+self.dark_pedestal)/corr
+            img = (img-darkimg+self.dark_pedestal)/corr
         
         # now, match up the dims and coords
-        if return_q:
-            qpx = 2*np.pi*60e-6/(headerdict['sdd']/1000)/(headerdict['wavelength']*1e10)
-            qx = (np.arange(1,img.shape[0]+1)-headerdict['beamcenter_x'])*qpx
-            qy = (np.arange(1,img.shape[1]+1)-headerdict['beamcenter_y'])*qpx
-            # now, match up the dims and coords
-            return xr.DataArray(img,dims=['qy','qx'],coords={'qy':qy,'qx':qx},attrs=headerdict)
         return xr.DataArray(img,dims=['pix_x','pix_y'],attrs=headerdict)
         
     def peekAtMd(self,file):
