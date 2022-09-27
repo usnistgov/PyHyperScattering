@@ -29,9 +29,14 @@ def inner_generator(df_function='apply'):
         return result
     return inner
 
-DataArrayGroupBy.progress_apply = inner_generator()
-DatasetGroupBy.progress_apply = inner_generator()
+DataArrayGroupBy.progress_apply = inner_generator(df_function='apply')
+DatasetGroupBy.progress_apply = inner_generator(df_function='apply')
 
+DataArrayGroupBy.progress_map = inner_generator(df_function='map')
+DatasetGroupBy.progress_map = inner_generator(df_function='map')
+
+DataArrayGroupBy.progress_map_blocks = inner_generator(df_function='map_blocks')
+DatasetGroupBy.progress_map_blocks = inner_generator(df_function='map_blocks')
 
 # end monkey patch
 
@@ -52,13 +57,17 @@ class PFGeneralIntegrator():
         stacked_axis = list(img.indexes.keys())
         stacked_axis.remove('pix_x')
         stacked_axis.remove('pix_y')
-        assert len(stacked_axis)==1, "More than one axis left after removing pix_x and pix_y, not sure how to handle"
-        stacked_axis = stacked_axis[0]
-        if(img.__getattr__(stacked_axis).shape[0]>1):
-            system_to_integ = [img[0].__getattr__(stacked_axis)]
-            warnings.warn(f'There are two images for {img.__getattr__(stacked_axis)}, I am ONLY INTEGRATING THE FIRST.  This may cause the labels to be dropped and the result to need manual re-tagging in the index.',stacklevel=2)
+        assert len(stacked_axis)<=1, "More than one axis left after removing pix_x and pix_y, not sure how to handle"
+        if len(stacked_axis) == 1:
+            stacked_axis = stacked_axis[0]
+            if(img.__getattr__(stacked_axis).shape[0]>1):
+                system_to_integ = [img[0].__getattr__(stacked_axis)]
+                warnings.warn(f'There are two images for {img.__getattr__(stacked_axis)}, I am ONLY INTEGRATING THE FIRST.  This may cause the labels to be dropped and the result to need manual re-tagging in the index.',stacklevel=2)
+            else:
+                system_to_integ = img.__getattr__(stacked_axis)
         else:
-            system_to_integ = img.__getattr__(stacked_axis)
+            stacked_axis = 'image_num'
+            system_to_integ = [0]
         if self.do_1d_integration:
             integ_func = self.integrator.integrate1d
         else:
@@ -115,16 +124,24 @@ class PFGeneralIntegrator():
             res['dI'] = sigma
         return res
 
+    
+    
     def integrateImageStack(self,data):
         indexes = list(data.indexes.keys())
         indexes.remove('pix_x')
         indexes.remove('pix_y')
         if len(indexes) == 1:
-            data_int = data.groupby(indexes[0],squeeze=False).progress_apply(self.integrateSingleImage)
+            if self.use_chunked_processing:
+                pass
+            else:
+                data_int = data.groupby(indexes[0],squeeze=False).progress_map(self.integrateSingleImage)
         else:
             #some kinda logic to check for existing multiindexes and stack into them appropriately maybe
             data = data.stack({'pyhyper_internal_multiindex':indexes})
-            data_int = data.groupby('pyhyper_internal_multiindex',squeeze=False).progress_apply(self.integrateSingleImage).unstack('pyhyper_internal_multiindex')
+            if self.use_chunked_processing:
+                pass
+            else:
+                data_int = data.groupby('pyhyper_internal_multiindex',squeeze=False).progress_map(self.integrateSingleImage).unstack('pyhyper_internal_multiindex')
         return data_int
         #int_stack = img_stack.groupby('system').map_progress(self.integrateSingleImage)
         #PRSUtils.fix_unstacked_dims(int_stack,img_stack,'system',img_stack.attrs['dims_unpacked'])
@@ -145,6 +162,7 @@ class PFGeneralIntegrator():
                  use_log_ish_binning=False,
                  do_1d_integration=False,
                  return_sigma=False,
+                 use_chunked_processing=False,
                  **kwargs):
         # energy units eV
         if maskmethod == 'nika':
@@ -181,6 +199,7 @@ class PFGeneralIntegrator():
 
         self.maskToNan = maskToNan
         self.return_sigma = return_sigma
+        self.use_chunked_processing = use_chunked_processing
         # self._energy = 0
         if geomethod == "nika":
             self.ni_pixel_x = NIpixsizex

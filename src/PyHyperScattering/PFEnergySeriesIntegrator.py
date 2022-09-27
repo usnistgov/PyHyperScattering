@@ -39,7 +39,10 @@ class PFEnergySeriesIntegrator(PFGeneralIntegrator):
         #    use that integrator to reduce
         #    return single reduced frame
         if type(img.energy) != float:
-            en = img.energy.values[0]
+            try:
+                en = img.energy.values[0]
+            except IndexError:
+                en = float(img.energy)
         else:
             en = img.energy
         try:
@@ -54,28 +57,34 @@ class PFEnergySeriesIntegrator(PFGeneralIntegrator):
                 return res
         except TypeError:
             return res
-    def integrateImageStack(self,img_stack):
+    def setupIntegrators(self,energies):
+        for en in energies:
+            self.createIntegrator(en)
+        self.createIntegrator(np.median(energies))
+    def setupDestQ(self,energies):
+        self.dest_q = self.integrator_stack[np.median(energies)].integrate2d(np.zeros_like(self.mask).astype(int), self.npts, 
+                                                   unit='arcsinh(q.µm)' if self.use_log_ish_binning else 'q_A^-1',
+                                                   method=self.integration_method).radial
         
-       
+    def integrateImageStack(self,img_stack):
         # get just the energies of the image stack
+       # if type(img_stack.energy)== np.ndarray:
+            
         energies = img_stack.energy.to_dataframe()
         
         energies = energies['energy'].drop_duplicates()
         
         #create an integrator for each energy
-        for en in energies:
-            self.createIntegrator(en)
-        self.createIntegrator(np.median(energies))
+        self.setupIntegrators(energies)
         # find the output q for the midpoint and set the final q binning
-        try:
-            self.dest_q = self.integrator_stack[np.median(energies)].integrate2d(np.zeros_like(self.mask).astype(int), self.npts, 
-                                               unit='arcsinh(q.µm)' if self.use_log_ish_binning else 'q_A^-1',
-                                               method=self.integration_method).radial
-        except TypeError as e:
-            if 'diffSolidAngle() missing 2 required positional arguments: ' in str(e):
-                raise TypeError('Geometry is incorrect, cannot integrate.\n \n - Do your mask dimensions match your image dimensions? \n - Do you have pixel sizes set that are not zero?\n - Is SDD, beamcenter/poni, and tilt set correctly?') from e
-            else:
-                raise e
+        if not hasattr(self,'dest_q'):
+            try:
+                self.setupDestQ(energies)
+            except TypeError as e:
+                if 'diffSolidAngle() missing 2 required positional arguments: ' in str(e):
+                    raise TypeError('Geometry is incorrect, cannot integrate.\n \n - Do your mask dimensions match your image dimensions? \n - Do you have pixel sizes set that are not zero?\n - Is SDD, beamcenter/poni, and tilt set correctly?') from e
+                else:
+                    raise e
         if self.use_log_ish_binning:
             self.dest_q = np.sinh(self.dest_q)/10000
         # single image reduce each entry in the stack
@@ -102,8 +111,9 @@ class PFEnergySeriesIntegrator(PFGeneralIntegrator):
     
 
 
-    def createIntegrator(self,en):
-        self.integrator_stack[en] = azimuthalIntegrator.AzimuthalIntegrator(
+    def createIntegrator(self,en,recreate=False):
+        if en not in self.integrator_stack.keys() or recreate:
+            self.integrator_stack[en] = azimuthalIntegrator.AzimuthalIntegrator(
             self.dist, self.poni1, self.poni2, self.rot1, self.rot2, self.rot3 ,pixel1=self.pixel1,pixel2=self.pixel2, wavelength = 1.239842e-6/en)
         return self.integrator_stack[en]
     def __init__(self,**kwargs):
