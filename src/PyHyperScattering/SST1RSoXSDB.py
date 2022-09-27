@@ -431,7 +431,9 @@ class SST1RSoXSDB:
             'energy':'en_energy_setpoint',
             'exposure':'RSoXS Shutter Opening Time (ms)' #md['detector']+'_cam_acquire_time'
         }
-
+        md_secondary_lookup = {
+            'energy':'en_monoen_setpoint',
+            }
         for phs,rsoxs in md_lookup.items():
             try:
                 md[phs] = primary[rsoxs].read()
@@ -445,11 +447,25 @@ class SST1RSoXSDB:
                     if blval.var() > 0:
                         warnings.warn(f'While loading {rsoxs} to infill metadata entry for {phs}, found beginning and end values unequal: {baseline[rsoxs]}.  It is possible something is messed up.',stacklevel=2)
                 except (KeyError,HTTPStatusError):
-                    warnings.warn(f'Could not find {rsoxs} in either baseline or primary.  Needed to infill value {phs}.  Setting to None.',stacklevel=2)
-                    md[phs] = None
+                    try:
+                        md[phs] = primary[md_secondary_lookup[phs]].read()
+                    except (KeyError,HTTPStatusError):
+                        try:
+                            blval = baseline[md_secondary_lookup[phs]]
+                            if type(blval) == tiled.client.array.ArrayClient:
+                                blval = blval.read()
+                            md[phs] = blval.mean().round(4)
+                            if blval.var() > 0:
+                                warnings.warn(f'While loading {md_secondary_lookup[phs]} to infill metadata entry for {phs}, found beginning and end values unequal: {baseline[rsoxs]}.  It is possible something is messed up.',stacklevel=2)  
+                        except (KeyError,HTTPStatusError):
+                            warnings.warn(f'Could not find {rsoxs} in either baseline or primary.  Needed to infill value {phs}.  Setting to None.',stacklevel=2)
+                            md[phs] = None
         md['epoch'] = md['meas_time'].timestamp()
-                    
-        md['wavelength'] = 1.239842e-6 / md['energy']
+        
+        try:
+            md['wavelength'] = 1.239842e-6 / md['energy']
+        except TypeError:
+            md['wavelength'] = None
         md['sampleid'] = start['scan_id']
 
         md['dist'] = md['sdd'] / 1000
