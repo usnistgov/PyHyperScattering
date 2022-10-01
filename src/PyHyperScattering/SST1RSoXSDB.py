@@ -13,6 +13,7 @@ from tqdm.auto import tqdm
 import scipy.ndimage
 import asyncio
 import time
+import dask
 
 
 try:
@@ -243,14 +244,16 @@ class SST1RSoXSDB:
         
 
         data = run['primary']['data'][md['detector']+'_image']
-        if type(data) == tiled.client.array.ArrayClient:
-            data = xr.DataArray(data)
+        if type(data) == tiled.client.array.ArrayClient or type(data) == tiled.client.array.DaskArrayClient:
+            data = run['primary']['data'].read()[md['detector']+'_image']
+        elif type(data) == tiled.client.array.DaskArrayClient:
+            data = xr.DataArray(data.read(),dims=data.dims) # xxx hack!  Really should use tiled structure_clients xarraydaskclient here.
         data = data.astype(int)   # convert from uint to handle dark subtraction
 
         if self.dark_subtract:
             dark = run['dark']['data'][md['detector']+'_image']
-            if type(dark) == tiled.client.array.ArrayClient:
-                dark = xr.DataArray(dark)
+            if type(dark) == tiled.client.array.ArrayClient or type(dark) == tiled.client.array.DaskArrayClient:
+                dark = run['dark']['data'].read()[md['detector']+'_image']
             darkframe = np.copy(data.time)
             for n,time in enumerate(dark.time):
                 darkframe[(data.time - time)>0]=int(n)
@@ -266,8 +269,11 @@ class SST1RSoXSDB:
 
         for dim in dims:
             try:
-                test = len(md[dim])
-                dims_to_join.append(md[dim])
+                test = len(md[dim]) # this will throw a typeerror if single value
+                if type(md[dim]) == dask.array.core.Array:
+                    dims_to_join.append(md[dim].compute())
+                else:
+                    dims_to_join.append(md[dim])
                 dim_names_to_join.append(dim)
             except TypeError:
                 dims_to_join.append(np.ones(run.start['num_points'])*md[dim])
@@ -277,6 +283,8 @@ class SST1RSoXSDB:
             dims_to_join.append(val)
             dim_names_to_join.append(key)
 
+        
+        
         index = pd.MultiIndex.from_arrays(
                 dims_to_join,
                 names=dim_names_to_join)
@@ -441,7 +449,7 @@ class SST1RSoXSDB:
             except (KeyError,HTTPStatusError):
                 try:
                     blval = baseline[rsoxs]
-                    if type(blval) == tiled.client.array.ArrayClient:
+                    if type(blval) == tiled.client.array.ArrayClient or type(blval) == tiled.client.array.DaskArrayClient:
                         blval = blval.read()
                     md[phs] = blval.mean().round(4)
                     if blval.var() > 0:
@@ -452,7 +460,7 @@ class SST1RSoXSDB:
                     except (KeyError,HTTPStatusError):
                         try:
                             blval = baseline[md_secondary_lookup[phs]]
-                            if type(blval) == tiled.client.array.ArrayClient:
+                            if type(blval) == tiled.client.array.ArrayClient or type(blval) == tiled.client.array.DaskArrayClient:
                                 blval = blval.read()
                             md[phs] = blval.mean().round(4)
                             if blval.var() > 0:
