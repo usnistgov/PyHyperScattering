@@ -329,13 +329,13 @@ class SST1RSoXSDB:
     def peekAtMd(self,run):
         return self.loadMd(run)
 
-    def loadMonitors(self,entry,integrate_onto_images=True,n_thinning_iters=20):
+    def loadMonitors(self,entry,integrate_onto_images=True,n_thinning_iters=5):
         '''
         Load the monitor streams for entry.
         Args:
            entry (Bluesky document): run to extract monitors from
            integrate_onto_images (bool, default True): return integral of monitors while shutter was open for images.  if false, returns raw data.
-           n_thinning_iters (int, default 20): how many iterations of binary thinning to use to exclude shutter edges.
+           n_thinning_iters (int, default 5): how many iterations of binary thinning to use to exclude shutter edges.
         
         '''
         monitors = None
@@ -348,13 +348,19 @@ class SST1RSoXSDB:
         monitors = monitors.ffill('time').bfill('time')
         if integrate_onto_images:
             try:
+                try:
+                    primary_time = entry.primary.data['time'].values
+                except AttributeError:
+                    if type(entry.primary.data['time']) == tiled.client.array.DaskArrayClient:
+                        primary_time = entry.primary.data['time'].read().compute()
+                    elif type(entry.primary.data['time']) == tiled.client.array.ArrayClient:
+                        primary_time = entry.primary.data['time'].read()
                 monitors['RSoXS Shutter Toggle_thinned'] = monitors['RSoXS Shutter Toggle']
                 monitors['RSoXS Shutter Toggle_thinned'].values = scipy.ndimage.binary_erosion(monitors['RSoXS Shutter Toggle'].values,iterations=n_thinning_iters,border_value=0)
                 monitors = monitors.where(monitors['RSoXS Shutter Toggle_thinned']>0).dropna('time')
-                monitors = monitors.groupby_bins('time',
-    np.insert(entry.primary.data['time'].values,0,0)).mean().rename_dims({'time_bins':'time'})
-                monitors = monitors.assign_coords({'time':entry.primary.data['time']}).reset_coords('time_bins',drop=True)
-            except:
+                monitors = monitors.groupby_bins('time',np.insert(primary_time,0,0)).mean().rename_dims({'time_bins':'time'})
+                monitors = monitors.assign_coords({'time':primary_time}).reset_coords('time_bins',drop=True)
+            except Exception:
                 warnings.warn('Error while time-integrating onto images.  Check data.',stacklevel=2)
         return monitors
     
