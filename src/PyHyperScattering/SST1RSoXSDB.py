@@ -130,6 +130,7 @@ class SST1RSoXSDB:
             start_times = []
             npts = []
             uids = []
+            detectors = []
             for num,entry in tqdm((enumerate(cat)),total=len(cat)):
                 doc = catalog[entry].start
                 scan_ids.append(doc["scan_id"])
@@ -140,11 +141,95 @@ class SST1RSoXSDB:
                     npts.append(catalog[entry].stop['num_events']['primary'])
                 except (KeyError,TypeError):
                     npts.append(0)
+                detectors.append(doc["RSoXS_Main_DET"])
                 start_times.append(doc["time"])
                 #do_list_append(catalog[entry],scan_ids,sample_ids,plan_names,uids,npts,start_times)
                 #print(f'{num}  {cat[entry].start["scan_id"]}  {cat[entry].start["sample_id"]} {cat[entry].start["plan_name"]}')
-            return pd.DataFrame(list(zip(scan_ids,sample_ids,plan_names,npts,uids,start_times)),
-                       columns =['scan_id', 'sample_id','plan_name','npts','uid','time'])
+            return pd.DataFrame(list(zip(scan_ids,sample_ids,detectors, plan_names,npts,uids,start_times)),
+                       columns =['scan_id', 'sample_id','detector', 'plan_name','npts','uid','time'])
+        
+        
+    def summarize_run_BP(self, scansOnly:bool = False, proposal:str =None, saf:str = None, user:str = None, institution:str = None, project:str = None, sampleName:str = None, sampleID:str = None, plan=None, additionalOutputs: list = None, **kwargs) -> pd.DataFrame:
+        ''' Search the databroker.client.CatalogOfBlueskyRuns for scans matching all provided parameters. 
+        
+        Matches are made based on the values saved in the 'start' dict within the metadata dict of each scan in the databroker.client.CatalogOfBlueskyRuns object. If sparse output (as a list of scan numbers) is not specified, a pandas dataframe is returned. By default, the dataframe will contain the following columns: [proposal_id, saf_id, user_name, institution, project_name, sample_name, plan_name, detector, polarization]. Additional parameters can be provided as named arguments, and attempts will be made to match the names to the metadata.
+        
+        Args:
+            
+            scansOnly (bool, optional): True returns only scan numbers, False returns the full dataframe
+            proposal (str, optional): NSLS2 PASS proposal ID e.g., "GU-310176"
+            saf (str, optional): Safety Approval Form (SAF) number e.g., "GU-310176" 
+            user (str, optional): User name, case-insensitive e.g., Eliot
+            institution (str, optional): Research Institution, case-insensitive e.g., NIST
+            project (str, optional): Project code, regex search, e.g., "Liquid" matches "Liquids", "Liquid-RSoXS
+            sampleName (str, optional): Sample name, e.g., "BBP_" matches "BBP_PF902A"
+            sampleID (str, optional): Sample ID, regex search, e.g., "BBP_" matches "BBP_PF902A"
+            plan (str, optional): Measurement Plan, regex search,  e.g., "full" matches "full_carbon_scan_nd", "full_fluorine_scan_nd"
+            **kwargs: Additional search terms can be provided and will filter the list ONLY if at least one match is found.
+            additionalOutputs: (list): provide additional columns for the output dataframe. these should be case-insensitive matches to a field in the 'start' dict
+
+        Returns:
+            pd.Dataframe containing the results of the search.
+        '''
+        
+        # pull in the databroker.client.CatalogOfBlueskyRuns object
+        bsCatalog = self.c
+        
+        # generate a dictionary of parameter names vs Eliot's metadata variable names found in bsCatalog[scanID].start
+        metaDataDict = {
+            "proposal": "proposal_id",
+            "saf":
+            "user
+            
+        }
+        
+        
+        
+        #Grind through the  
+        
+        
+        
+        
+        if proposal is not None:
+            catalog = catalog.search(Key('proposal_id')==proposal)
+        if saf is not None:
+            catalog = catalog.search(Key('saf_id')==saf)
+        if user is not None:
+            catalog = catalog.search(Key('user_name')==user)
+        if institution is not None:
+            catalog = catalog.search(Key('institution')==institution)
+        if project is not None:
+            catalog = catalog.search(Regex("project_name",project))
+        if sample is not None:
+            catalog = catalog.search(Regex('sample_name',sample))
+        if plan is not None:
+            catalog = catalog.search(Regex('plan_name',plan))
+        cat = catalog
+        #print(cat)
+        #print('#    scan_id        sample_id           plan_name')
+        scan_ids = []
+        sample_ids = []
+        plan_names = []
+        start_times = []
+        npts = []
+        uids = []
+        detectors = []
+        for num,entry in tqdm((enumerate(cat)),total=len(cat)):
+            doc = catalog[entry].start
+            scan_ids.append(doc["scan_id"])
+            sample_ids.append(doc["sample_id"])
+            plan_names.append(doc["plan_name"])
+            uids.append(doc["uid"])
+            try:
+                npts.append(catalog[entry].stop['num_events']['primary'])
+            except (KeyError,TypeError):
+                npts.append(0)
+            detectors.append(doc["RSoXS_Main_DET"])
+            start_times.append(doc["time"])
+            #do_list_append(catalog[entry],scan_ids,sample_ids,plan_names,uids,npts,start_times)
+            #print(f'{num}  {cat[entry].start["scan_id"]}  {cat[entry].start["sample_id"]} {cat[entry].start["plan_name"]}')
+        return pd.DataFrame(list(zip(scan_ids,sample_ids,detectors, plan_names,npts,uids,start_times)),
+                   columns =['scan_id', 'sample_id','detector', 'plan_name','npts','uid','time'])
 
     def background(f):
         def wrapped(*args, **kwargs):
