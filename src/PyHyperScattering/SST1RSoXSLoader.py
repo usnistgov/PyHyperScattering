@@ -192,24 +192,35 @@ class SST1RSoXSLoader(FileLoader):
 
         return baseline_dict
 
-    def read_primary(self,primary_csv,json_dict,seq_num):
+    def read_shutter_toggle(self, shutter_csv):
+        shutter_data = pd.read_csv(shutter_csv)
+        # when shutter opens
+        start_time = shutter_data['time'][shutter_data['RSoXS Shutter Toggle']==1]
+        # when shutter closes
+        end_time = shutter_data['time'][start_time.index + 1]
+        # average over all images and round to nearest decimal
+        shutter_exposure = np.round(np.mean(end_time.values - start_time.values),1)
+        return shutter_exposure
+
+    def read_primary(self,primary_csv,seq_num, cwd):
         primary_dict = {}
         df_primary = pd.read_csv(primary_csv)
-        if json_dict['rsoxs_config'] == 'waxs':
-            try:
-                primary_dict['exposure'] = df_primary['RSoXS Shutter Opening Time (ms)'][seq_num]
-            except KeyError:
-                primary_dict['exposure'] = 1
-                warnings.warn('No exposure time found in primary csv. Assigning dummy exposure of 1s', stacklevel=2)
+        # if json_dict['rsoxs_config'] == 'waxs':
+        try:
+            primary_dict['exposure'] = df_primary['RSoXS Shutter Opening Time (ms)'][seq_num]
+        except KeyError:
+            shutter_fname = list(cwd.glob('*Shutter Toggle*'))
+            primary_dict['exposure'] = self.read_shutter_toggle(shutter_fname[0])*1000 # keep in ms
+            warnings.warn('No exposure time found in primary csv. Calculating from Shutter Toggle csv', stacklevel=2)
                 
-        elif json_dict['rsoxs_config'] == 'saxs':
-            try:
-                primary_dict['exposure'] = df_primary['RSoXS Shutter Opening Time (ms)'][seq_num]
-            except KeyError:
-                primary_dict['exposure'] = 1
-                warnings.warn('No exposure time found in primary csv. Assigning dummy exposure of 1s', stacklevel=2)
-        else:
-            warnings.warn('Check rsoxs_config in json file',stacklevel=2)
+        # elif json_dict['rsoxs_config'] == 'saxs':
+        #     try:
+        #         primary_dict['exposure'] = df_primary['RSoXS Shutter Opening Time (ms)'][seq_num]
+        #     except KeyError:
+        #         primary_dict['exposure'] = 1
+        #         warnings.warn('No exposure time found in primary csv. Calculating from Shutter Toggle csv', stacklevel=2)
+        # else:
+        #     warnings.warn('Check rsoxs_config in json file',stacklevel=2)
 
         primary_dict['energy'] = round(df_primary['en_energy_setpoint'][seq_num],4)
         primary_dict['polarization'] = df_primary['en_polarization_setpoint'][seq_num]
@@ -229,27 +240,30 @@ class SST1RSoXSLoader(FileLoader):
 
         if dirPath == '':
             cwd = pathlib.Path('.').absolute()
-
-            json_fname = list(cwd.glob('*.jsonl'))
-            json_dict = self.read_json(json_fname[0])
-
-            baseline_fname = list(cwd.glob('*baseline.csv'))
-            baseline_dict = self.read_baseline(baseline_fname[0])
-
-
-            primary_path = os.path.dirname(cwd)
-            primary_fname = list(primary_path.glob(f'{scan_id}*primary.csv'))
-            primary_dict = self.read_primary(primary_fname[0],json_dict,seq_num)
         else:
-            json_fname = list(pathlib.Path(dirPath).glob('*jsonl'))
-            json_dict = self.read_json(json_fname[0])
+            cwd = pathlib.Path(dirPath)
 
-            baseline_fname = list(pathlib.Path(dirPath).glob('*baseline.csv'))
-            baseline_dict = self.read_baseline(baseline_fname[0])
+        json_fname = list(cwd.glob('*.jsonl'))
+        json_dict = self.read_json(json_fname[0])
 
-            primary_path = os.path.dirname(dirPath)
-            primary_fname = list(pathlib.Path(primary_path).glob(f'{scan_id}*primary.csv'))
-            primary_dict = self.read_primary(primary_fname[0],json_dict,seq_num)
+        baseline_fname = list(cwd.glob('*baseline.csv'))
+        baseline_dict = self.read_baseline(baseline_fname[0])
+
+
+        primary_path = pathlib.Path(os.path.dirname(cwd))
+        primary_fname = list(primary_path.glob(f'{scan_id}*primary.csv'))
+        primary_dict = self.read_primary(primary_fname[0],seq_num, cwd)
+
+        # else:
+        #     json_fname = list(pathlib.Path(dirPath).glob('*jsonl'))
+        #     json_dict = self.read_json(json_fname[0])
+
+        #     baseline_fname = list(pathlib.Path(dirPath).glob('*baseline.csv'))
+        #     baseline_dict = self.read_baseline(baseline_fname[0])
+
+        #     primary_path = os.path.dirname(dirPath)
+        #     primary_fname = list(pathlib.Path(primary_path).glob(f'{scan_id}*primary.csv'))
+        #     primary_dict = self.read_primary(primary_fname[0],json_dict,seq_num)
 
         headerdict = {**primary_dict,**baseline_dict,**json_dict}
 
