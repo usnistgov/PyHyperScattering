@@ -5,6 +5,7 @@ import warnings
 import xarray as xr
 import numpy as np
 import math
+import pandas as pd
 from tqdm.auto import tqdm
 #tqdm.pandas()
 
@@ -41,8 +42,13 @@ class PFEnergySeriesIntegrator(PFGeneralIntegrator):
         if type(img.energy) != float:
             try:
                 en = img.energy.values[0]
+                if len(img.energy)>1:
+                    warnings.warn(f'Using the first energy value of {img.energy.values}, check that this is correct.',stacklevel=2)
             except IndexError:
                 en = float(img.energy)
+            except AttributeError:
+                en = img.energy[0]
+                warnings.warn(f'Using the first energy value of {img.energy}, check that this is correct.',stacklevel=2)
         else:
             en = img.energy
         try:
@@ -65,15 +71,49 @@ class PFEnergySeriesIntegrator(PFGeneralIntegrator):
         self.dest_q = self.integrator_stack[np.median(energies)].integrate2d(np.zeros_like(self.mask).astype(int), self.npts, 
                                                    unit='arcsinh(q.µm)' if self.use_log_ish_binning else 'q_A^-1',
                                                    method=self.integration_method).radial
+    def integrateImageStack_dask(self,img_stack,chunksize=5):
+        self.setupIntegrators(img_stack.energy.data)
+        self.setupDestQ(img_stack.energy.data)
+        indexes = list(img_stack.indexes.keys())
+        indexes.remove('pix_x')
+        indexes.remove('pix_y')
+
+        # idx_name_to_use = 'energy'#indexes[0]
+        # idx_val_to_use = img_stack.indexes[idx_name_to_use]
         
+        
+        coord_dict = {}
+        shape = tuple([])
+        order_list = []
+        for idx in indexes:
+            order_list.append(idx)
+            coord_dict[idx] = img_stack.indexes[idx]
+            shape = shape + tuple([len(img_stack.indexes[idx])])
+        shape = (360,self.npts) + shape 
+        
+        
+        fake_image_to_process = img_stack.isel(**{'energy':0})
+        #fake_image_to_process.attrs['energy'] = img_stack.energy.isel(**{idx_name_to_use:0})
+        demo_integration = self.integrateSingleImage(fake_image_to_process)
+        coord_dict.update({'chi':demo_integration.chi,'q':self.dest_q})
+        
+        desired_order_list = ['chi','q']+order_list
+        coord_dict_sorted = {k: coord_dict[k] for k in desired_order_list}
+        
+        template = xr.DataArray(np.empty(shape),coords=coord_dict_sorted)  
+        template = template.chunk({'energy':chunksize})
+        integ_fly = img_stack.chunk({'energy':chunksize}).map_blocks(self.integrateImageStack,template=template)#integ_traditional.chunk({'energy':5}))
+        return integ_fly 
+
     def integrateImageStack(self,img_stack):
         # get just the energies of the image stack
        # if type(img_stack.energy)== np.ndarray:
-            
-        energies = img_stack.energy.to_dataframe()
-        
-        energies = energies['energy'].drop_duplicates()
-        
+        try:
+            energies = img_stack.energy.to_dataframe()
+
+            energies = energies['energy'].drop_duplicates()
+        except Exception:
+            energies = pd.DataFrame(img_stack.energy)
         #create an integrator for each energy
         self.setupIntegrators(energies)
         # find the output q for the midpoint and set the final q binning
@@ -102,7 +142,7 @@ class PFEnergySeriesIntegrator(PFGeneralIntegrator):
         else:
             #some kinda logic to check for existing multiindexes and stack into them appropriately maybe
             data = data.stack({'pyhyper_internal_multiindex':indexes})
-            if img_stack.pyhyper_internal_multiindex.to_pandas().drop_duplicates().shape[0] != img_stack.pyhyper_internal_multiindex.shape[0]:
+            if data.pyhyper_internal_multiindex.to_pandas().drop_duplicates().shape[0] != data.pyhyper_internal_multiindex.shape[0]:
                 warnings.warn('Your index set contains duplicate conditions.  This is not supported and may not work.  Try adding additional coords to separate image conditions',stacklevel=2)
         
             data_int = data.groupby('pyhyper_internal_multiindex',squeeze=False).progress_apply(self.integrateSingleImage).unstack('pyhyper_internal_multiindex')
