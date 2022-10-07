@@ -93,77 +93,26 @@ class SST1RSoXSDB:
         '''
         q = RawMongo(**kwargs)
         return self.c.search(q)
- 
-    def summarize_run(self,proposal=None,saf=None,user=None,institution=None,project=None,sample=None,plan=None):
-            '''
-            Returns a Pandas dataframe with a summary of runs matching a set of search criteria.
-            Args:
-                proposal, saf, user, institution (str or None): if str, adds an exact match search on the appropriate parameter to the set
-                project,sample,plan (str or None): if str, adds a regex match search on the appropriate parameter to the set.
-                    example: project='*Liquid*' matches 'Liquid','Liquids','Liquid-RSoXS')
-            Returns:
-                pd.Dataframe containing the results of the search.
-            '''
-            catalog = self.c
-            if proposal is not None:
-                catalog = catalog.search(Key('proposal_id')==proposal)
-            if saf is not None:
-                catalog = catalog.search(Key('saf_id')==saf)
-            if user is not None:
-                catalog = catalog.search(Key('user_name')==user)
-            if institution is not None:
-                catalog = catalog.search(Key('institution')==institution)
-            if project is not None:
-                catalog = catalog.search(Regex("project_name",project))
-            if sample is not None:
-                catalog = catalog.search(Regex('sample_name',sample))
-            if plan is not None:
-                catalog = catalog.search(Regex('plan_name',plan))
-            cat = catalog
-            #print(cat)
-            #print('#    scan_id        sample_id           plan_name')
-            scan_ids = []
-            sample_ids = []
-            plan_names = []
-            start_times = []
-            npts = []
-            uids = []
-            for num,entry in tqdm((enumerate(cat)),total=len(cat)):
-                doc = catalog[entry].start
-                scan_ids.append(doc["scan_id"])
-                sample_ids.append(doc["sample_id"])
-                plan_names.append(doc["plan_name"])
-                uids.append(doc["uid"])
-                try:
-                    npts.append(catalog[entry].stop['num_events']['primary'])
-                except (KeyError,TypeError):
-                    npts.append(0)
-                start_times.append(doc["time"])
-                #do_list_append(catalog[entry],scan_ids,sample_ids,plan_names,uids,npts,start_times)
-                #print(f'{num}  {cat[entry].start["scan_id"]}  {cat[entry].start["sample_id"]} {cat[entry].start["plan_name"]}')
-            return pd.DataFrame(list(zip(scan_ids,sample_ids,plan_names,npts,uids,start_times)),
-                       columns =['scan_id', 'sample_id','plan_name','npts','uid','time'])
-        
-        
+         
     def summarize_run(self, *args, outputType:str = 'default', cycle:str = None, proposal:str =None, saf:str = None, user:str = None,
                       institution:str = None, project:str = None, sample:str = None, sampleID:str = None, 
                       plan:str = None, userOutputs: list = []) -> pd.DataFrame:
-        ''' Search the databroker.client.CatalogOfBlueskyRuns for scans matching all provided keywords. 
+        ''' Search the databroker.client.CatalogOfBlueskyRuns for scans matching all provided keywords and return metadata as a dataframe. 
         
-        Matches are made based on the values in the top level of the 'start' dict within the metadata dict of each 
+        Matches are made based on the values in the top level of the 'start' dict within the metadata of each 
         entry in the databroker.client.CatalogOfBlueskyRuns object. Based on the search arguments provided, a pandas 
         dataframe is returned where rows correspond to catalog entries (scans) and columns contain  metadata. Several 
         presets are provided for choosing which columns are generated, along with an interface for user-provided search
-        arguments and additional returned metadata. Fails gracefully on bad user input/ changes to metadata scheme. 
+        arguments and additional metadata. Fails gracefully on bad user input/ changes to underlying metadata scheme. 
         
         Ex1: All of the carbon,fluorine,or oxygen scans for a single sample series in the most recent cycle:
-            bsCatalogReduced4 = db_loader.summarize_run(sample="bBP_", institution="NIST", cycle = "2022-3", plan="carbon|fluorine|oxygen")
+            bsCatalogReduced4 = db_loader.summarize_run(sample="bBP_", institution="NIST", cycle = "2022-2", plan="carbon|fluorine|oxygen")
         
         Ex2: Just all of the scan Ids for a particular sample:
             bsCatalogReduced4 = db_loader.summarize_run(sample="BBP_PFP09A", outputType='scans')
         
         Ex3: Complex Search with custom parameters
-            bsCatalogReduced3 = db_loader.summarize_run(['angle', '-1.6', 'exact'], outputType='scans',sample="BBP_", cycle = "2022-2",
+            bsCatalogReduced3 = db_loader.summarize_run(['angle', '-1.6', 'numeric'], outputType='all',sample="BBP_", cycle = "2022-2", 
             institution="NIST",plan="carbon", userOutputs = [["Exposure Multiplier", "exptime", r'catalog.start'], ["Stop 
             Time","time",r'catalog.stop']])
         
@@ -190,7 +139,7 @@ class SST1RSoXSDB:
             *args: Additional search terms can be provided before as lists before keyword args and will further filter 
                 the list. Format should be a 3 element list comprising [metadata label as a str (matching the 'start' 
                 dict), value to match, match type]. Supported match types are combinations of 'case-insensitive', 
-                'case-sensitive', and 'exact'. Default behavior (empty string) is to do a case-sensitive regex match. 
+                'case-sensitive', and 'exact' OR 'numeric'. Default behavior (empty string) is to do a case-sensitive regex match. 
                 Ex of a valid search term: ['cycle', '2022', ''] would match 'cycle'='2022-2' AND 'cycle='2022-1'
             userOutputs (list of lists, optional): Additional metadata to be added to output can be specified as a list of lists. Each 
                 sub-list specifies a metadata field as a 3 element list of format:
@@ -233,7 +182,6 @@ class SST1RSoXSDB:
         fullSearchList = defaultSearchDetails + userSearchList
         
         df_SearchDet = pd.DataFrame(fullSearchList, columns=['Metadata field:', 'User input:', 'Search scheme:'])
-        ###print(df_SearchDet)
     
         # Iterate through search terms sequentially, reducing the size of the catalog based on successful matches
         print("Searching by keyword arguments ...")
@@ -242,23 +190,29 @@ class SST1RSoXSDB:
             
             # Skip arguments with value None, and quits if the catalog was reduced to 0 elements
             if (searchSeries[1] is not None) and (len(reducedCatalog)> 0):
-                #Build regex search string
-                reg_prefix = ''
-                reg_postfix = ''
                 
-                # Regex cheatsheet: 
-                    #(?i) is case insensitive
-                    #^_$ forces exact match to _, ^ anchors the start, $ anchors the end  
-                if 'case-insensitive' in str(searchSeries[2]):
-                    reg_prefix += "(?i)"
-                if 'exact' in searchSeries[2]:
-                    reg_prefix += "^"
-                    reg_postfix += "$"
+                # For numeric entries, do Key equality
+                if 'numeric' in str(searchSeries[2]):
+                    reducedCatalog = reducedCatalog.search(Key(searchSeries[0])==float(searchSeries[1]))
+                
+                else: #Build regex search string
+                    reg_prefix = ''
+                    reg_postfix = ''
 
-                regexString = reg_prefix + str(searchSeries[1]) + reg_postfix
+                    # Regex cheatsheet: 
+                        #(?i) is case insensitive
+                        #^_$ forces exact match to _, ^ anchors the start, $ anchors the end  
+                    if 'case-insensitive' in str(searchSeries[2]):
+                        reg_prefix += "(?i)"
+                    if 'exact' in searchSeries[2]:
+                        reg_prefix += "^"
+                        reg_postfix += "$"
 
-                # Search/reduce the catalog
-                reducedCatalog = reducedCatalog.search(Regex(searchSeries[0], regexString))
+
+                    regexString = reg_prefix + str(searchSeries[1]) + reg_postfix
+
+                    # Search/reduce the catalog
+                    reducedCatalog = reducedCatalog.search(Regex(searchSeries[0], regexString))
                 
                 # If a match fails, notify the user which search parameter yielded 0 results
                 if len(reducedCatalog) == 0:
