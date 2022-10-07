@@ -156,7 +156,6 @@ class SST1RSoXSDB:
         bsCatalog = self.c
 
         ### Part 1: Search the database sequentially, reducing based on matches to search terms
-            # TODO: Add time-based search
         # Plan the 'default' search through the keyword parameters, build list of [metadata ID, user input value, match type]
         defaultSearchDetails = [['cycle', cycle, 'case-insensitive'],
                                 ['proposal_id',proposal,'case-insensitive exact'],
