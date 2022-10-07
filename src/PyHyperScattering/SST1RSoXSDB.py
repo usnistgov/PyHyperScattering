@@ -145,27 +145,37 @@ class SST1RSoXSDB:
                        columns =['scan_id', 'sample_id','plan_name','npts','uid','time'])
         
         
-    def summarize_run_BP(self, outputType:str = 'default', proposal:str =None, saf:str = None, user:str = None, 
-                         institution:str = None, project:str = None, sample:str = None, sampleID:str = None, 
-                         plan:str = None, userOutputs: list = None, 
-                         **kwargs) -> pd.DataFrame:
-        ''' Search the databroker.client.CatalogOfBlueskyRuns for scans matching all provided parameters. 
+    def summarize_run(self, *args, outputType:str = 'default', cycle:str = None, proposal:str =None, saf:str = None, user:str = None,
+                      institution:str = None, project:str = None, sample:str = None, sampleID:str = None, 
+                      plan:str = None, userOutputs: list = []) -> pd.DataFrame:
+        ''' Search the databroker.client.CatalogOfBlueskyRuns for scans matching all provided keywords. 
         
-        Matches are made based on the values saved in top level of the 'start' dict within the metadata dict of each 
-        entry in the databroker.client.CatalogOfBlueskyRuns object. Based on the keyword search arguments provided, a pandas 
-        dataframe is returned, rows correspond to catalog entries (scans), columns contain different metadata. Several 
-        options are provided for choosing which columns are generated, along with support for arbitrary user provided 
-        search arguments and metadata values.
+        Matches are made based on the values in the top level of the 'start' dict within the metadata dict of each 
+        entry in the databroker.client.CatalogOfBlueskyRuns object. Based on the search arguments provided, a pandas 
+        dataframe is returned where rows correspond to catalog entries (scans) and columns contain  metadata. Several 
+        presets are provided for choosing which columns are generated, along with an interface for user-provided search
+        arguments and additional returned metadata. Fails gracefully on bad user input/ changes to metadata scheme. 
+        
+        Ex1: All of the carbon,fluorine,or oxygen scans for a single sample series in the most recent cycle:
+            bsCatalogReduced4 = db_loader.summarize_run(sample="bBP_", institution="NIST", cycle = "2022-3", plan="carbon|fluorine|oxygen")
+        
+        Ex2: Just all of the scan Ids for a particular sample:
+            bsCatalogReduced4 = db_loader.summarize_run(sample="BBP_PFP09A", outputType='scans')
+        
+        Ex3: Complex Search with custom parameters
+            bsCatalogReduced3 = db_loader.summarize_run(['angle', '-1.6', 'exact'], outputType='scans',sample="BBP_", cycle = "2022-2",
+            institution="NIST",plan="carbon", userOutputs = [["Exposure Multiplier", "exptime", r'catalog.start'], ["Stop 
+            Time","time",r'catalog.stop']])
         
         Args:
-            
-            outputType (str, optional): modulates the number of output columns in the returned dataframe
-                'default' returns scan_id, start time, institution, project, sample_name, sample_id, plan name, detector, 
+            outputType (str, optional): modulates the content of output columns in the returned dataframe
+                'default' returns scan_id, start time, cycle, institution, project, sample_name, sample_id, plan name, detector, 
                 polarization, exit_status, and num_images
-                'scans' returns only scan_ids that matched the search terms
+                'scans' returns only the scan_ids (1-column dataframe)
                 'ext_msmt' returns default columns AND bar_spot, sample_rotation
                 'ext_bio' returns default columns AND uid, saf, user_name
-                'all' is equivalent to all options being chosen
+                'all' is equivalent to 'default' and all other additive choices
+            cycle (str, optional): NSLS2 beamtime cycle, regex search e.g., "2022" matches "2022-2", "2022-1"
             proposal (str, optional): NSLS2 PASS proposal ID, case-insensitive, exact match, e.g., "GU-310176"
             saf (str, optional): Safety Approval Form (SAF) number, exact match, e.g., "309441" 
             user (str, optional): User name, case-insensitive, regex search e.g., "eliot" matches "Eliot", "Eliot Gann"
@@ -176,8 +186,18 @@ class SST1RSoXSDB:
             sampleID (str, optional): Sample ID, case-insensitive, regex search, e.g., "BBP_" matches "BBP_PF902A"
             plan (str, optional): Measurement Plan, case-insensitive, regex search,  
                 e.g., "Full" matches "full_carbon_scan_nd", "full_fluorine_scan_nd"
-            **kwargs: Additional search terms can be provided and will further filter the list
-            additionalOutputs: (list): provide additional columns for the output dataframe. these should be case-insensitive matches to a field in the databroker.client.CatalogOfBlueskyRuns 'start' dict
+                e.g., "carbon|oxygen|fluorine" matches carbon OR oxygen OR fluorine scans
+            *args: Additional search terms can be provided before as lists before keyword args and will further filter 
+                the list. Format should be a 3 element list comprising [metadata label as a str (matching the 'start' 
+                dict), value to match, match type]. Supported match types are combinations of 'case-insensitive', 
+                'case-sensitive', and 'exact'. Default behavior (empty string) is to do a case-sensitive regex match. 
+                Ex of a valid search term: ['cycle', '2022', ''] would match 'cycle'='2022-2' AND 'cycle='2022-1'
+            userOutputs (list of lists, optional): Additional metadata to be added to output can be specified as a list of lists. Each 
+                sub-list specifies a metadata field as a 3 element list of format:
+                [Output column title (str), Metadata label (str), Metadata Source (raw str)],
+                Valid options for the Metadata Source are any of [r'catalog.start', r'catalog.start["plan_args"], r'catalog.stop', 
+                r'catalog.stop["num_events"]']
+                e.g., userOutputs = [["Exposure Multiplier","exptime", r'catalog.start'], ["Stop Time","time",r'catalog.stop']]
 
         Returns:
             pd.Dataframe containing the results of the search, or an empty dataframe if the search fails
@@ -188,22 +208,37 @@ class SST1RSoXSDB:
 
         ### Part 1: Search the database sequentially, reducing based on matches to search terms
             # TODO: Add time-based search
-            # TODO: Add additional keyword-based search
         # Plan the 'default' search through the keyword parameters, build list of [metadata ID, user input value, match type]
-        defaultSearchDetails = [['proposal_id',proposal,'case-insensitive exact'], 
-                               ['saf_id',saf,'case-insensitive exact'], 
+        defaultSearchDetails = [['cycle', cycle, 'case-insensitive'],
+                                ['proposal_id',proposal,'case-insensitive exact'],
+                                ['saf_id',saf,'case-insensitive exact'], 
                                ['user_name',user,'case-insensitive'],
                                ['institution',institution,'case-insensitive exact'],
                                ['project_name',project,'case-insensitive'],
                                ['sample_name',sample,'case-insensitive'],
                                ['sample_id',sampleID,'case-insensitive'],
                                ['plan_name',plan,'case-insensitive']]
-        df_defaultSearchDet = pd.DataFrame(defaultSearchDetails, columns=['Metadata field:', 'User input:', 'Search scheme:'])
-       
+        
+        # Pull any user-provided search terms
+        userSearchList = []
+        for item in args:
+            #Minimial check for bad user input
+            if isinstance(item, list) and len(item)==3:
+                userSearchList.append(item)
+            else: #bad user input
+                print("Error parsing a positional arg, check the format.")
+                print("Skipped argument: " + str(item))
+        
+        #combine the lists of lists
+        fullSearchList = defaultSearchDetails + userSearchList
+        
+        df_SearchDet = pd.DataFrame(fullSearchList, columns=['Metadata field:', 'User input:', 'Search scheme:'])
+        ###print(df_SearchDet)
+    
         # Iterate through search terms sequentially, reducing the size of the catalog based on successful matches
         print("Searching by keyword arguments ...")
         reducedCatalog = bsCatalog
-        for index, searchSeries in tqdm(df_defaultSearchDet.iterrows(), total=df_defaultSearchDet.shape[0]):
+        for index, searchSeries in tqdm(df_SearchDet.iterrows(), total=df_SearchDet.shape[0]):
             
             # Skip arguments with value None, and quits if the catalog was reduced to 0 elements
             if (searchSeries[1] is not None) and (len(reducedCatalog)> 0):
@@ -229,13 +264,10 @@ class SST1RSoXSDB:
                 if len(reducedCatalog) == 0:
                     print("Catalog reduced to zero when attempting to match the following condition:\n")
                     print(searchSeries.to_string())
+                    print("If this is a user-provided search parameter, check spelling/syntax.\n")
                     return pd.DataFrame()
-                
-        # TODO Reduce catalog with optional arguments from kwargs
         
         ### Part 2: Build and return output dataframe
-            # TODO: Add support for additional outputs
-            # TODO: Add support for additional outputs
             
         if outputType=='scans': # Branch 2.1, if only scan IDs needed, build and return a 1-column dataframe
             scan_ids = []
@@ -251,6 +283,7 @@ class SST1RSoXSDB:
             outputValueLibrary = [["scan_id","scan_id",r'catalog.start','default'],
                                    ["uid","uid",r'catalog.start','ext_bio'],
                                    ["start time","time",r'catalog.start','default'],
+                                   ["cycle","cycle",r'catalog.start','default'],
                                    ["saf","SAF",r'catalog.start','ext_bio'],
                                    ["user_name","user_name",r'catalog.start','ext_bio'],
                                    ["institution","institution",r'catalog.start','default'],
@@ -273,7 +306,18 @@ class SST1RSoXSDB:
                 if (outputType == 'all') or (outputEntry[3] == outputType) or (outputEntry[3] == 'default'):
                     activeOutputValues.append(outputEntry)
                     activeOutputLabels.append(outputEntry[0])
-                        
+            
+            # Add any user-provided Output labels
+            userOutputList = []
+            for userOutEntry in userOutputs:
+                #Minimial check for bad user input
+                if isinstance(userOutEntry, list) and len(userOutEntry)==3:
+                    activeOutputValues.append(userOutEntry)
+                    activeOutputLabels.append(userOutEntry[0])
+                else: #bad user input
+                    print("Error parsing user-provided output request, check the format.")
+                    print("Skipped output request: " + str(userOutEntry))
+            
             # Build output dataframe as a list of lists
             outputList = []
             print("Building output dataframe...")
@@ -281,7 +325,12 @@ class SST1RSoXSDB:
             for index,scanEntry in tqdm((enumerate(reducedCatalog)),total=len(reducedCatalog)):
                 
                 singleScanOutput = []
-                currentScanID = reducedCatalog[scanEntry].start["scan_id"]
+                
+                # Pull the start and stop docs once
+                currentCatalogStart =  reducedCatalog[scanEntry].start
+                currentCatalogStop =  reducedCatalog[scanEntry].stop
+                
+                currentScanID = currentCatalogStart["scan_id"]
                 
                 # Inner loop: append output values
                 for outputEntry in activeOutputValues:
@@ -291,13 +340,13 @@ class SST1RSoXSDB:
                     
                     try: # Add the metadata value depending on where it is located                    
                         if metaDataSource == r'catalog.start':
-                            singleScanOutput.append(reducedCatalog[scanEntry].start[metaDataLabel])
+                            singleScanOutput.append(currentCatalogStart[metaDataLabel])
                         elif metaDataSource == r'catalog.start["plan_args"]':
-                            singleScanOutput.append(reducedCatalog[scanEntry].start["plan_args"][metaDataLabel])
+                            singleScanOutput.append(currentCatalogStart["plan_args"][metaDataLabel])
                         elif metaDataSource == r'catalog.stop':
-                            singleScanOutput.append(reducedCatalog[scanEntry].stop[metaDataLabel])
+                            singleScanOutput.append(currentCatalogStop[metaDataLabel])
                         elif metaDataSource == r'catalog.stop["num_events"]':
-                            singleScanOutput.append(reducedCatalog[scanEntry].stop["num_events"][metaDataLabel])
+                            singleScanOutput.append(currentCatalogStop["num_events"][metaDataLabel])
                         else:
                             print("Scan: > " + str(currentScanID) + " < Failed to locate metaData entry for: " 
                                   + str(outputVariableName) + "\n Tried looking for label: > " + str(metaDataLabel)
