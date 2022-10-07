@@ -97,12 +97,10 @@ class SST1RSoXSDB:
     def summarize_run(self,proposal=None,saf=None,user=None,institution=None,project=None,sample=None,plan=None):
             '''
             Returns a Pandas dataframe with a summary of runs matching a set of search criteria.
-
             Args:
                 proposal, saf, user, institution (str or None): if str, adds an exact match search on the appropriate parameter to the set
                 project,sample,plan (str or None): if str, adds a regex match search on the appropriate parameter to the set.
                     example: project='*Liquid*' matches 'Liquid','Liquids','Liquid-RSoXS')
-
             Returns:
                 pd.Dataframe containing the results of the search.
             '''
@@ -122,7 +120,6 @@ class SST1RSoXSDB:
             if plan is not None:
                 catalog = catalog.search(Regex('plan_name',plan))
             cat = catalog
-
             #print(cat)
             #print('#    scan_id        sample_id           plan_name')
             scan_ids = []
@@ -131,7 +128,6 @@ class SST1RSoXSDB:
             start_times = []
             npts = []
             uids = []
-            detectors = []
             for num,entry in tqdm((enumerate(cat)),total=len(cat)):
                 doc = catalog[entry].start
                 scan_ids.append(doc["scan_id"])
@@ -145,8 +141,8 @@ class SST1RSoXSDB:
                 start_times.append(doc["time"])
                 #do_list_append(catalog[entry],scan_ids,sample_ids,plan_names,uids,npts,start_times)
                 #print(f'{num}  {cat[entry].start["scan_id"]}  {cat[entry].start["sample_id"]} {cat[entry].start["plan_name"]}')
-            return pd.DataFrame(list(zip(scan_ids,sample_ids,detectors, plan_names,npts,uids,start_times)),
-                       columns =['scan_id', 'sample_id','detector', 'plan_name','npts','uid','time'])
+            return pd.DataFrame(list(zip(scan_ids,sample_ids,plan_names,npts,uids,start_times)),
+                       columns =['scan_id', 'sample_id','plan_name','npts','uid','time'])
         
         
     def summarize_run_BP(self, outputType:str = 'default', proposal:str =None, saf:str = None, user:str = None, 
@@ -156,11 +152,10 @@ class SST1RSoXSDB:
         ''' Search the databroker.client.CatalogOfBlueskyRuns for scans matching all provided parameters. 
         
         Matches are made based on the values saved in top level of the 'start' dict within the metadata dict of each 
-        scan in the databroker.client.CatalogOfBlueskyRuns object. By default, the dataframe will contain the following
-        columns: [proposal_id, saf, user_name, institution, project_name, sample_name, sample_id, plan_name, detector, 
-        polarization]. Additional parameters can be provided as keyword arguments, and attempts will be made to
-        match the keys to the metadata. Sparse output (scan numbers only) can be requested to receive a 1-column 
-        dataframe of matched sample IDs.
+        entry in the databroker.client.CatalogOfBlueskyRuns object. Based on the keyword search arguments provided, a pandas 
+        dataframe is returned, rows correspond to catalog entries (scans), columns contain different metadata. Several 
+        options are provided for choosing which columns are generated, along with support for arbitrary user provided 
+        search arguments and metadata values.
         
         Args:
             
@@ -192,7 +187,8 @@ class SST1RSoXSDB:
         bsCatalog = self.c
 
         ### Part 1: Search the database sequentially, reducing based on matches to search terms
-        
+            # TODO: Add time-based search
+            # TODO: Add additional keyword-based search
         # Plan the 'default' search through the keyword parameters, build list of [metadata ID, user input value, match type]
         defaultSearchDetails = [['proposal_id',proposal,'case-insensitive exact'], 
                                ['saf_id',saf,'case-insensitive exact'], 
@@ -205,7 +201,7 @@ class SST1RSoXSDB:
         df_defaultSearchDet = pd.DataFrame(defaultSearchDetails, columns=['Metadata field:', 'User input:', 'Search scheme:'])
        
         # Iterate through search terms sequentially, reducing the size of the catalog based on successful matches
-        print("Searching by default keyword arguments ...")
+        print("Searching by keyword arguments ...")
         reducedCatalog = bsCatalog
         for index, searchSeries in tqdm(df_defaultSearchDet.iterrows(), total=df_defaultSearchDet.shape[0]):
             
@@ -238,6 +234,9 @@ class SST1RSoXSDB:
         # TODO Reduce catalog with optional arguments from kwargs
         
         ### Part 2: Build and return output dataframe
+            # TODO: Add support for additional outputs
+            # TODO: Add support for additional outputs
+            
         if outputType=='scans': # Branch 2.1, if only scan IDs needed, build and return a 1-column dataframe
             scan_ids = []
             print("Building search results...")
@@ -313,22 +312,8 @@ class SST1RSoXSDB:
                 outputList.append(singleScanOutput)
             
             # Convert to dataframe for export
-            return pd.DataFrame(outputList, columns = activeOutputLabels)
-        
-# npts = []    
-# df_output = 1
-# additionalOutputs = 1
-# try:
-#     npts.append(catalog[entry].stop['num_events']['primary'])
-# :
-#     npts.append(0)
+            return pd.DataFrame(outputList, columns = activeOutputLabels)          
             
-            
-
-        
-#             return pd.DataFrame(list(zip(scan_ids,sample_ids,detectors, plan_names,npts,uids,start_times)),
-#                        columns =['scan_id', 'sample_id','detector', 'plan_name','npts','uid','time'])
-
     def background(f):
         def wrapped(*args, **kwargs):
             return asyncio.get_event_loop().run_in_executor(None, f, *args, **kwargs)
