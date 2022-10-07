@@ -122,6 +122,7 @@ class SST1RSoXSDB:
             if plan is not None:
                 catalog = catalog.search(Regex('plan_name',plan))
             cat = catalog
+
             #print(cat)
             #print('#    scan_id        sample_id           plan_name')
             scan_ids = []
@@ -141,7 +142,6 @@ class SST1RSoXSDB:
                     npts.append(catalog[entry].stop['num_events']['primary'])
                 except (KeyError,TypeError):
                     npts.append(0)
-                detectors.append(doc["RSoXS_Main_DET"])
                 start_times.append(doc["time"])
                 #do_list_append(catalog[entry],scan_ids,sample_ids,plan_names,uids,npts,start_times)
                 #print(f'{num}  {cat[entry].start["scan_id"]}  {cat[entry].start["sample_id"]} {cat[entry].start["plan_name"]}')
@@ -149,87 +149,185 @@ class SST1RSoXSDB:
                        columns =['scan_id', 'sample_id','detector', 'plan_name','npts','uid','time'])
         
         
-    def summarize_run_BP(self, scansOnly:bool = False, proposal:str =None, saf:str = None, user:str = None, institution:str = None, project:str = None, sampleName:str = None, sampleID:str = None, plan=None, additionalOutputs: list = None, **kwargs) -> pd.DataFrame:
+    def summarize_run_BP(self, outputType:str = 'default', proposal:str =None, saf:str = None, user:str = None, 
+                         institution:str = None, project:str = None, sample:str = None, sampleID:str = None, 
+                         plan:str = None, userOutputs: list = None, 
+                         **kwargs) -> pd.DataFrame:
         ''' Search the databroker.client.CatalogOfBlueskyRuns for scans matching all provided parameters. 
         
-        Matches are made based on the values saved in the 'start' dict within the metadata dict of each scan in the databroker.client.CatalogOfBlueskyRuns object. If sparse output (as a list of scan numbers) is not specified, a pandas dataframe is returned. By default, the dataframe will contain the following columns: [proposal_id, saf_id, user_name, institution, project_name, sample_name, plan_name, detector, polarization]. Additional parameters can be provided as named arguments, and attempts will be made to match the names to the metadata.
+        Matches are made based on the values saved in top level of the 'start' dict within the metadata dict of each 
+        scan in the databroker.client.CatalogOfBlueskyRuns object. By default, the dataframe will contain the following
+        columns: [proposal_id, saf, user_name, institution, project_name, sample_name, sample_id, plan_name, detector, 
+        polarization]. Additional parameters can be provided as keyword arguments, and attempts will be made to
+        match the keys to the metadata. Sparse output (scan numbers only) can be requested to receive a 1-column 
+        dataframe of matched sample IDs.
         
         Args:
             
-            scansOnly (bool, optional): True returns only scan numbers, False returns the full dataframe
-            proposal (str, optional): NSLS2 PASS proposal ID e.g., "GU-310176"
-            saf (str, optional): Safety Approval Form (SAF) number e.g., "GU-310176" 
-            user (str, optional): User name, case-insensitive e.g., Eliot
-            institution (str, optional): Research Institution, case-insensitive e.g., NIST
-            project (str, optional): Project code, regex search, e.g., "Liquid" matches "Liquids", "Liquid-RSoXS
-            sampleName (str, optional): Sample name, e.g., "BBP_" matches "BBP_PF902A"
-            sampleID (str, optional): Sample ID, regex search, e.g., "BBP_" matches "BBP_PF902A"
-            plan (str, optional): Measurement Plan, regex search,  e.g., "full" matches "full_carbon_scan_nd", "full_fluorine_scan_nd"
-            **kwargs: Additional search terms can be provided and will filter the list ONLY if at least one match is found.
-            additionalOutputs: (list): provide additional columns for the output dataframe. these should be case-insensitive matches to a field in the 'start' dict
+            outputType (str, optional): modulates the number of output columns in the returned dataframe
+                'default' returns scan_id, start time, institution, project, sample_name, sample_id, plan name, detector, 
+                polarization, exit_status, and num_images
+                'scans' returns only scan_ids that matched the search terms
+                'ext_msmt' returns default columns AND bar_spot, sample_rotation
+                'ext_bio' returns default columns AND uid, saf, user_name
+                'all' is equivalent to all options being chosen
+            proposal (str, optional): NSLS2 PASS proposal ID, case-insensitive, exact match, e.g., "GU-310176"
+            saf (str, optional): Safety Approval Form (SAF) number, exact match, e.g., "309441" 
+            user (str, optional): User name, case-insensitive, regex search e.g., "eliot" matches "Eliot", "Eliot Gann"
+            institution (str, optional): Research Institution, case-insensitive, exact match, e.g., "NIST"
+            project (str, optional): Project code, case-insensitive, regex search, 
+                e.g., "liquid" matches "Liquids", "Liquid-RSoXS"
+            sample (str, optional): Sample name, case-insensitive, regex search, e.g., "BBP_" matches "BBP_PF902A"
+            sampleID (str, optional): Sample ID, case-insensitive, regex search, e.g., "BBP_" matches "BBP_PF902A"
+            plan (str, optional): Measurement Plan, case-insensitive, regex search,  
+                e.g., "Full" matches "full_carbon_scan_nd", "full_fluorine_scan_nd"
+            **kwargs: Additional search terms can be provided and will further filter the list
+            additionalOutputs: (list): provide additional columns for the output dataframe. these should be case-insensitive matches to a field in the databroker.client.CatalogOfBlueskyRuns 'start' dict
 
         Returns:
-            pd.Dataframe containing the results of the search.
+            pd.Dataframe containing the results of the search, or an empty dataframe if the search fails
         '''
         
-        # pull in the databroker.client.CatalogOfBlueskyRuns object
+        # Pull in the reference to the databroker.client.CatalogOfBlueskyRuns attribute
         bsCatalog = self.c
+
+        ### Part 1: Search the database sequentially, reducing based on matches to search terms
         
-        # generate a dictionary of parameter names vs Eliot's metadata variable names found in bsCatalog[scanID].start
-        metaDataDict = {
-            "proposal": "proposal_id",
-            "saf":
-            "user
+        # Plan the 'default' search through the keyword parameters, build list of [metadata ID, user input value, match type]
+        defaultSearchDetails = [['proposal_id',proposal,'case-insensitive exact'], 
+                               ['saf_id',saf,'case-insensitive exact'], 
+                               ['user_name',user,'case-insensitive'],
+                               ['institution',institution,'case-insensitive exact'],
+                               ['project_name',project,'case-insensitive'],
+                               ['sample_name',sample,'case-insensitive'],
+                               ['sample_id',sampleID,'case-insensitive'],
+                               ['plan_name',plan,'case-insensitive']]
+        df_defaultSearchDet = pd.DataFrame(defaultSearchDetails, columns=['Metadata field:', 'User input:', 'Search scheme:'])
+       
+        # Iterate through search terms sequentially, reducing the size of the catalog based on successful matches
+        print("Searching by default keyword arguments ...")
+        reducedCatalog = bsCatalog
+        for index, searchSeries in tqdm(df_defaultSearchDet.iterrows(), total=df_defaultSearchDet.shape[0]):
             
-        }
+            # Skip arguments with value None, and quits if the catalog was reduced to 0 elements
+            if (searchSeries[1] is not None) and (len(reducedCatalog)> 0):
+                #Build regex search string
+                reg_prefix = ''
+                reg_postfix = ''
+                
+                # Regex cheatsheet: 
+                    #(?i) is case insensitive
+                    #^_$ forces exact match to _, ^ anchors the start, $ anchors the end  
+                if 'case-insensitive' in str(searchSeries[2]):
+                    reg_prefix += "(?i)"
+                if 'exact' in searchSeries[2]:
+                    reg_prefix += "^"
+                    reg_postfix += "$"
+
+                regexString = reg_prefix + str(searchSeries[1]) + reg_postfix
+
+                # Search/reduce the catalog
+                reducedCatalog = reducedCatalog.search(Regex(searchSeries[0], regexString))
+                
+                # If a match fails, notify the user which search parameter yielded 0 results
+                if len(reducedCatalog) == 0:
+                    print("Catalog reduced to zero when attempting to match the following condition:\n")
+                    print(searchSeries.to_string())
+                    return pd.DataFrame()
+                
+        # TODO Reduce catalog with optional arguments from kwargs
         
+        ### Part 2: Build and return output dataframe
+        if outputType=='scans': # Branch 2.1, if only scan IDs needed, build and return a 1-column dataframe
+            scan_ids = []
+            print("Building search results...")
+            for index,scanEntry in tqdm((enumerate(reducedCatalog)),total=len(reducedCatalog)):
+                scan_ids.append(reducedCatalog[scanEntry].start["scan_id"])
+            return pd.DataFrame(scan_ids, columns=["Scan ID"])
         
+        else: # Branch 2.2, Output metadata from a variety of sources within each the catalog entry 
+            
+            # Store details of output values as a list of lists
+            # List elements are [Output Column Title, Bluesky Metadata Code, Metadata Source location, Applicable Output flag]
+            outputValueLibrary = [["scan_id","scan_id",r'catalog.start','default'],
+                                   ["uid","uid",r'catalog.start','ext_bio'],
+                                   ["start time","time",r'catalog.start','default'],
+                                   ["saf","SAF",r'catalog.start','ext_bio'],
+                                   ["user_name","user_name",r'catalog.start','ext_bio'],
+                                   ["institution","institution",r'catalog.start','default'],
+                                   ["project","project_name",r'catalog.start','default'],
+                                   ["sample_name","sample_name",r'catalog.start','default'],
+                                   ["sample_id","sample_id",r'catalog.start','default'],
+                                   ["bar_spot","bar_spot",r'catalog.start','ext_msmt'],
+                                   ["plan","plan_name",r'catalog.start','default'],
+                                   ["detector","RSoXS_Main_DET",r'catalog.start','default'],
+                                   ["polarization","pol",r'catalog.start["plan_args"]','default'],
+                                   ["sample_rotation","angle",r'catalog.start','ext_msmt'],
+                                   ["exit_status","exit_status",r'catalog.stop','default'],
+                                   ["num_Images","primary",r'catalog.stop["num_events"]','default'],
+                                  ]
+            
+            # Subset the library based on the output flag selected
+            activeOutputValues = []
+            activeOutputLabels = []
+            for outputEntry in outputValueLibrary:
+                if (outputType == 'all') or (outputEntry[3] == outputType) or (outputEntry[3] == 'default'):
+                    activeOutputValues.append(outputEntry)
+                    activeOutputLabels.append(outputEntry[0])
+                        
+            # Build output dataframe as a list of lists
+            outputList = []
+            print("Building output dataframe...")
+            # Outer loop: Catalog entries
+            for index,scanEntry in tqdm((enumerate(reducedCatalog)),total=len(reducedCatalog)):
+                
+                singleScanOutput = []
+                currentScanID = reducedCatalog[scanEntry].start["scan_id"]
+                
+                # Inner loop: append output values
+                for outputEntry in activeOutputValues:
+                    outputVariableName = outputEntry[0]
+                    metaDataLabel = outputEntry[1]
+                    metaDataSource = outputEntry[2]
+                    
+                    try: # Add the metadata value depending on where it is located                    
+                        if metaDataSource == r'catalog.start':
+                            singleScanOutput.append(reducedCatalog[scanEntry].start[metaDataLabel])
+                        elif metaDataSource == r'catalog.start["plan_args"]':
+                            singleScanOutput.append(reducedCatalog[scanEntry].start["plan_args"][metaDataLabel])
+                        elif metaDataSource == r'catalog.stop':
+                            singleScanOutput.append(reducedCatalog[scanEntry].stop[metaDataLabel])
+                        elif metaDataSource == r'catalog.stop["num_events"]':
+                            singleScanOutput.append(reducedCatalog[scanEntry].stop["num_events"][metaDataLabel])
+                        else:
+                            print("Scan: > " + str(currentScanID) + " < Failed to locate metaData entry for: " 
+                                  + str(outputVariableName) + "\n Tried looking for label: > " + str(metaDataLabel)
+                                  + " < in: " + str(metaDataSource))
+                    except (KeyError,TypeError):
+                        print("Scan: > " + str(currentScanID) + " < Failed to locate metaData entry for: " 
+                                  + str(outputVariableName) + "\n Tried looking for label: > " + str(metaDataLabel)
+                                  + " < in: " + str(metaDataSource))
+                        singleScanOutput.append("N/A")
+                    
+                #Append to the filled output list for this entry to the list of lists
+                outputList.append(singleScanOutput)
+            
+            # Convert to dataframe for export
+            return pd.DataFrame(outputList, columns = activeOutputLabels)
         
-        #Grind through the  
+# npts = []    
+# df_output = 1
+# additionalOutputs = 1
+# try:
+#     npts.append(catalog[entry].stop['num_events']['primary'])
+# :
+#     npts.append(0)
+            
+            
+
         
-        
-        
-        
-        if proposal is not None:
-            catalog = catalog.search(Key('proposal_id')==proposal)
-        if saf is not None:
-            catalog = catalog.search(Key('saf_id')==saf)
-        if user is not None:
-            catalog = catalog.search(Key('user_name')==user)
-        if institution is not None:
-            catalog = catalog.search(Key('institution')==institution)
-        if project is not None:
-            catalog = catalog.search(Regex("project_name",project))
-        if sample is not None:
-            catalog = catalog.search(Regex('sample_name',sample))
-        if plan is not None:
-            catalog = catalog.search(Regex('plan_name',plan))
-        cat = catalog
-        #print(cat)
-        #print('#    scan_id        sample_id           plan_name')
-        scan_ids = []
-        sample_ids = []
-        plan_names = []
-        start_times = []
-        npts = []
-        uids = []
-        detectors = []
-        for num,entry in tqdm((enumerate(cat)),total=len(cat)):
-            doc = catalog[entry].start
-            scan_ids.append(doc["scan_id"])
-            sample_ids.append(doc["sample_id"])
-            plan_names.append(doc["plan_name"])
-            uids.append(doc["uid"])
-            try:
-                npts.append(catalog[entry].stop['num_events']['primary'])
-            except (KeyError,TypeError):
-                npts.append(0)
-            detectors.append(doc["RSoXS_Main_DET"])
-            start_times.append(doc["time"])
-            #do_list_append(catalog[entry],scan_ids,sample_ids,plan_names,uids,npts,start_times)
-            #print(f'{num}  {cat[entry].start["scan_id"]}  {cat[entry].start["sample_id"]} {cat[entry].start["plan_name"]}')
-        return pd.DataFrame(list(zip(scan_ids,sample_ids,detectors, plan_names,npts,uids,start_times)),
-                   columns =['scan_id', 'sample_id','detector', 'plan_name','npts','uid','time'])
+#             return pd.DataFrame(list(zip(scan_ids,sample_ids,detectors, plan_names,npts,uids,start_times)),
+#                        columns =['scan_id', 'sample_id','detector', 'plan_name','npts','uid','time'])
 
     def background(f):
         def wrapped(*args, **kwargs):
