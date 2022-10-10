@@ -9,6 +9,8 @@ import datetime
 import time
 import h5py
 import pathlib
+import dask.array as da
+import dask
 
 class cyrsoxsLoader():
     '''
@@ -59,7 +61,96 @@ class cyrsoxsLoader():
                 config[key] = value
         return config
 
-   
+    def loadDirectoryDask(self,directory,output_dir='HDF5',morphology_file=None, PhysSize=None):
+        '''
+        Loads a CyRSoXS simulation output directory into a Dask-backed qx/qy xarray.
+        
+        Args:
+            directory  (string or Path): root simulation directory
+            output_dir (string or Path, default /HDF5): directory relative to the base to look for hdf5 files in.
+        '''
+        if self.profile_time:
+            start = datetime.datetime.now()
+        directory = pathlib.Path(directory)
+        #these waits are here intentionally so that data read-in can be started simultaneous with launching sim jobs and data will be read-in as soon as it is available.
+        if self.eager_load:
+            while not (directory/'config.txt').is_dir():
+                time.sleep(0.5)
+        config = self.read_config(directory/'config.txt')
+        
+        if self.eager_load:
+            while not (directory / output_dir).is_dir():
+                time.sleep(0.5)
+        #os.chdir(directory / output_dir)
+
+        elist = config['Energies']
+        num_energies = len(elist)
+######### No longer contained in config.txt ###########        
+#         PhysSize = float(config['PhysSize']) 
+#         NumX = int(config['NumX'])
+#         NumY = int(config['NumY'])
+
+        # if we have a PhysSize, we don't need to read it in from the morphology file
+        if (PhysSize is not None):
+            read_morphology = False
+        # if we don't have a PhysSize and no morphology file is specified, find the morphology file in the directory
+        elif (morphology_file is None):
+            read_morphology = True
+            morphology_list = list(directory.glob('*.hdf5'))
+            
+            if len(morphology_list) == 1:
+                morphology_file = morphology_list[0]
+
+            # if we don't find a morphology file, warn and use default value for PhysSize
+            elif len(morphology_list) == 0:
+                warnings.warn('No morphology file found. Using default PhysSize of 5 nm.')
+                PhysSize = 5
+                read_morphology = False
+
+            # if we find more than one morphology, warn and use first in list
+            elif len(morphology_list) > 1:
+                warnings.warn(f'More than one morphology.hdf5 file in directory. Choosing {morphology_list[0]}. Specify morphology_file if this is not the correct one',stacklevel=2)
+                morphology_file = morphology_list[0]
+
+
+        # read in PhysSize from morphology file if we need to
+        if read_morphology:
+            with h5py.File(morphology_file,'r') as f:
+                    PhysSize = f['Morphology_Parameters/PhysSize'][()]
+
+        #Synthesize list of filenames; note this is not using glob to see what files are there so you are at the mercy of config.txt
+        hd5files = [f'Energy_{e:0.2f}.h5' for e in elist]
+
+        outlist = []
+        filehandles = []
+        for i, e in enumerate(elist):
+            if self.eager_load:
+                while not (directory/'HDF5'/hd5files[i]).is_dir():
+                    time.sleep(0.5)
+            
+            h5 = h5py.File(directory/'HDF5'/hd5files[i],'r')
+            filehandles.append(h5)
+
+            try:
+                img = da.from_array(h5['K0']['projection'])
+            except KeyError:
+                img = da.from_array(h5['projection'])
+            if i==0:
+                NumY, NumX = img.shape
+                img = da.rechunk(img,chunks=(-1,-1))
+                Qx = 2.0*np.pi*np.fft.fftshift(np.fft.fftfreq(NumX,d=PhysSize))
+                Qy = 2.0*np.pi*np.fft.fftshift(np.fft.fftfreq(NumY,d=PhysSize))
+                
+            outlist.append(img)
+        data = da.stack(outlist,axis=2)
+
+        config['filehandles'] = filehandles
+        if self.profile_time: 
+             print(f'Finished reading ' + str(num_energies) + ' energies. Time required: ' + str(datetime.datetime.now()-start))
+        # index = pd.MultiIndex.from_arrays([elist],names=['energy'])
+        # index.name = 'system'
+        return xr.DataArray(data, dims=("qx", "qy","energy"), coords={ "qx":Qx, "qy":Qy, "energy":elist},attrs=config)
+        
 
     def loadDirectory(self,directory,output_dir='HDF5',morphology_file=None, PhysSize=None):
         '''
