@@ -17,6 +17,11 @@ try:
 except ImportError:
     MACHINE_HAS_CUDA=False
     warnings.warn('Could not import CuPy or ndigpu.  If you expect this machine to support CuPy, check dependencies.  Falling back to scikit-image/numpy CPU integration.',stacklevel=2)
+try:
+    import dask.array as da
+    import dask
+except ImportError:
+    warnings.warn('Failed to import Dask, if Dask reduction desired install pyhyperscattering[performance]',stacklevel=2)
 
 
 class WPIntegrator():
