@@ -186,8 +186,10 @@ class SST1RSoXSDB:
             elif isinstance(value, list) and len(value)==2:
                 userSearchList.append([userLabel,value[0],value[1]])
             else: #bad user input
-                print("Error parsing a keyword search term, check the format.")
-                print("Skipped argument: " + str(item))
+                warnString = ("Error parsing a keyword search term, check the format.\nSkipped argument: " 
+                              + str(value))
+                warnings.warn(warnString,stacklevel=2)
+
         
         #combine the lists of lists
         fullSearchList = defaultSearchDetails + userSearchList
@@ -195,9 +197,10 @@ class SST1RSoXSDB:
         df_SearchDet = pd.DataFrame(fullSearchList, columns=['Metadata field:', 'User input:', 'Search scheme:'])
     
         # Iterate through search terms sequentially, reducing the size of the catalog based on successful matches
-        print("Searching by keyword arguments ...")
+        
         reducedCatalog = bsCatalog
-        for index, searchSeries in tqdm(df_SearchDet.iterrows(), total=df_SearchDet.shape[0]):
+        loopDesc = "Searching by keyword arguments"
+        for index, searchSeries in tqdm(df_SearchDet.iterrows(), total=df_SearchDet.shape[0], desc=loopDesc):
             
             # Skip arguments with value None, and quits if the catalog was reduced to 0 elements
             if (searchSeries[1] is not None) and (len(reducedCatalog)> 0):
@@ -227,17 +230,18 @@ class SST1RSoXSDB:
                 
                 # If a match fails, notify the user which search parameter yielded 0 results
                 if len(reducedCatalog) == 0:
-                    print("Catalog reduced to zero when attempting to match the following condition:\n")
-                    print(searchSeries.to_string())
-                    print("If this is a user-provided search parameter, check spelling/syntax.\n")
+                    warnString = ("Catalog reduced to zero when attempting to match the following condition:\n" 
+                                  + searchSeries.to_string() 
+                                  + "\n If this is a user-provided search parameter, check spelling/syntax.\n")
+                    warnings.warn(warnString,stacklevel=2)
                     return pd.DataFrame()
         
         ### Part 2: Build and return output dataframe
             
         if outputType=='scans': # Branch 2.1, if only scan IDs needed, build and return a 1-column dataframe
             scan_ids = []
-            print("Building search results...")
-            for index,scanEntry in tqdm((enumerate(reducedCatalog)),total=len(reducedCatalog)):
+            loopDesc = "Building scan list"
+            for index,scanEntry in tqdm((enumerate(reducedCatalog)),total=len(reducedCatalog), desc = loopDesc):
                 scan_ids.append(reducedCatalog[scanEntry].start["scan_id"])
             return pd.DataFrame(scan_ids, columns=["Scan ID"])
         
@@ -280,8 +284,9 @@ class SST1RSoXSDB:
                     activeOutputValues.append(userOutEntry)
                     activeOutputLabels.append(userOutEntry[0])
                 else: #bad user input
-                    print("Error parsing user-provided output request, check the format.")
-                    print("Skipped output request: " + str(userOutEntry))
+                    warnString = ("Error parsing user-provided output request, check the format.\nSkipped: " 
+                                  + str(userOutEntry))
+                    warnings.warn(warnString,stacklevel=2)
             
             # Add any user-provided search terms
             for userSearchEntry in userSearchList:
@@ -291,9 +296,10 @@ class SST1RSoXSDB:
             
             # Build output dataframe as a list of lists
             outputList = []
-            print("Building output dataframe...")
+           
             # Outer loop: Catalog entries
-            for index,scanEntry in tqdm((enumerate(reducedCatalog)),total=len(reducedCatalog)):
+            loopDesc =  "Building output dataframe"
+            for index,scanEntry in tqdm((enumerate(reducedCatalog)),total=len(reducedCatalog), desc = loopDesc):
                 
                 singleScanOutput = []
                 
@@ -319,13 +325,16 @@ class SST1RSoXSDB:
                         elif metaDataSource == r'catalog.stop["num_events"]':
                             singleScanOutput.append(currentCatalogStop["num_events"][metaDataLabel])
                         else:
-                            print("Scan: > " + str(currentScanID) + " < Failed to locate metaData entry for: " 
-                                  + str(outputVariableName) + "\n Tried looking for label: > " + str(metaDataLabel)
-                                  + " < in: " + str(metaDataSource))
+                            warnString =("Scan: > " + str(currentScanID) + " < Failed to locate metaData entry for > " 
+                                         + str(outputVariableName) + " <\n Tried looking for label: > " 
+                                         + str(metaDataLabel) + " < in: " + str(metaDataSource))
+                            warnings.warn(warnString,stacklevel=2)
+                            
                     except (KeyError,TypeError):
-                        print("Scan: > " + str(currentScanID) + " < Failed to locate metaData entry for: " 
-                                  + str(outputVariableName) + "\n Tried looking for label: > " + str(metaDataLabel)
-                                  + " < in: " + str(metaDataSource))
+                        warnString =("Scan: > " + str(currentScanID) + " < Failed to locate metaData entry for > " 
+                                     + str(outputVariableName) + " <\n Tried looking for label: > " 
+                                     + str(metaDataLabel) + " < in: " + str(metaDataSource))
+                        warnings.warn(warnString,stacklevel=2)
                         singleScanOutput.append("N/A")
                     
                 #Append to the filled output list for this entry to the list of lists
