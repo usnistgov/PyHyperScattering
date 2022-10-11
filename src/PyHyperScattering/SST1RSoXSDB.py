@@ -96,9 +96,7 @@ class SST1RSoXSDB:
     
     
     # TODO BP - implement additional serach terms as kwargs instead e.g. proposal='123456' or proposal=('123456','exact')
-    def summarize_run(self, *args, outputType:str = 'default', cycle:str = None, proposal:str =None, saf:str = None, user:str = None,
-                      institution:str = None, project:str = None, sample:str = None, sampleID:str = None, 
-                      plan:str = None, userOutputs: list = [], **kwargs) -> pd.DataFrame:
+    def summarize_run(self, outputType:str = 'default', cycle:str = None, proposal:str =None, saf:str = None, user:str = None, institution:str = None, project:str = None, sample:str = None, sampleID:str = None,  plan:str = None, userOutputs: list = [], **kwargs) -> pd.DataFrame:
         ''' Search the databroker.client.CatalogOfBlueskyRuns for scans matching all provided keywords and return metadata as a dataframe. 
         
         Matches are made based on the values in the top level of the 'start' dict within the metadata of each 
@@ -139,11 +137,18 @@ class SST1RSoXSDB:
             plan (str, optional): Measurement Plan, case-insensitive, regex search,  
                 e.g., "Full" matches "full_carbon_scan_nd", "full_fluorine_scan_nd"
                 e.g., "carbon|oxygen|fluorine" matches carbon OR oxygen OR fluorine scans
-            *args: Additional search terms can be provided before as lists before keyword args and will further filter 
-                the list. Format should be a 3 element list comprising [metadata label as a str (matching the 'start' 
-                dict), value to match, match type]. Supported match types are combinations of 'case-insensitive', 
-                'case-sensitive', and 'exact' OR 'numeric'. Default behavior (empty string) is to do a case-sensitive regex match. 
-                Ex of a valid search term: ['cycle', '2022', ''] would match 'cycle'='2022-2' AND 'cycle='2022-1'
+            **kwargs: Additional search terms can be provided as keyword args and will further filter 
+                the catalog Valid input follows metadataLabel='searchTerm' or metadataLavel = ['searchTerm','matchType'].
+                Metadata labels must match an entry in the 'start' dictionary of the catalog. Supported match types are
+                combinations of 'case-insensitive', 'case-sensitive', and 'exact' OR 'numeric'. Default behavior is to 
+                do a case-sensitive regex match. For metadata labels that are not valid python names, create the kwarg 
+                dict before passing into the function (see example 3). Additional search terms will appear in the 
+                output data columns.
+                Ex1: passing in cycle='2022' would match 'cycle'='2022-2' AND 'cycle='2022-1'
+                Ex2: passing in grazing=[0,'numeric'] would match grazing==0
+                Ex3: create kwargs first, then pass it into the function. 
+                    kwargs = {'2weird metadata label': "Bob", 'grazing': 0, 'angle':-1.6}
+                    db_loader.summarize_run(sample="BBP_PFP09A", outputType='scans', **kwargs)
             userOutputs (list of lists, optional): Additional metadata to be added to output can be specified as a list of lists. Each 
                 sub-list specifies a metadata field as a 3 element list of format:
                 [Output column title (str), Metadata label (str), Metadata Source (raw str)],
@@ -172,12 +177,16 @@ class SST1RSoXSDB:
         
         # Pull any user-provided search terms
         userSearchList = []
-        for item in args:
+        for userLabel, value in kwargs.items():
             #Minimial check for bad user input
-            if isinstance(item, list) and len(item)==3:
-                userSearchList.append(item)
+            if isinstance(value, str):
+                userSearchList.append([userLabel,value,''])
+            elif isinstance(value, int) or isinstance(value, float):
+                userSearchList.append([userLabel,value,'numeric'])
+            elif isinstance(value, list) and len(value)==2:
+                userSearchList.append([userLabel,value[0],value[1]])
             else: #bad user input
-                print("Error parsing a positional arg, check the format.")
+                print("Error parsing a keyword search term, check the format.")
                 print("Skipped argument: " + str(item))
         
         #combine the lists of lists
@@ -273,6 +282,12 @@ class SST1RSoXSDB:
                 else: #bad user input
                     print("Error parsing user-provided output request, check the format.")
                     print("Skipped output request: " + str(userOutEntry))
+            
+            # Add any user-provided search terms
+            for userSearchEntry in userSearchList:
+                activeOutputValues.append([userSearchEntry[0],userSearchEntry[0],r'catalog.start','default'])
+                activeOutputLabels.append(userSearchEntry[0])
+
             
             # Build output dataframe as a list of lists
             outputList = []
