@@ -93,17 +93,20 @@ class SST1RSoXSDB:
         '''
         q = RawMongo(**kwargs)
         return self.c.search(q)
-         
+    
+    
+    # TODO BP - implement additional serach terms as kwargs instead e.g. proposal='123456' or proposal=('123456','exact')
     def summarize_run(self, *args, outputType:str = 'default', cycle:str = None, proposal:str =None, saf:str = None, user:str = None,
                       institution:str = None, project:str = None, sample:str = None, sampleID:str = None, 
-                      plan:str = None, userOutputs: list = []) -> pd.DataFrame:
+                      plan:str = None, userOutputs: list = [], **kwargs) -> pd.DataFrame:
         ''' Search the databroker.client.CatalogOfBlueskyRuns for scans matching all provided keywords and return metadata as a dataframe. 
         
         Matches are made based on the values in the top level of the 'start' dict within the metadata of each 
-        entry in the databroker.client.CatalogOfBlueskyRuns object. Based on the search arguments provided, a pandas 
-        dataframe is returned where rows correspond to catalog entries (scans) and columns contain  metadata. Several 
-        presets are provided for choosing which columns are generated, along with an interface for user-provided search
-        arguments and additional metadata. Fails gracefully on bad user input/ changes to underlying metadata scheme. 
+        entry in the Bluesky Catalog (databroker.client.CatalogOfBlueskyRuns). Based on the search arguments provided, 
+        a pandas dataframe is returned where rows correspond to catalog entries (scans) and columns contain  metadata.
+        Several presets are provided for choosing which columns are generated, along with an interface for 
+        user-provided search arguments and additional metadata. Fails gracefully on bad user input/ changes to 
+        underlying metadata scheme. 
         
         Ex1: All of the carbon,fluorine,or oxygen scans for a single sample series in the most recent cycle:
             bsCatalogReduced4 = db_loader.summarize_run(sample="bBP_", institution="NIST", cycle = "2022-2", plan="carbon|fluorine|oxygen")
