@@ -95,7 +95,6 @@ class SST1RSoXSDB:
         return self.c.search(q)
     
     
-    # TODO BP - implement additional serach terms as kwargs instead e.g. proposal='123456' or proposal=('123456','exact')
     def summarize_run(self, outputType:str = 'default', cycle:str = None, proposal:str =None, saf:str = None, user:str = None, institution:str = None, project:str = None, sample:str = None, sampleID:str = None,  plan:str = None, userOutputs: list = [], **kwargs) -> pd.DataFrame:
         ''' Search the databroker.client.CatalogOfBlueskyRuns for scans matching all provided keywords and return metadata as a dataframe. 
         
