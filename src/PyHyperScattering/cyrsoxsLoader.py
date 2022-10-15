@@ -140,7 +140,7 @@ class cyrsoxsLoader():
                 img = da.from_array(h5['projection'])
             if i==0:
                 NumY, NumX = img.shape
-                img = da.rechunk(img,chunks=(-1,-1))
+                img = da.rechunk(img,chunks=(None,None))
                 Qx = 2.0*np.pi*np.fft.fftshift(np.fft.fftfreq(NumX,d=PhysSize))
                 Qy = 2.0*np.pi*np.fft.fftshift(np.fft.fftfreq(NumY,d=PhysSize))
                 
