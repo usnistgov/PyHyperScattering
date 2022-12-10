@@ -35,7 +35,7 @@ class FileLoader():
     
 
 
-    def loadFileSeries(self,basepath,dims,coords={},file_filter=None,file_filter_regex=None,file_skip=None,md_filter={},quiet=True,output_qxy=False,dest_qx=None,dest_qy=None,output_raw=False,image_slice=None):
+    def loadFileSeries(self,basepath,dims,coords={},file_filter=None,file_filter_regex=None,file_skip=None,md_filter={},quiet=True,output_qxy=False,dest_qx=None,dest_qy=None,output_raw=False,image_slice=None,temp_debug=False):
         '''
         Load a series into a single xarray.
         
@@ -173,9 +173,10 @@ class FileLoader():
                 data_rows_transformed.append(
                     row.interp(coords={'qx':dest_qx,'qy':dest_qy}))
             data_rows = data_rows_transformed
-        out = xr.concat(data_rows,dim=index)
+        #this doesn't work post-xarray 2022.3  out = xr.concat(data_rows,dim=index)
+        out = xr.concat(data_rows,dim='system').assign_coords({'system':('system',index)})
         out.attrs.update({'dims_unpacked':dims})
         if not output_qxy and not output_raw:
-            out = out.assign_coords({'pix_x':np.arange(0,len(out.pix_x)),'pix_y':np.arange(0,len(out.pix_y))})
+            out = out.assign_coords(pix_x=('pix_x',np.arange(0,len(out.pix_x))),pix_y=('pix_y',np.arange(0,len(out.pix_y))))
         print(f'Loaded {nloaded}/{nprocessed} files')
         return out
