@@ -1,4 +1,5 @@
 import xarray as xr
+import numpy as np
 
 @xr.register_dataset_accessor('pt')
 @xr.register_dataarray_accessor('pt')
@@ -18,4 +19,4 @@ class PlotTools():
         '''
         
         '''
-        return self.plot(xscale='log',yscale='log')
+        return self._obj.plot(xscale='log',yscale='log')
