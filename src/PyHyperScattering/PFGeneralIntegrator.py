@@ -52,6 +52,15 @@ class PFGeneralIntegrator():
         stacked_axis = list(img.indexes.keys())
         stacked_axis.remove('pix_x')
         stacked_axis.remove('pix_y')
+        real_stacked_axis = stacked_axis
+        for idx in stacked_axis:
+            if type(img.indexes[idx]) == pd.core.indexes.multi.MultiIndex:
+                for level in img.indexes[idx].names:
+                    try:
+                        real_stacked_axis.remove(level)
+                    except ValueError:
+                        pass
+        stacked_axis = real_stacked_axis
         assert len(stacked_axis)==1, "More than one axis left after removing pix_x and pix_y, not sure how to handle"
         stacked_axis = stacked_axis[0]
         if(img.__getattr__(stacked_axis).shape[0]>1):
