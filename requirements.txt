@@ -9,5 +9,5 @@ pyfai
 scikit-image
 scipy
 pillow
-xarray != 2022.6.0,!=2022.9.0
+xarray
 tqdm

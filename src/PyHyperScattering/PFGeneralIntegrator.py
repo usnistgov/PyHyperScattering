@@ -57,14 +57,20 @@ class PFGeneralIntegrator():
         stacked_axis = list(img.indexes.keys())
         stacked_axis.remove('pix_x')
         stacked_axis.remove('pix_y')
-        assert len(stacked_axis)<=1, "More than one axis left after removing pix_x and pix_y, not sure how to handle"
-        if len(stacked_axis) == 1:
-            stacked_axis = stacked_axis[0]
-            if(img.__getattr__(stacked_axis).shape[0]>1):
-                system_to_integ = [img[0].__getattr__(stacked_axis)]
-                warnings.warn(f'There are two images for {img.__getattr__(stacked_axis)}, I am ONLY INTEGRATING THE FIRST.  This may cause the labels to be dropped and the result to need manual re-tagging in the index.',stacklevel=2)
-            else:
-                system_to_integ = img.__getattr__(stacked_axis)
+        real_stacked_axis = stacked_axis
+        for idx in stacked_axis:
+            if type(img.indexes[idx]) == pd.core.indexes.multi.MultiIndex:
+                for level in img.indexes[idx].names:
+                    try:
+                        real_stacked_axis.remove(level)
+                    except ValueError:
+                        pass
+        stacked_axis = real_stacked_axis
+        assert len(stacked_axis)==1, "More than one axis left after removing pix_x and pix_y, not sure how to handle"
+        stacked_axis = stacked_axis[0]
+        if(img.__getattr__(stacked_axis).shape[0]>1):
+            system_to_integ = [img[0].__getattr__(stacked_axis)]
+            warnings.warn(f'There are two images for {img.__getattr__(stacked_axis)}, I am ONLY INTEGRATING THE FIRST.  This may cause the labels to be dropped and the result to need manual re-tagging in the index.',stacklevel=2)
         else:
             stacked_axis = 'image_num'
             system_to_integ = [0]

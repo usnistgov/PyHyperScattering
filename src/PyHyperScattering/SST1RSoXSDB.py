@@ -93,59 +93,255 @@ class SST1RSoXSDB:
         '''
         q = RawMongo(**kwargs)
         return self.c.search(q)
- 
-    def summarize_run(self,proposal=None,saf=None,user=None,institution=None,project=None,sample=None,plan=None):
-            '''
-            Returns a Pandas dataframe with a summary of runs matching a set of search criteria.
+    
+    
+    def summarize_run(self, outputType:str = 'default', cycle:str = None, proposal:str =None, saf:str = None, user:str = None, institution:str = None, project:str = None, sample:str = None, sampleID:str = None,  plan:str = None, userOutputs: list = [], **kwargs) -> pd.DataFrame:
+        ''' Search the databroker.client.CatalogOfBlueskyRuns for scans matching all provided keywords and return metadata as a dataframe. 
+        
+        Matches are made based on the values in the top level of the 'start' dict within the metadata of each 
+        entry in the Bluesky Catalog (databroker.client.CatalogOfBlueskyRuns). Based on the search arguments provided, 
+        a pandas dataframe is returned where rows correspond to catalog entries (scans) and columns contain  metadata.
+        Several presets are provided for choosing which columns are generated, along with an interface for 
+        user-provided search arguments and additional metadata. Fails gracefully on bad user input/ changes to 
+        underlying metadata scheme. 
+        
+        Ex1: All of the carbon,fluorine,or oxygen scans for a single sample series in the most recent cycle:
+            bsCatalogReduced4 = db_loader.summarize_run(sample="bBP_", institution="NIST", cycle = "2022-2", plan="carbon|fluorine|oxygen")
+        
+        Ex2: Just all of the scan Ids for a particular sample:
+            bsCatalogReduced4 = db_loader.summarize_run(sample="BBP_PFP09A", outputType='scans')
+        
+        Ex3: Complex Search with custom parameters
+            bsCatalogReduced3 = db_loader.summarize_run(['angle', '-1.6', 'numeric'], outputType='all',sample="BBP_", cycle = "2022-2", 
+            institution="NIST",plan="carbon", userOutputs = [["Exposure Multiplier", "exptime", r'catalog.start'], ["Stop 
+            Time","time",r'catalog.stop']])
+        
+        Args:
+            outputType (str, optional): modulates the content of output columns in the returned dataframe
+                'default' returns scan_id, start time, cycle, institution, project, sample_name, sample_id, plan name, detector, 
+                polarization, exit_status, and num_images
+                'scans' returns only the scan_ids (1-column dataframe)
+                'ext_msmt' returns default columns AND bar_spot, sample_rotation
+                'ext_bio' returns default columns AND uid, saf, user_name
+                'all' is equivalent to 'default' and all other additive choices
+            cycle (str, optional): NSLS2 beamtime cycle, regex search e.g., "2022" matches "2022-2", "2022-1"
+            proposal (str, optional): NSLS2 PASS proposal ID, case-insensitive, exact match, e.g., "GU-310176"
+            saf (str, optional): Safety Approval Form (SAF) number, exact match, e.g., "309441" 
+            user (str, optional): User name, case-insensitive, regex search e.g., "eliot" matches "Eliot", "Eliot Gann"
+            institution (str, optional): Research Institution, case-insensitive, exact match, e.g., "NIST"
+            project (str, optional): Project code, case-insensitive, regex search, 
+                e.g., "liquid" matches "Liquids", "Liquid-RSoXS"
+            sample (str, optional): Sample name, case-insensitive, regex search, e.g., "BBP_" matches "BBP_PF902A"
+            sampleID (str, optional): Sample ID, case-insensitive, regex search, e.g., "BBP_" matches "BBP_PF902A"
+            plan (str, optional): Measurement Plan, case-insensitive, regex search,  
+                e.g., "Full" matches "full_carbon_scan_nd", "full_fluorine_scan_nd"
+                e.g., "carbon|oxygen|fluorine" matches carbon OR oxygen OR fluorine scans
+            **kwargs: Additional search terms can be provided as keyword args and will further filter 
+                the catalog Valid input follows metadataLabel='searchTerm' or metadataLavel = ['searchTerm','matchType'].
+                Metadata labels must match an entry in the 'start' dictionary of the catalog. Supported match types are
+                combinations of 'case-insensitive', 'case-sensitive', and 'exact' OR 'numeric'. Default behavior is to 
+                do a case-sensitive regex match. For metadata labels that are not valid python names, create the kwarg 
+                dict before passing into the function (see example 3). Additional search terms will appear in the 
+                output data columns.
+                Ex1: passing in cycle='2022' would match 'cycle'='2022-2' AND 'cycle='2022-1'
+                Ex2: passing in grazing=[0,'numeric'] would match grazing==0
+                Ex3: create kwargs first, then pass it into the function. 
+                    kwargs = {'2weird metadata label': "Bob", 'grazing': 0, 'angle':-1.6}
+                    db_loader.summarize_run(sample="BBP_PFP09A", outputType='scans', **kwargs)
+            userOutputs (list of lists, optional): Additional metadata to be added to output can be specified as a list of lists. Each 
+                sub-list specifies a metadata field as a 3 element list of format:
+                [Output column title (str), Metadata label (str), Metadata Source (raw str)],
+                Valid options for the Metadata Source are any of [r'catalog.start', r'catalog.start["plan_args"], r'catalog.stop', 
+                r'catalog.stop["num_events"]']
+                e.g., userOutputs = [["Exposure Multiplier","exptime", r'catalog.start'], ["Stop Time","time",r'catalog.stop']]
 
-            Args:
-                proposal, saf, user, institution (str or None): if str, adds an exact match search on the appropriate parameter to the set
-                project,sample,plan (str or None): if str, adds a regex match search on the appropriate parameter to the set.
-                    example: project='*Liquid*' matches 'Liquid','Liquids','Liquid-RSoXS')
+        Returns:
+            pd.Dataframe containing the results of the search, or an empty dataframe if the search fails
+        '''
+        
+        # Pull in the reference to the databroker.client.CatalogOfBlueskyRuns attribute
+        bsCatalog = self.c
 
-            Returns:
-                pd.Dataframe containing the results of the search.
-            '''
-            catalog = self.c
-            if proposal is not None:
-                catalog = catalog.search(Key('proposal_id')==proposal)
-            if saf is not None:
-                catalog = catalog.search(Key('saf_id')==saf)
-            if user is not None:
-                catalog = catalog.search(Key('user_name')==user)
-            if institution is not None:
-                catalog = catalog.search(Key('institution')==institution)
-            if project is not None:
-                catalog = catalog.search(Regex("project_name",project))
-            if sample is not None:
-                catalog = catalog.search(Regex('sample_name',sample))
-            if plan is not None:
-                catalog = catalog.search(Regex('plan_name',plan))
-            cat = catalog
-            #print(cat)
-            #print('#    scan_id        sample_id           plan_name')
+        ### Part 1: Search the database sequentially, reducing based on matches to search terms
+        # Plan the 'default' search through the keyword parameters, build list of [metadata ID, user input value, match type]
+        defaultSearchDetails = [['cycle', cycle, 'case-insensitive'],
+                                ['proposal_id',proposal,'case-insensitive exact'],
+                                ['saf_id',saf,'case-insensitive exact'], 
+                               ['user_name',user,'case-insensitive'],
+                               ['institution',institution,'case-insensitive exact'],
+                               ['project_name',project,'case-insensitive'],
+                               ['sample_name',sample,'case-insensitive'],
+                               ['sample_id',sampleID,'case-insensitive'],
+                               ['plan_name',plan,'case-insensitive']]
+        
+        # Pull any user-provided search terms
+        userSearchList = []
+        for userLabel, value in kwargs.items():
+            #Minimial check for bad user input
+            if isinstance(value, str):
+                userSearchList.append([userLabel,value,''])
+            elif isinstance(value, int) or isinstance(value, float):
+                userSearchList.append([userLabel,value,'numeric'])
+            elif isinstance(value, list) and len(value)==2:
+                userSearchList.append([userLabel,value[0],value[1]])
+            else: #bad user input
+                warnString = ("Error parsing a keyword search term, check the format.\nSkipped argument: " 
+                              + str(value))
+                warnings.warn(warnString,stacklevel=2)
+
+        
+        #combine the lists of lists
+        fullSearchList = defaultSearchDetails + userSearchList
+        
+        df_SearchDet = pd.DataFrame(fullSearchList, columns=['Metadata field:', 'User input:', 'Search scheme:'])
+    
+        # Iterate through search terms sequentially, reducing the size of the catalog based on successful matches
+        
+        reducedCatalog = bsCatalog
+        loopDesc = "Searching by keyword arguments"
+        for index, searchSeries in tqdm(df_SearchDet.iterrows(), total=df_SearchDet.shape[0], desc=loopDesc):
+            
+            # Skip arguments with value None, and quits if the catalog was reduced to 0 elements
+            if (searchSeries[1] is not None) and (len(reducedCatalog)> 0):
+                
+                # For numeric entries, do Key equality
+                if 'numeric' in str(searchSeries[2]):
+                    reducedCatalog = reducedCatalog.search(Key(searchSeries[0])==float(searchSeries[1]))
+                
+                else: #Build regex search string
+                    reg_prefix = ''
+                    reg_postfix = ''
+
+                    # Regex cheatsheet: 
+                        #(?i) is case insensitive
+                        #^_$ forces exact match to _, ^ anchors the start, $ anchors the end  
+                    if 'case-insensitive' in str(searchSeries[2]):
+                        reg_prefix += "(?i)"
+                    if 'exact' in searchSeries[2]:
+                        reg_prefix += "^"
+                        reg_postfix += "$"
+
+
+                    regexString = reg_prefix + str(searchSeries[1]) + reg_postfix
+
+                    # Search/reduce the catalog
+                    reducedCatalog = reducedCatalog.search(Regex(searchSeries[0], regexString))
+                
+                # If a match fails, notify the user which search parameter yielded 0 results
+                if len(reducedCatalog) == 0:
+                    warnString = ("Catalog reduced to zero when attempting to match the following condition:\n" 
+                                  + searchSeries.to_string() 
+                                  + "\n If this is a user-provided search parameter, check spelling/syntax.\n")
+                    warnings.warn(warnString,stacklevel=2)
+                    return pd.DataFrame()
+        
+        ### Part 2: Build and return output dataframe
+            
+        if outputType=='scans': # Branch 2.1, if only scan IDs needed, build and return a 1-column dataframe
             scan_ids = []
-            sample_ids = []
-            plan_names = []
-            start_times = []
-            npts = []
-            uids = []
-            for num,entry in tqdm((enumerate(cat)),total=len(cat)):
-                doc = catalog[entry].start
-                scan_ids.append(doc["scan_id"])
-                sample_ids.append(doc["sample_id"])
-                plan_names.append(doc["plan_name"])
-                uids.append(doc["uid"])
-                try:
-                    npts.append(catalog[entry].stop['num_events']['primary'])
-                except (KeyError,TypeError):
-                    npts.append(0)
-                start_times.append(doc["time"])
-                #do_list_append(catalog[entry],scan_ids,sample_ids,plan_names,uids,npts,start_times)
-                #print(f'{num}  {cat[entry].start["scan_id"]}  {cat[entry].start["sample_id"]} {cat[entry].start["plan_name"]}')
-            return pd.DataFrame(list(zip(scan_ids,sample_ids,plan_names,npts,uids,start_times)),
-                       columns =['scan_id', 'sample_id','plan_name','npts','uid','time'])
+            loopDesc = "Building scan list"
+            for index,scanEntry in tqdm((enumerate(reducedCatalog)),total=len(reducedCatalog), desc = loopDesc):
+                scan_ids.append(reducedCatalog[scanEntry].start["scan_id"])
+            return pd.DataFrame(scan_ids, columns=["Scan ID"])
+        
+        else: # Branch 2.2, Output metadata from a variety of sources within each the catalog entry 
+            
+            # Store details of output values as a list of lists
+            # List elements are [Output Column Title, Bluesky Metadata Code, Metadata Source location, Applicable Output flag]
+            outputValueLibrary = [["scan_id","scan_id",r'catalog.start','default'],
+                                   ["uid","uid",r'catalog.start','ext_bio'],
+                                   ["start time","time",r'catalog.start','default'],
+                                   ["cycle","cycle",r'catalog.start','default'],
+                                   ["saf","SAF",r'catalog.start','ext_bio'],
+                                   ["user_name","user_name",r'catalog.start','ext_bio'],
+                                   ["institution","institution",r'catalog.start','default'],
+                                   ["project","project_name",r'catalog.start','default'],
+                                   ["sample_name","sample_name",r'catalog.start','default'],
+                                   ["sample_id","sample_id",r'catalog.start','default'],
+                                   ["bar_spot","bar_spot",r'catalog.start','ext_msmt'],
+                                   ["plan","plan_name",r'catalog.start','default'],
+                                   ["detector","RSoXS_Main_DET",r'catalog.start','default'],
+                                   ["polarization","pol",r'catalog.start["plan_args"]','default'],
+                                   ["sample_rotation","angle",r'catalog.start','ext_msmt'],
+                                   ["exit_status","exit_status",r'catalog.stop','default'],
+                                   ["num_Images","primary",r'catalog.stop["num_events"]','default'],
+                                  ]
+            
+            # Subset the library based on the output flag selected
+            activeOutputValues = []
+            activeOutputLabels = []
+            for outputEntry in outputValueLibrary:
+                if (outputType == 'all') or (outputEntry[3] == outputType) or (outputEntry[3] == 'default'):
+                    activeOutputValues.append(outputEntry)
+                    activeOutputLabels.append(outputEntry[0])
+            
+            # Add any user-provided Output labels
+            userOutputList = []
+            for userOutEntry in userOutputs:
+                #Minimial check for bad user input
+                if isinstance(userOutEntry, list) and len(userOutEntry)==3:
+                    activeOutputValues.append(userOutEntry)
+                    activeOutputLabels.append(userOutEntry[0])
+                else: #bad user input
+                    warnString = ("Error parsing user-provided output request, check the format.\nSkipped: " 
+                                  + str(userOutEntry))
+                    warnings.warn(warnString,stacklevel=2)
+            
+            # Add any user-provided search terms
+            for userSearchEntry in userSearchList:
+                activeOutputValues.append([userSearchEntry[0],userSearchEntry[0],r'catalog.start','default'])
+                activeOutputLabels.append(userSearchEntry[0])
 
+            
+            # Build output dataframe as a list of lists
+            outputList = []
+           
+            # Outer loop: Catalog entries
+            loopDesc =  "Building output dataframe"
+            for index,scanEntry in tqdm((enumerate(reducedCatalog)),total=len(reducedCatalog), desc = loopDesc):
+                
+                singleScanOutput = []
+                
+                # Pull the start and stop docs once
+                currentCatalogStart =  reducedCatalog[scanEntry].start
+                currentCatalogStop =  reducedCatalog[scanEntry].stop
+                
+                currentScanID = currentCatalogStart["scan_id"]
+                
+                # Inner loop: append output values
+                for outputEntry in activeOutputValues:
+                    outputVariableName = outputEntry[0]
+                    metaDataLabel = outputEntry[1]
+                    metaDataSource = outputEntry[2]
+                    
+                    try: # Add the metadata value depending on where it is located                    
+                        if metaDataSource == r'catalog.start':
+                            singleScanOutput.append(currentCatalogStart[metaDataLabel])
+                        elif metaDataSource == r'catalog.start["plan_args"]':
+                            singleScanOutput.append(currentCatalogStart["plan_args"][metaDataLabel])
+                        elif metaDataSource == r'catalog.stop':
+                            singleScanOutput.append(currentCatalogStop[metaDataLabel])
+                        elif metaDataSource == r'catalog.stop["num_events"]':
+                            singleScanOutput.append(currentCatalogStop["num_events"][metaDataLabel])
+                        else:
+                            warnString =("Scan: > " + str(currentScanID) + " < Failed to locate metaData entry for > " 
+                                         + str(outputVariableName) + " <\n Tried looking for label: > " 
+                                         + str(metaDataLabel) + " < in: " + str(metaDataSource))
+                            warnings.warn(warnString,stacklevel=2)
+                            
+                    except (KeyError,TypeError):
+                        warnString =("Scan: > " + str(currentScanID) + " < Failed to locate metaData entry for > " 
+                                     + str(outputVariableName) + " <\n Tried looking for label: > " 
+                                     + str(metaDataLabel) + " < in: " + str(metaDataSource))
+                        warnings.warn(warnString,stacklevel=2)
+                        singleScanOutput.append("N/A")
+                    
+                #Append to the filled output list for this entry to the list of lists
+                outputList.append(singleScanOutput)
+            
+            # Convert to dataframe for export
+            return pd.DataFrame(outputList, columns = activeOutputLabels)          
+            
     def background(f):
         def wrapped(*args, **kwargs):
             return asyncio.get_event_loop().run_in_executor(None, f, *args, **kwargs)

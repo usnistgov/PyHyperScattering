@@ -4,6 +4,7 @@ import h5py
 import warnings
 import xarray as xr
 import numpy as np
+import pandas as pd
 import math
 import pandas as pd
 from tqdm.auto import tqdm
@@ -108,12 +109,12 @@ class PFEnergySeriesIntegrator(PFGeneralIntegrator):
     def integrateImageStack(self,img_stack):
         # get just the energies of the image stack
        # if type(img_stack.energy)== np.ndarray:
-        try:
-            energies = img_stack.energy.to_dataframe()
-
-            energies = energies['energy'].drop_duplicates()
-        except Exception:
-            energies = pd.DataFrame(img_stack.energy)
+       
+        # get just the energies of the image stack
+        #energies = img_stack.energy.to_dataframe()
+        
+        #energies = energies['energy'].drop_duplicates()
+        energies = np.unique(img_stack.energy.data)
         #create an integrator for each energy
         self.setupIntegrators(energies)
         # find the output q for the midpoint and set the final q binning
@@ -134,7 +135,15 @@ class PFEnergySeriesIntegrator(PFGeneralIntegrator):
         indexes = list(data.indexes.keys())
         indexes.remove('pix_x')
         indexes.remove('pix_y')
-        
+        real_indexes = indexes
+        for idx in indexes:
+            if type(data.indexes[idx]) == pd.core.indexes.multi.MultiIndex:
+                for level in data.indexes[idx].names:
+                    try:
+                        real_indexes.remove(level)
+                    except ValueError:
+                        pass
+        indexes = real_indexes
         if len(indexes) == 1:
             if img_stack.__getattr__(indexes[0]).to_pandas().drop_duplicates().shape[0] != img_stack.__getattr__(indexes[0]).shape[0]:
                 warnings.warn(f'Axis {indexes[0]} contains duplicate conditions.  This is not supported and may not work.  Try adding additional coords to separate image conditions',stacklevel=2)
