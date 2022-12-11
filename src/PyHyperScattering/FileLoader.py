@@ -152,7 +152,10 @@ class FileLoader():
         #    list(dest_coords.keys()
         #    )
         #)
-        index = pd.MultiIndex.from_arrays(vals,names=keys)
+        try:
+            index = pd.MultiIndex.from_arrays(vals,names=keys)
+        except ValueError as e:
+            raise ValueError('This load found files, but none were deemed loadable.\nThis usually means that you set a file_filter or md_filter that was too restrictive, or your directory is wrong.\nCheck and rerun') from e
         index.name = 'system'
         if output_qxy:
             #come up with destination qx/qy here
