@@ -6,7 +6,6 @@ import pandas as pd
 import datetime
 import warnings
 import json
-#from pyFAI import azimuthalIntegrator
 import numpy as np
 import pandas as pd
 from tqdm.auto import tqdm
@@ -40,7 +39,7 @@ class SST1RSoXSDB:
     
     
 
-    def __init__(self,corr_mode=None,user_corr_fun=None,dark_subtract=True,dark_pedestal=0,exposure_offset=0,catalog=None,catalog_kwargs={}):
+    def __init__(self,corr_mode=None,user_corr_fun=None,dark_subtract=True,dark_pedestal=0,exposure_offset=0,catalog=None,catalog_kwargs={},use_precise_positions=False):
         '''
             Args:
                 corr_mode (str): origin to use for the intensity correction.  Can be 'expt','i0','expt+i0','user_func','old',or 'none'
@@ -49,6 +48,7 @@ class SST1RSoXSDB:
                 exposure_offset (numeric): value to add to the exposure time.
                 catalog (DataBroker Catalog): overrides the internally-set-up catalog with a version you provide
                 catalog_kwargs (dict): kwargs to be passed to a from_profile catalog generation script.  For example, you can ask for Dask arrays here.
+                use_precise_positions (bool): if False, rounds sam_x and sam_y to 1 digit.  If True, keeps default rounding (4 digits).  Needed for spiral scans to work with readback positions.
         '''
         if corr_mode == None:
             warnings.warn("Correction mode was not set, not performing *any* intensity corrections.  Are you sure this is "+
@@ -64,6 +64,7 @@ class SST1RSoXSDB:
         self.dark_subtract=dark_subtract
         self.dark_pedestal=dark_pedestal
         self.exposure_offset=exposure_offset
+        self.use_precise_positions = use_precise_positions
         
     # def loadFileSeries(self,basepath):
     #     try:
@@ -410,7 +411,7 @@ class SST1RSoXSDB:
         Loads a run entry from a catalog result into a raw xarray.
 
         Args:
-            run (DataBroker result): a single run from BlueSky
+            run (DataBroker result, int of a scan id, list of scan ids, list of DataBroker runs): a single run from BlueSky
             dims (list): list of dimensions you'd like in the resulting xarray.  See list of allowed dimensions in documentation.  If not set or None, tries to auto-hint the dims from the RSoXS plan_name.
             coords (dict): user-supplied dimensions, see syntax examples in documentation.
             return_dataset (bool,default False): return both the data and the monitors as a xr.dataset.  If false (default), just returns the data.
@@ -418,6 +419,10 @@ class SST1RSoXSDB:
             raw (xarray): raw xarray containing your scan in PyHyper-compliant format
 
         '''
+        if type(run) is int:
+            run = self.c[run]
+        if type(run) is list:
+            return self.loadSeries(run,'sample_name',loadrun_kwargs = {'dims':dims,'coords':coords,'return_dataset':return_dataset})
         md = self.loadMd(run)
         monitors = self.loadMonitors(run)
         if 'NEXAFS' in md['start']['plan_name']:
@@ -487,7 +492,8 @@ class SST1RSoXSDB:
         #handle the edge case of a partly-finished scan
         if len(index) != len(data['time']):
             index = index[:len(data['time'])]
-        retxr = data.squeeze('dim_0').rename({'dim_1':'pix_y','dim_2':'pix_x'}).rename({'time':'system'}).assign_coords(system=index)#,md['detector']+'_image':'intensity'})
+        actual_exposure = md['exposure'] * len(data.dim_0)
+        retxr = data.sum('dim_0').rename({'dim_1':'pix_y','dim_2':'pix_x'}).rename({'time':'system'}).assign_coords(system=index)#,md['detector']+'_image':'intensity'})
         
         #this is needed for holoviews compatibility, hopefully does not break other features.
         retxr = retxr.assign_coords({'pix_x':np.arange(0,len(retxr.pix_x)),'pix_y':np.arange(0,len(retxr.pix_y))})
@@ -497,6 +503,7 @@ class SST1RSoXSDB:
             warnings.warn('Error assigning monitor readings to system.  Problem with monitors.  Please check.',stacklevel=2)
         retxr.attrs.update(md)
           
+        retxr.attrs['exposure'] = len(data.dim_0)*retxr.attrs['exposure'] # patch for multi exposures
         #now do corrections:
         frozen_attrs = retxr.attrs
         if self.corr_mode == 'i0':
@@ -643,6 +650,13 @@ class SST1RSoXSDB:
         md_secondary_lookup = {
             'energy':'en_monoen_setpoint',
             }
+        
+                
+        for key in primary.keys():
+            if key not in md_lookup.values():
+                if '_image' not in key:
+                    md_lookup[key] = key
+        
         for phs,rsoxs in md_lookup.items():
             try:
                 md[phs] = primary[rsoxs].read()
@@ -681,6 +695,11 @@ class SST1RSoXSDB:
 
         md['pixel1'] = self.pix_size_1 / 1000
         md['pixel2'] = self.pix_size_2 / 1000
+        
+        
+        if not self.use_precise_positions:
+            md['sam_x'] = md['sam_x'].round(1)
+            md['sam_y'] = md['sam_y'].round(1)
 
         md['poni1'] = md['beamcenter_y'] * md['pixel1']
         md['poni2'] = md['beamcenter_x'] * md['pixel2']
