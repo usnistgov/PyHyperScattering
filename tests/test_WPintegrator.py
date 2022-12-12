@@ -18,7 +18,7 @@ def wp_integrator_legacy():
 
 @pytest.fixture(autouse=True,scope='module')
 def wp_integrator_dask():
-    integ = WPIntegrator(use_chunked_reduction=True)
+    integ = WPIntegrator(use_chunked_processing=True)
     return integ
 
 @pytest.fixture(autouse=True,scope='module')

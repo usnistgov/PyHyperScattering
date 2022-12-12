@@ -159,6 +159,22 @@ class PFEnergySeriesIntegrator(PFGeneralIntegrator):
         return data_int
         #return img_stack.groupby('system',squeeze=False).progress_apply(self.integrateSingleImage)
     
+    def integrateImageStack(self,img_stack,method=None,chunksize=None):
+        '''
+        
+        '''
+
+        if (self.use_chunked_processing and method is None) or method=='dask':
+            func_args = {}
+            func_args['img_stack'] = img_stack
+            if chunksize is not None:
+                func_args['chunksize'] = chunksize
+            return self.integrateImageStack_dask(**func_args)
+        elif (method is None) or method == 'legacy':
+            return self.integrateImageStack_legacy(img_stack)
+        else:
+            raise NotImplementedError(f'unsupported integration method {method}')
+
 
 
     def createIntegrator(self,en,recreate=False):
