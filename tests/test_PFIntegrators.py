@@ -67,9 +67,9 @@ def test_integration_runs_en_series_dask(sst_data,pfesint_dask):
     pfesint_dask.integrateImageStack(sst_data)
 
 def test_integration_runs_gen_legacy(sst_data,pfgenint):
-    pfesint.integrateImageStack(sst_data)
+    pfgenint.integrateImageStack(sst_data)
 
 def test_integration_runs_gen_dask(sst_data,pfgenint_dask):
-    pfesint_dask.integrateImageStack(sst_data)
+    pfgenint_dask.integrateImageStack(sst_data)
 
 

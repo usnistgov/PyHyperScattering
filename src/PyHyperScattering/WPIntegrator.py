@@ -138,10 +138,9 @@ class WPIntegrator():
         '''
         if (self.use_chunked_processing and method is None) or method=='dask':
             func_args = {}
-            func_args['img_stack'] = img_stack
             if chunksize is not None:
                 func_args['chunksize'] = chunksize
-            return self.integrateImageStack_dask(**func_args)
+            return self.integrateImageStack_dask(img_stack,**func_args)
         elif (method is None) or method == 'legacy':
             return self.integrateImageStack_legacy(img_stack)
         else:
