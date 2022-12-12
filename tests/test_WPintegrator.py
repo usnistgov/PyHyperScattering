@@ -7,6 +7,9 @@ from PyHyperScattering.integrate import WPIntegrator
 import xarray as xr
 import pathlib
 #import HDR
+import math
+import unittest
+import pytest
 
 @pytest.fixture(autouse=True,scope='module')
 def wp_integrator_legacy():
