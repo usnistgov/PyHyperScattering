@@ -72,6 +72,7 @@ class PFEnergySeriesIntegrator(PFGeneralIntegrator):
         self.dest_q = self.integrator_stack[np.median(energies)].integrate2d(np.zeros_like(self.mask).astype(int), self.npts, 
                                                    unit='arcsinh(q.µm)' if self.use_log_ish_binning else 'q_A^-1',
                                                    method=self.integration_method).radial
+
     def integrateImageStack_dask(self,img_stack,chunksize=5):
         self.setupIntegrators(img_stack.energy.data)
         self.setupDestQ(img_stack.energy.data)
@@ -103,10 +104,10 @@ class PFEnergySeriesIntegrator(PFGeneralIntegrator):
         
         template = xr.DataArray(np.empty(shape),coords=coord_dict_sorted)  
         template = template.chunk({'energy':chunksize})
-        integ_fly = img_stack.chunk({'energy':chunksize}).map_blocks(self.integrateImageStack,template=template)#integ_traditional.chunk({'energy':5}))
+        integ_fly = img_stack.chunk({'energy':chunksize}).map_blocks(self.integrateImageStack_legacy,template=template)#integ_traditional.chunk({'energy':5}))
         return integ_fly 
 
-    def integrateImageStack(self,img_stack):
+    def integrateImageStack_legacy(self,img_stack):
         # get just the energies of the image stack
        # if type(img_stack.energy)== np.ndarray:
        

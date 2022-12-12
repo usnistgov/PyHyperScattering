@@ -32,6 +32,16 @@ def pfesint(sst_data):
     integrator = PFEnergySeriesIntegrator(maskmethod='none',geomethod='template_xr',template_xr=sst_data)
     return integrator
 
+@pytest.fixture(autouse=True,scope='module')
+def pfesint_dask(sst_data):
+    integrator = PFEnergySeriesIntegrator(maskmethod='none',geomethod='template_xr',template_xr=sst_data,use_chunked_processing=True)
+    return integrator
+@pytest.fixture(autouse=True,scope='module')
+def pfgenint_dask(sst_data):
+    integrator = PFGeneralIntegrator(maskmethod='none',geomethod='template_xr',template_xr=sst_data,use_chunked_processing=True)
+    return integrator
+
+
 
 def test_integrator_loads_nika_mask_tiff(pfesint):
     pfesint.loadNikaMask(filetoload=pathlib.Path('mask-test-pack/37738-CB_TPD314K1_mask.tif'))
@@ -50,6 +60,16 @@ def test_integrator_beamcenter_to_poni(pfesint):
     assert(math.isclose(pfesint.poni2,0.0293916))
     pass
 
-def test_integration_runs(sst_data,pfesint):
+def test_integration_runs_en_series_legacy(sst_data,pfesint):
     pfesint.integrateImageStack(sst_data)
-    
+
+def test_integration_runs_en_series_dask(sst_data,pfesint_dask):
+    pfesint_dask.integrateImageStack(sst_data)
+
+def test_integration_runs_gen_legacy(sst_data,pfgenint):
+    pfesint.integrateImageStack(sst_data)
+
+def test_integration_runs_gen_dask(sst_data,pfgenint_dask):
+    pfesint_dask.integrateImageStack(sst_data)
+
+

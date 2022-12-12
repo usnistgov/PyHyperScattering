@@ -29,7 +29,7 @@ class WPIntegrator():
     Integrator for qx/qy format xarrays using skimage.transform.warp_polar or a custom cuda-accelerated version, warp_polar_gpu
     '''
     
-    def __init__(self,return_cupy=False,force_np_backend=False):
+    def __init__(self,return_cupy=False,force_np_backend=False,use_chunked_processing=False):
         '''
         Args:
             return_cupy (bool, default False): return arrays as cupy rather than numpy, for further GPU processing
@@ -41,6 +41,7 @@ class WPIntegrator():
             self.MACHINE_HAS_CUDA = False
             
         self.return_cupy = return_cupy
+        self.use_chunked_processing=use_chunked_processing
     
     def warp_polar_gpu(self,image, center=None, radius=None, output_shape=None, **kwargs):
         """
@@ -131,7 +132,27 @@ class WPIntegrator():
             return xr.DataArray(TwoD,dims=['chi','q'],coords={'q':q,'chi':chi},attrs=img.attrs)
 
 
-    def integrateImageStack(self,data):
+    def integrateImageStack(self,img_stack,method=None,chunksize=None):
+        '''
+        
+        '''
+        if method is not None:
+            if method == 'legacy':
+                return self.integrateImageStack_legacy(img_stack)
+            elif method== 'dask':
+                
+        if (self.use_chunked_processing and method is None) or method=='dask':
+            func_args = {}
+            func_args['img_stack'] = img_stack
+            if chunksize is not None:
+                func_args['chunksize'] = chunksize
+            return self.integrateImageStack_dask(**func_args)
+        elif (method is None) or method == 'legacy':
+            return self.integrateImageStack_legacy(img_stack)
+        else:
+            raise NotImplementedError(f'unsupported integration method {method}')
+
+    def integrateImageStack_legacy(self,data):
         #int_stack = img_stack.groupby('system').map(self.integrateSingleImage)   
         #return int_stack
         indexes = list(data.indexes.keys())
@@ -208,6 +229,6 @@ class WPIntegrator():
         
         template = xr.DataArray(np.empty(shape),coords=coord_dict_sorted)  
         template = template.chunk({indexes[0]:chunksize})
-        integ_fly = data.map_blocks(self.integrateImageStack,template=template)#integ_traditional.chunk({'energy':5}))
+        integ_fly = data.map_blocks(self.integrateImageStack_legacy,template=template)#integ_traditional.chunk({'energy':5}))
         return integ_fly 
             

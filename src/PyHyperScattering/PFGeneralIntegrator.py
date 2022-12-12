@@ -132,7 +132,7 @@ class PFGeneralIntegrator():
 
     
     
-    def integrateImageStack(self,data):
+    def integrateImageStack_legacy(self,data):
         indexes = list(data.indexes.keys())
         indexes.remove('pix_x')
         indexes.remove('pix_y')
@@ -152,6 +152,59 @@ class PFGeneralIntegrator():
         #int_stack = img_stack.groupby('system').map_progress(self.integrateSingleImage)
         #PRSUtils.fix_unstacked_dims(int_stack,img_stack,'system',img_stack.attrs['dims_unpacked'])
         #return int_stack
+        
+    def integrateImageStack_dask(self,data,chunksize=5):
+        #int_stack = img_stack.groupby('system').map(self.integrateSingleImage)   
+        #return int_stack
+        indexes = list(data.indexes.keys())
+        try:
+            indexes.remove('pix_x')
+            indexes.remove('pix_y')
+        except ValueError:
+            pass
+        try:
+            indexes.remove('qx')
+            indexes.remove('qy')
+        except ValueError:
+            pass
+        
+        if len(indexes) == 1:
+            if data.__getattr__(indexes[0]).to_pandas().drop_duplicates().shape[0] != data.__getattr__(indexes[0]).shape[0]:
+                warnings.warn(f'Axis {indexes[0]} contains duplicate conditions.  This is not supported and may not work.  Try adding additional coords to separate image conditions',stacklevel=2)
+            
+            fake_image_to_process = data.isel(**{indexes[0]:0},drop=False)
+            data = data.chunk({indexes[0]:chunksize})
+        else:
+            #some kinda logic to check for existing multiindexes and stack into them appropriately maybe
+            data = data.stack({'pyhyper_internal_multiindex':indexes})
+            if data.pyhyper_internal_multiindex.to_pandas().drop_duplicates().shape[0] != data.pyhyper_internal_multiindex.shape[0]:
+                warnings.warn('Your index set contains duplicate conditions.  This is not supported and may not work.  Try adding additional coords to separate image conditions',stacklevel=2)
+                
+            fake_image_to_process = data.isel(**{'pyhyper_internal_multiindex':0},squeeze=False)
+            data = data.chunk({'pyhyper_internal_multiindex':chunksize})
+        coord_dict = {}
+        shape = tuple([])
+        demo_integration = self.integrateSingleImage(fake_image_to_process)
+        coord_dict.update({'chi':demo_integration.chi,'q':demo_integration.q})
+        npts_q = len(demo_integration.q)
+              
+        order_list = []
+        for idx in indexes:
+            order_list.append(idx)
+            coord_dict[idx] = data.indexes[idx]
+            shape = shape + tuple([len(data.indexes[idx])])
+        shape = shape + (360,npts_q)
+        print(shape)
+        
+        desired_order_list = order_list+['chi','q']
+        coord_dict_sorted = {k: coord_dict[k] for k in desired_order_list}
+        
+        template = xr.DataArray(np.empty(shape),coords=coord_dict_sorted)  
+        template = template.chunk({indexes[0]:chunksize})
+        integ_fly = data.map_blocks(self.integrateImageStack_legacy,template=template)#integ_traditional.chunk({'energy':5}))
+        return integ_fly 
+    
+    
     def __init__(self,
                  maskmethod='none', 
                  maskpath= '',
@@ -225,6 +278,27 @@ class PFGeneralIntegrator():
 
     def __str__(self):
         return f"PyFAI general integrator wrapper SDD = {self.dist} m, poni1 = {self.poni1} m, poni2 = {self.poni2} m, rot1 = {self.rot1} rad, rot2 = {self.rot2} rad"
+
+
+    def integrateImageStack(self,img_stack,method=None,chunksize=None):
+        '''
+        
+        '''
+        if method is not None:
+            if method == 'legacy':
+                return self.integrateImageStack_legacy(img_stack)
+            elif method== 'dask':
+                
+        if (self.use_chunked_processing and method is None) or method=='dask':
+            func_args = {}
+            func_args['img_stack'] = img_stack
+            if chunksize is not None:
+                func_args['chunksize'] = chunksize
+            return self.integrateImageStack_dask(**func_args)
+        elif (method is None) or method == 'legacy':
+            return self.integrateImageStack_legacy(img_stack)
+        else:
+            raise NotImplementedError(f'unsupported integration method {method}')
 
 
     def loadPolyMask(self,maskpoints = [], **kwargs):
