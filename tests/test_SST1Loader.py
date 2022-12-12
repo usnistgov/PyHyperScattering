@@ -15,11 +15,11 @@ def sstloader():
     return sstloader
 
 @pytest.fixture(autouse=True,scope='module')
-def SST1_single_scan(sstloader)
+def SST1_single_scan(sstloader):
     return sstloader.loadFileSeries('Example/SST1/21792/',['energy','polarization'])
 
 @pytest.fixture(autouse=True,scope='module')
-def SST1_single_scan_qxy(sstloader)
+def SST1_single_scan_qxy(sstloader):
     return sstloader.loadFileSeries('Example/SST1/21792/',['energy','polarization'],output_qxy=True)
 
 
