@@ -136,11 +136,6 @@ class WPIntegrator():
         '''
         
         '''
-        if method is not None:
-            if method == 'legacy':
-                return self.integrateImageStack_legacy(img_stack)
-            elif method== 'dask':
-                
         if (self.use_chunked_processing and method is None) or method=='dask':
             func_args = {}
             func_args['img_stack'] = img_stack
