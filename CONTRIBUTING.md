@@ -84,3 +84,36 @@ Once you do that, you can follow these instructions to set up a development envi
 9) A maintainer will merge changes into main
 
 10) Your changes will be included in the pip package on the next release!
+
+
+To run testing and linting locally
+----------------------------------
+
+You need to have access to the example data, you also need pytest and flake8 installed (pip install pytest flake8)
+
+Run the following commands:
+first cd to the root of your PyHyper git repo, then:
+```
+wget https://github.com/usnistgov/PyHyperScattering/releases/download/0.0.0-example-data/cyrsoxs-example.zip
+unzip cyrsoxs-example.zip
+rm cyrsoxs-example.zip
+wget https://github.com/usnistgov/PyHyperScattering/releases/download/0.0.0-example-data/Example.zip
+unzip Example.zip
+rm Example.zip
+wget https://github.com/usnistgov/PyHyperScattering/releases/download/0.0.0-example-data/mask-test-pack.zip
+unzip mask-test-pack.zip
+rm mask-test-pack.zip
+```
+then, while you are in this directory, to lint run
+```
+flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+```
+errors in the first one *will* be a problem and will stop CI from running.
+The second is just correcting your grammar.  No need to do anything about its output.
+
+and to test run
+```
+pytest
+```
+
