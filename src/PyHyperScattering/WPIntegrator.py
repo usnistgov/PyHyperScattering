@@ -21,7 +21,7 @@ try:
     import dask.array as da
     import dask
 except ImportError:
-    warnings.warn('Failed to import Dask, if Dask reduction desired install pyhyperscattering[performance]',stacklevel=2)
+    warnings.warn('Failed to import Dask, if Dask reduction is desired install pyhyperscattering[performance]',stacklevel=2)
 
 
 class WPIntegrator():
