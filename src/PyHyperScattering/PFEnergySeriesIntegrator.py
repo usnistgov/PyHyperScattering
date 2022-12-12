@@ -69,9 +69,6 @@ class PFEnergySeriesIntegrator(PFGeneralIntegrator):
             self.createIntegrator(en)
         self.createIntegrator(np.median(energies))
     def setupDestQ(self,energies):
-        if self.mask == None:
-            warnings.warn('No mask defined.  Creating an empty mask with dimensions {img.shape}.',stacklevel=2)
-            self.mask = np.zeros_like(img)
         assert np.shape(self.mask)==np.shape(img_to_integ),f'Error!  Mask has shape {np.shape(self.mask)} but you are attempting to integrate data with shape {np.shape(img_to_integ)}.  Try changing mask orientation or updating mask.'
         self.dest_q = self.integrator_stack[np.median(energies)].integrate2d(np.zeros_like(self.mask).astype(int), self.npts, 
                                                    unit='arcsinh(q.µm)' if self.use_log_ish_binning else 'q_A^-1',
