@@ -69,7 +69,7 @@ class PFGeneralIntegrator():
                     except ValueError:
                         pass
         stacked_axis = real_stacked_axis
-        assert len(stacked_axis)==1, "More than one axis left after removing pix_x and pix_y, not sure how to handle"
+        assert len(stacked_axis)==1, "More than one axis left after removing pix_x and pix_y, I see {stacked_axis}, not sure how to handle"
         stacked_axis = stacked_axis[0]
         if(img.__getattr__(stacked_axis).shape[0]>1):
             system_to_integ = [img[0].__getattr__(stacked_axis)]
@@ -444,7 +444,7 @@ class PFGeneralIntegrator():
         
         if self.mask == None:
             self.mask = np.zeros(raw_xr.shape[-2:])
-
+            warnings.warn(f'Since mask was none, creating an empty mask with shape {self.mask.shape}',stacklevel=2)
         self.recreateIntegrator()
 
     @property
