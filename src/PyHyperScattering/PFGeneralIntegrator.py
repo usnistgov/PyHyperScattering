@@ -136,6 +136,15 @@ class PFGeneralIntegrator():
         indexes = list(data.indexes.keys())
         indexes.remove('pix_x')
         indexes.remove('pix_y')
+        real_indexes = indexes
+        for idx in indexes:
+            if type(data.indexes[idx]) == pd.core.indexes.multi.MultiIndex:
+                for level in data.indexes[idx].names:
+                    try:
+                        real_indexes.remove(level)
+                    except ValueError:
+                        pass
+        indexes = real_indexes
         if len(indexes) == 1:
             if self.use_chunked_processing:
                 pass
@@ -168,6 +177,16 @@ class PFGeneralIntegrator():
         except ValueError:
             pass
         
+        real_indexes = indexes
+        for idx in indexes:
+            if type(data.indexes[idx]) == pd.core.indexes.multi.MultiIndex:
+                for level in data.indexes[idx].names:
+                    try:
+                        real_indexes.remove(level)
+                    except ValueError:
+                        pass
+        indexes = real_indexes
+
         if len(indexes) == 1:
             if data.__getattr__(indexes[0]).to_pandas().drop_duplicates().shape[0] != data.__getattr__(indexes[0]).shape[0]:
                 warnings.warn(f'Axis {indexes[0]} contains duplicate conditions.  This is not supported and may not work.  Try adding additional coords to separate image conditions',stacklevel=2)
