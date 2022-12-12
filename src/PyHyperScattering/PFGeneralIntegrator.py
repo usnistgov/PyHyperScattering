@@ -53,7 +53,7 @@ class PFGeneralIntegrator():
         else:
             img_to_integ = img.values
         
-        if self.mask == None:
+        if self.mask is None:
             warnings.warn('No mask defined.  Creating an empty mask with dimensions {img.shape}.',stacklevel=2)
             self.mask = np.zeros_like(img).squeeze()
         assert np.shape(self.mask)==np.shape(img_to_integ),f'Error!  Mask has shape {np.shape(self.mask)} but you are attempting to integrate data with shape {np.shape(img_to_integ)}.  Try changing mask orientation or updating mask.'
@@ -442,7 +442,7 @@ class PFGeneralIntegrator():
         self.pixel1 = raw_xr.pixel1
         self.pixel2 = raw_xr.pixel2
         
-        if self.mask == None:
+        if self.mask is None:
             self.mask = np.zeros(raw_xr.shape[-2:])
             warnings.warn(f'Since mask was none, creating an empty mask with shape {self.mask.shape}',stacklevel=2)
         self.recreateIntegrator()
