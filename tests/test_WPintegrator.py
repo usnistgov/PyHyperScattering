@@ -24,11 +24,11 @@ def cyrsoxs_data():
         raw = load.loadDirectory(pathlib.Path('2021-09-03_pl-0.1_cyl10_core5_sp60'))
         return raw
 
-def test_wp_integrator_legacy(cyrsoxs_data,wp_integrator_legacy)
+def test_wp_integrator_legacy(cyrsoxs_data,wp_integrator_legacy):
         reduced = wp_integrator_legacy.integrateImageStack(cyrsoxs_data)
         assert type(reduced)==xr.DataArray
 
-def test_wp_integrator_dask(cyrsoxs_data,wp_integrator_dask)
+def test_wp_integrator_dask(cyrsoxs_data,wp_integrator_dask):
         reduced = wp_integrator_dask.integrateImageStack(cyrsoxs_data)
         assert type(reduced)==xr.DataArray
 
