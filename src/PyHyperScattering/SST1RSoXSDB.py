@@ -39,7 +39,7 @@ class SST1RSoXSDB:
     
     
 
-    def __init__(self,corr_mode=None,user_corr_fun=None,dark_subtract=True,dark_pedestal=0,exposure_offset=0,catalog=None,catalog_kwargs={},use_precise_positions=False):
+    def __init__(self,corr_mode=None,user_corr_fun=None,dark_subtract=True,dark_pedestal=0,exposure_offset=0,catalog=None,catalog_kwargs={},use_precise_positions=False,use_lazy_loading=False):
         '''
             Args:
                 corr_mode (str): origin to use for the intensity correction.  Can be 'expt','i0','expt+i0','user_func','old',or 'none'
@@ -49,6 +49,7 @@ class SST1RSoXSDB:
                 catalog (DataBroker Catalog): overrides the internally-set-up catalog with a version you provide
                 catalog_kwargs (dict): kwargs to be passed to a from_profile catalog generation script.  For example, you can ask for Dask arrays here.
                 use_precise_positions (bool): if False, rounds sam_x and sam_y to 1 digit.  If True, keeps default rounding (4 digits).  Needed for spiral scans to work with readback positions.
+                use_lazy_loading (bool): if True, returns Dask backed arrays for further Dask processing.  if false, behaves in conventional Numpy-backed way
         '''
         if corr_mode == None:
             warnings.warn("Correction mode was not set, not performing *any* intensity corrections.  Are you sure this is "+
@@ -56,7 +57,8 @@ class SST1RSoXSDB:
             self.corr_mode = 'none'
         else:
             self.corr_mode = corr_mode
-        
+        if use_lazy_loading:
+            catalog_kwargs['structure_clients'] = 'dask'
         if catalog is None:
             self.c = from_profile('rsoxs',**catalog_kwargs)
         else:
@@ -421,8 +423,11 @@ class SST1RSoXSDB:
         '''
         if type(run) is int:
             run = self.c[run]
+        elif type(run) is pd.DataFrame:
+            run = list(run.scan_id)
         if type(run) is list:
             return self.loadSeries(run,'sample_name',loadrun_kwargs = {'dims':dims,'coords':coords,'return_dataset':return_dataset})
+        
         md = self.loadMd(run)
         monitors = self.loadMonitors(run)
         if 'NEXAFS' in md['start']['plan_name']:
