@@ -76,13 +76,20 @@ class PFEnergySeriesIntegrator(PFGeneralIntegrator):
     def integrateImageStack_dask(self,img_stack,chunksize=5):
         self.setupIntegrators(img_stack.energy.data)
         self.setupDestQ(img_stack.energy.data)
-        indexes = list(img_stack.indexes.keys())
+        indexes = list(img_stack.dims)
         indexes.remove('pix_x')
         indexes.remove('pix_y')
 
         # idx_name_to_use = 'energy'#indexes[0]
         # idx_val_to_use = img_stack.indexes[idx_name_to_use]
         
+        
+        if 'energy' in indexes:
+            dim_to_chunk = 'energy'
+        else:
+            dim_to_chunk = indexes[0]
+            #this probably should check which is the longest?  Shortest?  and chunk that.
+        print(f'chunking on {dim_to_chunk}')
         
         coord_dict = {}
         shape = tuple([])
@@ -94,7 +101,7 @@ class PFEnergySeriesIntegrator(PFGeneralIntegrator):
         shape = (360,self.npts) + shape 
         
         
-        fake_image_to_process = img_stack.isel(**{'energy':0})
+        fake_image_to_process = img_stack.isel(**{dim_to_chunk:0},drop=False)
         #fake_image_to_process.attrs['energy'] = img_stack.energy.isel(**{idx_name_to_use:0})
         demo_integration = self.integrateSingleImage(fake_image_to_process)
         coord_dict.update({'chi':demo_integration.chi,'q':self.dest_q})
@@ -102,9 +109,14 @@ class PFEnergySeriesIntegrator(PFGeneralIntegrator):
         desired_order_list = ['chi','q']+order_list
         coord_dict_sorted = {k: coord_dict[k] for k in desired_order_list}
         
-        template = xr.DataArray(np.empty(shape),coords=coord_dict_sorted)  
-        template = template.chunk({'energy':chunksize})
-        integ_fly = img_stack.chunk({'energy':chunksize}).map_blocks(self.integrateImageStack_legacy,template=template)#integ_traditional.chunk({'energy':5}))
+        template = xr.DataArray(np.empty(shape),coords=coord_dict_sorted)
+   
+        
+        template = template.chunk({dim_to_chunk:chunksize})
+        if 'image_num' in demo_integration.dims:
+            template = template.transpose(*[item if item != 'image_num' else dim_to_chunk for item in demo_integration.dims])
+         
+        integ_fly = img_stack.chunk({dim_to_chunk:chunksize}).map_blocks(self.integrateImageStack_legacy,template=template)#integ_traditional.chunk({'energy':5}))
         return integ_fly 
 
     def integrateImageStack_legacy(self,img_stack):
@@ -133,18 +145,10 @@ class PFEnergySeriesIntegrator(PFGeneralIntegrator):
         # + 
         # restack the reduced data
         data = img_stack
-        indexes = list(data.indexes.keys())
+        indexes = list(data.dims)
         indexes.remove('pix_x')
         indexes.remove('pix_y')
-        real_indexes = indexes
-        for idx in indexes:
-            if type(data.indexes[idx]) == pd.core.indexes.multi.MultiIndex:
-                for level in data.indexes[idx].names:
-                    try:
-                        real_indexes.remove(level)
-                    except ValueError:
-                        pass
-        indexes = real_indexes
+        
         if len(indexes) == 1:
             if img_stack.__getattr__(indexes[0]).to_pandas().drop_duplicates().shape[0] != img_stack.__getattr__(indexes[0]).shape[0]:
                 warnings.warn(f'Axis {indexes[0]} contains duplicate conditions.  This is not supported and may not work.  Try adding additional coords to separate image conditions',stacklevel=2)
