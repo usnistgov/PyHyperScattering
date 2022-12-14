@@ -59,6 +59,7 @@ class SST1RSoXSDB:
             self.corr_mode = corr_mode
         if use_lazy_loading:
             catalog_kwargs['structure_clients'] = 'dask'
+        self.use_lazy_loading = use_lazy_loading
         if catalog is None:
             self.c = from_profile('rsoxs',**catalog_kwargs)
         else:
@@ -489,11 +490,9 @@ class SST1RSoXSDB:
             dim_names_to_join.append(key)
 
         
-        
         index = pd.MultiIndex.from_arrays(
                 dims_to_join,
                 names=dim_names_to_join)
-
         #handle the edge case of a partly-finished scan
         if len(index) != len(data['time']):
             index = index[:len(data['time'])]
@@ -529,7 +528,10 @@ class SST1RSoXSDB:
             #retxr = (index,monitors,retxr)
             monitors.attrs.update(retxr.attrs)
             retxr = monitors.merge(retxr)
-            
+        
+        if self.use_lazy_loading:
+            # dask and multiindexes are like PEO and PPO.  They're kinda the same thing and they don't like each other.
+            retxr = retxr.unstack('system')
             
         return retxr
 
