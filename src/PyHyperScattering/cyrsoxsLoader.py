@@ -26,14 +26,16 @@ class cyrsoxsLoader():
     md_loading_is_quick = False
     
     
-    def __init__(self,eager_load=False,profile_time=True):
+    def __init__(self,eager_load=False,profile_time=True,use_chunked_loading=False):
         '''
         Args:
             eager_load (bool, default False): block and wait for files to be created rather than erroring.  useful for live intake as simulations are being run to save time.
             profile_time (bool, default True): print time/profiling data to console
+            use_chunked_loading (bool, default False): generate Dask-backed arrays
         '''
         self.eager_load = eager_load
         self.profile_time = profile_time
+        self.use_chunked_loading = use_chunked_loading
     
     def read_config(self,fname):
         '''
@@ -63,7 +65,14 @@ class cyrsoxsLoader():
                     value = str(value)
                 config[key] = value
         return config
-
+    def loadDirectory(self,directory,method=None,**kwargs):
+        if method == 'dask' or (method is None and self.use_chunked_loading):
+            return self.loadDirectoryDask(directory,**kwargs)
+        elif method == 'legacy' or (method is None and not self.use_chunked_loading):
+            return self.loadDirectoryLegacy(directory,**kwargs)
+        else:
+            raise NotImplementedError('unsupported method {method}, expected "dask" or "legacy"')
+            
     def loadDirectoryDask(self,directory,output_dir='HDF5',morphology_file=None, PhysSize=None):
         '''
         Loads a CyRSoXS simulation output directory into a Dask-backed qx/qy xarray.
@@ -155,7 +164,7 @@ class cyrsoxsLoader():
         return xr.DataArray(data, dims=("qx", "qy","energy"), coords={ "qx":Qx, "qy":Qy, "energy":elist},attrs=config)
         
 
-    def loadDirectory(self,directory,output_dir='HDF5',morphology_file=None, PhysSize=None):
+    def loadDirectoryLegacy(self,directory,output_dir='HDF5',morphology_file=None, PhysSize=None):
         '''
         Loads a CyRSoXS simulation output directory into a qx/qy xarray.
         
