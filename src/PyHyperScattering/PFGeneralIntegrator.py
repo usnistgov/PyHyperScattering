@@ -162,7 +162,6 @@ class PFGeneralIntegrator():
             if getattr(self,'expected_dim_order',None) is not None:
                 orig_order = data_int.dims
                 data_int = data_int.transpose(*self.expected_dim_order)
-                #print(f'had to transpose, from {orig_order} to {data_int.dims}')
         
         return data_int
         #int_stack = img_stack.groupby('system').map_progress(self.integrateSingleImage)
@@ -473,7 +472,7 @@ class PFGeneralIntegrator():
         self.pixel2 = raw_xr.pixel2
         
         if self.mask is None:
-            self.mask = np.zeros(raw_xr.shape[-2:])
+            self.mask = np.zeros((len(raw_xr.pix_y),len(raw_xr.pix_x)))
             warnings.warn(f'Since mask was none, creating an empty mask with shape {self.mask.shape}',stacklevel=2)
         self.recreateIntegrator()
 
