@@ -39,7 +39,7 @@ class SST1RSoXSDB:
     
     
 
-    def __init__(self,corr_mode=None,user_corr_fun=None,dark_subtract=True,dark_pedestal=0,exposure_offset=0,catalog=None,catalog_kwargs={},use_precise_positions=False,use_lazy_loading=False):
+    def __init__(self,corr_mode=None,user_corr_fun=None,dark_subtract=True,dark_pedestal=0,exposure_offset=0,catalog=None,catalog_kwargs={},use_precise_positions=False,use_chunked_loading=False):
         '''
             Args:
                 corr_mode (str): origin to use for the intensity correction.  Can be 'expt','i0','expt+i0','user_func','old',or 'none'
@@ -49,7 +49,7 @@ class SST1RSoXSDB:
                 catalog (DataBroker Catalog): overrides the internally-set-up catalog with a version you provide
                 catalog_kwargs (dict): kwargs to be passed to a from_profile catalog generation script.  For example, you can ask for Dask arrays here.
                 use_precise_positions (bool): if False, rounds sam_x and sam_y to 1 digit.  If True, keeps default rounding (4 digits).  Needed for spiral scans to work with readback positions.
-                use_lazy_loading (bool): if True, returns Dask backed arrays for further Dask processing.  if false, behaves in conventional Numpy-backed way
+                use_chunked_loading (bool): if True, returns Dask backed arrays for further Dask processing.  if false, behaves in conventional Numpy-backed way
         '''
         if corr_mode == None:
             warnings.warn("Correction mode was not set, not performing *any* intensity corrections.  Are you sure this is "+
@@ -57,9 +57,9 @@ class SST1RSoXSDB:
             self.corr_mode = 'none'
         else:
             self.corr_mode = corr_mode
-        if use_lazy_loading:
+        if use_chunked_loading:
             catalog_kwargs['structure_clients'] = 'dask'
-        self.use_lazy_loading = use_lazy_loading
+        self.use_chunked_loading = use_chunked_loading
         if catalog is None:
             self.c = from_profile('rsoxs',**catalog_kwargs)
         else:
@@ -529,7 +529,7 @@ class SST1RSoXSDB:
             monitors.attrs.update(retxr.attrs)
             retxr = monitors.merge(retxr)
         
-        if self.use_lazy_loading:
+        if self.use_chunked_loading:
             # dask and multiindexes are like PEO and PPO.  They're kinda the same thing and they don't like each other.
             retxr = retxr.unstack('system')
             
