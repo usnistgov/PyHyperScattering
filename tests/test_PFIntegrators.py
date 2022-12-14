@@ -52,7 +52,8 @@ def test_integrator_loads_polygon_mask(pfesint):
     pfesint.loadPolyMask(maskpoints=[[[367, 545], [406, 578], [880, 0], [810, 0]]],maskshape=(1024,1026))
                          
 def test_integrator_loads_pyhyper_mask(pfesint):
-    pfesint.loadPyHyperMask(maskpath=pathlib.Path('mask-test-pack/liquidMask.json'),maskshape=(1024,1026))                      
+    pfesint.loadPyHyperMask(maskpath=pathlib.Path('mask-test-pack/liquidMask.json'),maskshape=(1024,1026))     
+    
 def test_integrator_beamcenter_to_poni(pfesint):
     pfesint.nika_beamcenter_x = 400
     pfesint.nika_beamcenter_y = 600
@@ -60,16 +61,54 @@ def test_integrator_beamcenter_to_poni(pfesint):
     assert(math.isclose(pfesint.poni2,0.0293916))
     pass
 
-def test_integration_runs_en_series_legacy(sst_data,pfesint):
+def test_integration_runs_en_series_legacy_2dim_mi(sst_data,pfesint):
     pfesint.integrateImageStack(sst_data)
 
-def test_integration_runs_en_series_dask(sst_data,pfesint_dask):
-    pfesint_dask.integrateImageStack(sst_data)
+def test_integration_runs_en_series_dask_2dim_mi(sst_data,pfesint_dask):
+    pfesint_dask.integrateImageStack(sst_data).compute()
 
-def test_integration_runs_gen_legacy(sst_data,pfgenint):
+def test_integration_runs_gen_legacy_2dim_mi(sst_data,pfgenint):
     pfgenint.integrateImageStack(sst_data)
 
-def test_integration_runs_gen_dask(sst_data,pfgenint_dask):
-    pfgenint_dask.integrateImageStack(sst_data)
+def test_integration_runs_gen_dask_2dim_mi(sst_data,pfgenint_dask):
+    pfgenint_dask.integrateImageStack(sst_data).compute()
+    
+def test_integration_runs_en_series_legacy_2dim(sst_data,pfesint):
+    pfesint.integrateImageStack(sst_data.unstack('system'))
 
+def test_integration_runs_en_series_dask_2dim(sst_data,pfesint_dask):
+    pfesint_dask.integrateImageStack(sst_data.unstack('system'),chunksize=6).compute()
+
+def test_integration_runs_gen_legacy_2dim(sst_data,pfgenint):
+    pfgenint.integrateImageStack(sst_data.unstack('system'))
+
+def test_integration_runs_gen_dask_2dim(sst_data,pfgenint_dask):
+    pfgenint_dask.integrateImageStack(sst_data.unstack('system'),chunksize=6).compute()
+
+
+
+
+def test_integration_runs_en_series_legacy_1dim_mi(sst_data,pfesint):
+    pfesint.integrateImageStack(sst_data.sel(polarization=90).stack(system=['energy']))
+
+def test_integration_runs_en_series_dask_1dim_mi(sst_data,pfesint_dask):
+    pfesint_dask.integrateImageStack(sst_data.sel(polarization=90).stack(system=['energy']),chunksize=6).compute()
+
+def test_integration_runs_gen_legacy_1dim_mi(sst_data,pfgenint):
+    pfgenint.integrateImageStack(sst_data.sel(polarization=90).stack(system=['energy']))
+
+def test_integration_runs_gen_dask_1dim_mi(sst_data,pfgenint_dask):
+    pfgenint_dask.integrateImageStack(sst_data.sel(polarization=90).stack(system=['energy']),chunksize=6).compute()
+    
+def test_integration_runs_en_series_legacy_1dim(sst_data,pfesint):
+    pfesint.integrateImageStack(sst_data.sel(polarization=90))
+
+def test_integration_runs_en_series_dask_1dim(sst_data,pfesint_dask):
+    pfesint_dask.integrateImageStack(sst_data.sel(polarization=90),chunksize=6).compute()
+
+def test_integration_runs_gen_legacy_1dim(sst_data,pfgenint):
+    pfgenint.integrateImageStack(sst_data.sel(polarization=90))
+
+def test_integration_runs_gen_dask_1dim(sst_data,pfgenint_dask):
+    pfgenint_dask.integrateImageStack(sst_data.sel(polarization=90),chunksize=6).compute()
 
