@@ -7,18 +7,31 @@ from PyHyperScattering.integrate import WPIntegrator
 import xarray as xr
 import pathlib
 #import HDR
+import math
+import unittest
+import pytest
 
-def test_wp_integrator_imports_cleanly():
-	integ = WPIntegrator()
+@pytest.fixture(autouse=True,scope='module')
+def wp_integrator_legacy():
+    integ = WPIntegrator()
+    return integ
 
+@pytest.fixture(autouse=True,scope='module')
+def wp_integrator_dask():
+    integ = WPIntegrator(use_chunked_processing=True)
+    return integ
 
-def test_cyrsoxs_single_scan_import():
+@pytest.fixture(autouse=True,scope='module')
+def cyrsoxs_data():
         load = cyrsoxsLoader()
-        integ = WPIntegrator()
-
         raw = load.loadDirectory(pathlib.Path('2021-09-03_pl-0.1_cyl10_core5_sp60'))
-        reduced = integ.integrateImageStack(raw)
+        return raw
 
+def test_wp_integrator_legacy(cyrsoxs_data,wp_integrator_legacy):
+        reduced = wp_integrator_legacy.integrateImageStack(cyrsoxs_data)
         assert type(reduced)==xr.DataArray
 
-        return raw
+def test_wp_integrator_dask(cyrsoxs_data,wp_integrator_dask):
+        reduced = wp_integrator_dask.integrateImageStack(cyrsoxs_data)
+        assert type(reduced)==xr.DataArray
+

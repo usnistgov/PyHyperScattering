@@ -6,7 +6,6 @@ import pandas as pd
 import datetime
 import warnings
 import json
-#from pyFAI import azimuthalIntegrator
 import numpy as np
 import pandas as pd
 from tqdm.auto import tqdm
@@ -14,12 +13,12 @@ import scipy.ndimage
 import asyncio
 import time
 
-
 try:
     os.environ["TILED_SITE_PROFILES"] = '/nsls2/software/etc/tiled/profiles'
     from tiled.client import from_profile
     from httpx import HTTPStatusError
     import tiled
+    import dask
     from databroker.queries import RawMongo, Key, FullText, Contains,Regex
 except:
     print('Imports failed.  Are you running on a machine with proper libraries for databroker, tiled, etc.?')
@@ -40,7 +39,7 @@ class SST1RSoXSDB:
     
     
 
-    def __init__(self,corr_mode=None,user_corr_fun=None,dark_subtract=True,dark_pedestal=0,exposure_offset=0,catalog=None,catalog_kwargs={}):
+    def __init__(self,corr_mode=None,user_corr_fun=None,dark_subtract=True,dark_pedestal=0,exposure_offset=0,catalog=None,catalog_kwargs={},use_precise_positions=False,use_chunked_loading=False):
         '''
             Args:
                 corr_mode (str): origin to use for the intensity correction.  Can be 'expt','i0','expt+i0','user_func','old',or 'none'
@@ -49,6 +48,8 @@ class SST1RSoXSDB:
                 exposure_offset (numeric): value to add to the exposure time.
                 catalog (DataBroker Catalog): overrides the internally-set-up catalog with a version you provide
                 catalog_kwargs (dict): kwargs to be passed to a from_profile catalog generation script.  For example, you can ask for Dask arrays here.
+                use_precise_positions (bool): if False, rounds sam_x and sam_y to 1 digit.  If True, keeps default rounding (4 digits).  Needed for spiral scans to work with readback positions.
+                use_chunked_loading (bool): if True, returns Dask backed arrays for further Dask processing.  if false, behaves in conventional Numpy-backed way
         '''
         if corr_mode == None:
             warnings.warn("Correction mode was not set, not performing *any* intensity corrections.  Are you sure this is "+
@@ -56,7 +57,9 @@ class SST1RSoXSDB:
             self.corr_mode = 'none'
         else:
             self.corr_mode = corr_mode
-        
+        if use_chunked_loading:
+            catalog_kwargs['structure_clients'] = 'dask'
+        self.use_chunked_loading = use_chunked_loading
         if catalog is None:
             self.c = from_profile('rsoxs',**catalog_kwargs)
         else:
@@ -64,6 +67,7 @@ class SST1RSoXSDB:
         self.dark_subtract=dark_subtract
         self.dark_pedestal=dark_pedestal
         self.exposure_offset=exposure_offset
+        self.use_precise_positions = use_precise_positions
         
     # def loadFileSeries(self,basepath):
     #     try:
@@ -410,7 +414,7 @@ class SST1RSoXSDB:
         Loads a run entry from a catalog result into a raw xarray.
 
         Args:
-            run (DataBroker result): a single run from BlueSky
+            run (DataBroker result, int of a scan id, list of scan ids, list of DataBroker runs): a single run from BlueSky
             dims (list): list of dimensions you'd like in the resulting xarray.  See list of allowed dimensions in documentation.  If not set or None, tries to auto-hint the dims from the RSoXS plan_name.
             coords (dict): user-supplied dimensions, see syntax examples in documentation.
             return_dataset (bool,default False): return both the data and the monitors as a xr.dataset.  If false (default), just returns the data.
@@ -418,6 +422,13 @@ class SST1RSoXSDB:
             raw (xarray): raw xarray containing your scan in PyHyper-compliant format
 
         '''
+        if type(run) is int:
+            run = self.c[run]
+        elif type(run) is pd.DataFrame:
+            run = list(run.scan_id)
+        if type(run) is list:
+            return self.loadSeries(run,'sample_name',loadrun_kwargs = {'dims':dims,'coords':coords,'return_dataset':return_dataset})
+        
         md = self.loadMd(run)
         monitors = self.loadMonitors(run)
         if 'NEXAFS' in md['start']['plan_name']:
@@ -439,14 +450,16 @@ class SST1RSoXSDB:
         
 
         data = run['primary']['data'][md['detector']+'_image']
-        if type(data) == tiled.client.array.ArrayClient:
-            data = xr.DataArray(data)
+        if type(data) == tiled.client.array.ArrayClient or type(data) == tiled.client.array.DaskArrayClient:
+            data = run['primary']['data'].read()[md['detector']+'_image']
+        elif type(data) == tiled.client.array.DaskArrayClient:
+            data = xr.DataArray(data.read(),dims=data.dims) # xxx hack!  Really should use tiled structure_clients xarraydaskclient here.
         data = data.astype(int)   # convert from uint to handle dark subtraction
 
         if self.dark_subtract:
             dark = run['dark']['data'][md['detector']+'_image']
-            if type(dark) == tiled.client.array.ArrayClient:
-                dark = xr.DataArray(dark)
+            if type(dark) == tiled.client.array.ArrayClient or type(dark) == tiled.client.array.DaskArrayClient:
+                dark = run['dark']['data'].read()[md['detector']+'_image']
             darkframe = np.copy(data.time)
             for n,time in enumerate(dark.time):
                 darkframe[(data.time - time)>0]=int(n)
@@ -462,8 +475,11 @@ class SST1RSoXSDB:
 
         for dim in dims:
             try:
-                test = len(md[dim])
-                dims_to_join.append(md[dim])
+                test = len(md[dim]) # this will throw a typeerror if single value
+                if type(md[dim]) == dask.array.core.Array:
+                    dims_to_join.append(md[dim].compute())
+                else:
+                    dims_to_join.append(md[dim])
                 dim_names_to_join.append(dim)
             except TypeError:
                 dims_to_join.append(np.ones(run.start['num_points'])*md[dim])
@@ -473,14 +489,15 @@ class SST1RSoXSDB:
             dims_to_join.append(val)
             dim_names_to_join.append(key)
 
+        
         index = pd.MultiIndex.from_arrays(
                 dims_to_join,
                 names=dim_names_to_join)
-
         #handle the edge case of a partly-finished scan
         if len(index) != len(data['time']):
             index = index[:len(data['time'])]
-        retxr = data.squeeze('dim_0').rename({'dim_1':'pix_y','dim_2':'pix_x'}).rename({'time':'system'}).assign_coords(system=index)#,md['detector']+'_image':'intensity'})
+        actual_exposure = md['exposure'] * len(data.dim_0)
+        retxr = data.sum('dim_0').rename({'dim_1':'pix_y','dim_2':'pix_x'}).rename({'time':'system'}).assign_coords(system=index)#,md['detector']+'_image':'intensity'})
         
         #this is needed for holoviews compatibility, hopefully does not break other features.
         retxr = retxr.assign_coords({'pix_x':np.arange(0,len(retxr.pix_x)),'pix_y':np.arange(0,len(retxr.pix_y))})
@@ -490,6 +507,7 @@ class SST1RSoXSDB:
             warnings.warn('Error assigning monitor readings to system.  Problem with monitors.  Please check.',stacklevel=2)
         retxr.attrs.update(md)
           
+        retxr.attrs['exposure'] = len(data.dim_0)*retxr.attrs['exposure'] # patch for multi exposures
         #now do corrections:
         frozen_attrs = retxr.attrs
         if self.corr_mode == 'i0':
@@ -510,7 +528,10 @@ class SST1RSoXSDB:
             #retxr = (index,monitors,retxr)
             monitors.attrs.update(retxr.attrs)
             retxr = monitors.merge(retxr)
-            
+        
+        if self.use_chunked_loading:
+            # dask and multiindexes are like PEO and PPO.  They're kinda the same thing and they don't like each other.
+            retxr = retxr.unstack('system')
             
         return retxr
 
@@ -518,13 +539,13 @@ class SST1RSoXSDB:
     def peekAtMd(self,run):
         return self.loadMd(run)
 
-    def loadMonitors(self,entry,integrate_onto_images=True,n_thinning_iters=20):
+    def loadMonitors(self,entry,integrate_onto_images=True,n_thinning_iters=5):
         '''
         Load the monitor streams for entry.
         Args:
            entry (Bluesky document): run to extract monitors from
            integrate_onto_images (bool, default True): return integral of monitors while shutter was open for images.  if false, returns raw data.
-           n_thinning_iters (int, default 20): how many iterations of binary thinning to use to exclude shutter edges.
+           n_thinning_iters (int, default 5): how many iterations of binary thinning to use to exclude shutter edges.
         
         '''
         monitors = None
@@ -537,13 +558,19 @@ class SST1RSoXSDB:
         monitors = monitors.ffill('time').bfill('time')
         if integrate_onto_images:
             try:
+                try:
+                    primary_time = entry.primary.data['time'].values
+                except AttributeError:
+                    if type(entry.primary.data['time']) == tiled.client.array.DaskArrayClient:
+                        primary_time = entry.primary.data['time'].read().compute()
+                    elif type(entry.primary.data['time']) == tiled.client.array.ArrayClient:
+                        primary_time = entry.primary.data['time'].read()
                 monitors['RSoXS Shutter Toggle_thinned'] = monitors['RSoXS Shutter Toggle']
                 monitors['RSoXS Shutter Toggle_thinned'].values = scipy.ndimage.binary_erosion(monitors['RSoXS Shutter Toggle'].values,iterations=n_thinning_iters,border_value=0)
                 monitors = monitors.where(monitors['RSoXS Shutter Toggle_thinned']>0).dropna('time')
-                monitors = monitors.groupby_bins('time',
-    np.insert(entry.primary.data['time'].values,0,0)).mean().rename_dims({'time_bins':'time'})
-                monitors = monitors.assign_coords({'time':entry.primary.data['time']}).reset_coords('time_bins',drop=True)
-            except:
+                monitors = monitors.groupby_bins('time',np.insert(primary_time,0,0)).mean().rename_dims({'time_bins':'time'})
+                monitors = monitors.assign_coords({'time':primary_time}).reset_coords('time_bins',drop=True)
+            except Exception:
                 warnings.warn('Error while time-integrating onto images.  Check data.',stacklevel=2)
         return monitors
     
@@ -630,6 +657,13 @@ class SST1RSoXSDB:
         md_secondary_lookup = {
             'energy':'en_monoen_setpoint',
             }
+        
+                
+        for key in primary.keys():
+            if key not in md_lookup.values():
+                if '_image' not in key:
+                    md_lookup[key] = key
+        
         for phs,rsoxs in md_lookup.items():
             try:
                 md[phs] = primary[rsoxs].read()
@@ -637,7 +671,7 @@ class SST1RSoXSDB:
             except (KeyError,HTTPStatusError):
                 try:
                     blval = baseline[rsoxs]
-                    if type(blval) == tiled.client.array.ArrayClient:
+                    if type(blval) == tiled.client.array.ArrayClient or type(blval) == tiled.client.array.DaskArrayClient:
                         blval = blval.read()
                     md[phs] = blval.mean().round(4)
                     if blval.var() > 0:
@@ -648,7 +682,7 @@ class SST1RSoXSDB:
                     except (KeyError,HTTPStatusError):
                         try:
                             blval = baseline[md_secondary_lookup[phs]]
-                            if type(blval) == tiled.client.array.ArrayClient:
+                            if type(blval) == tiled.client.array.ArrayClient or type(blval) == tiled.client.array.DaskArrayClient:
                                 blval = blval.read()
                             md[phs] = blval.mean().round(4)
                             if blval.var() > 0:
@@ -668,6 +702,11 @@ class SST1RSoXSDB:
 
         md['pixel1'] = self.pix_size_1 / 1000
         md['pixel2'] = self.pix_size_2 / 1000
+        
+        
+        if not self.use_precise_positions:
+            md['sam_x'] = md['sam_x'].round(1)
+            md['sam_y'] = md['sam_y'].round(1)
 
         md['poni1'] = md['beamcenter_y'] * md['pixel1']
         md['poni2'] = md['beamcenter_x'] * md['pixel2']

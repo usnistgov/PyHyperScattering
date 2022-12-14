@@ -29,9 +29,14 @@ def inner_generator(df_function='apply'):
         return result
     return inner
 
-DataArrayGroupBy.progress_apply = inner_generator()
-DatasetGroupBy.progress_apply = inner_generator()
+DataArrayGroupBy.progress_apply = inner_generator(df_function='apply')
+DatasetGroupBy.progress_apply = inner_generator(df_function='apply')
 
+DataArrayGroupBy.progress_map = inner_generator(df_function='map')
+DatasetGroupBy.progress_map = inner_generator(df_function='map')
+
+DataArrayGroupBy.progress_map_blocks = inner_generator(df_function='map_blocks')
+DatasetGroupBy.progress_map_blocks = inner_generator(df_function='map_blocks')
 
 # end monkey patch
 
@@ -48,26 +53,26 @@ class PFGeneralIntegrator():
         else:
             img_to_integ = img.values
         
+        if self.mask is None:
+            warnings.warn('No mask defined.  Creating an empty mask with dimensions {img.shape}.',stacklevel=2)
+            self.mask = np.zeros_like(img).squeeze()
         assert np.shape(self.mask)==np.shape(img_to_integ),f'Error!  Mask has shape {np.shape(self.mask)} but you are attempting to integrate data with shape {np.shape(img_to_integ)}.  Try changing mask orientation or updating mask.'
-        stacked_axis = list(img.indexes.keys())
+        stacked_axis = list(img.dims)
         stacked_axis.remove('pix_x')
         stacked_axis.remove('pix_y')
-        real_stacked_axis = stacked_axis
-        for idx in stacked_axis:
-            if type(img.indexes[idx]) == pd.core.indexes.multi.MultiIndex:
-                for level in img.indexes[idx].names:
-                    try:
-                        real_stacked_axis.remove(level)
-                    except ValueError:
-                        pass
-        stacked_axis = real_stacked_axis
-        assert len(stacked_axis)==1, "More than one axis left after removing pix_x and pix_y, not sure how to handle"
-        stacked_axis = stacked_axis[0]
-        if(img.__getattr__(stacked_axis).shape[0]>1):
-            system_to_integ = [img[0].__getattr__(stacked_axis)]
-            warnings.warn(f'There are two images for {img.__getattr__(stacked_axis)}, I am ONLY INTEGRATING THE FIRST.  This may cause the labels to be dropped and the result to need manual re-tagging in the index.',stacklevel=2)
+        if len(stacked_axis)>0:
+            assert len(stacked_axis)==1, f"More than one dimension left after removing pix_x and pix_y, I see {stacked_axis}, not sure how to handle"
+            stacked_axis = stacked_axis[0]
+            #print(f'looking for {stacked_axis} in {img[0].indexes} (indexes), it has dims {img[0].dims} and looks like {img[0]}')
+            if(img.__getattr__(stacked_axis).shape[0]>1):
+                system_to_integ = img[0].indexes[stacked_axis]
+                warnings.warn(f'There are two images for {img.__getattr__(stacked_axis)}, I am ONLY INTEGRATING THE FIRST.  This may cause the labels to be dropped and the result to need manual re-tagging in the index.',stacklevel=2)
+            else:
+                system_to_integ = img.indexes[stacked_axis]
+                
         else:
-            system_to_integ = img.__getattr__(stacked_axis)
+            stacked_axis = 'image_num'
+            system_to_integ = [0]
         if self.do_1d_integration:
             integ_func = self.integrator.integrate1d
         else:
@@ -101,18 +106,18 @@ class PFGeneralIntegrator():
             radial_to_save = frame.radial
         if self.do_1d_integration:
             try:
-                res = xr.DataArray([frame.intensity],dims=[stacked_axis,'q'],coords={'q':radial_to_save,stacked_axis:system_to_integ},attrs=img.attrs)
+                res = xr.DataArray([frame.intensity],dims=[stacked_axis,'q'],coords={'q':('q',radial_to_save),stacked_axis:(stacked_axis,system_to_integ)},attrs=img.attrs)
                 if self.return_sigma:
-                    sigma = xr.DataArray([frame.sigma],dims=[stacked_axis,'q'],coords={'q':radial_to_save,stacked_axis:system_to_integ},attrs=img.attrs)
+                    sigma = xr.DataArray([frame.sigma],dims=[stacked_axis,'q'],coords={'q':('q',radial_to_save),stacked_axis:(stacked_axis,system_to_integ)},attrs=img.attrs)
             except AttributeError:
                 res = xr.DataArray(frame.intensity, dims=['q'], coords={'q': radial_to_save}, attrs=img.attrs)
                 if self.return_sigma:
                     sigma = xr.DataArray(frame.sigma, dims=['q'], coords={'q': radial_to_save}, attrs=img.attrs)
         else:
             try:
-                res = xr.DataArray([frame.intensity],dims=[stacked_axis,'chi','q'],coords={'q':radial_to_save,'chi':frame.azimuthal,stacked_axis:system_to_integ},attrs=img.attrs)
+                res = xr.DataArray([frame.intensity],dims=[stacked_axis,'chi','q'],coords={'q':('q',radial_to_save),'chi':('chi',frame.azimuthal),stacked_axis:(stacked_axis,system_to_integ)},attrs=img.attrs)#.transpose(['chi','q',stacked_axis])
                 if self.return_sigma:
-                    sigma = xr.DataArray([frame.sigma],dims=[stacked_axis,'chi','q'],coords={'q':radial_to_save,'chi':frame.azimuthal,stacked_axis:system_to_integ},attrs=img.attrs)
+                    sigma = xr.DataArray([frame.sigma],dims=[stacked_axis,'chi','q'],coords={'q':('q',radial_to_save),'chi':('chi',frame.azimuthal),stacked_axis:(stacked_axis,system_to_integ)},attrs=img.attrs)#.transpose(['chi','q',stacked_axis])
             except AttributeError:
                 res = xr.DataArray(frame.intensity, dims=['chi', 'q'],
                                    coords={'q': radial_to_save, 'chi': frame.azimuthal}, attrs=img.attrs)
@@ -124,20 +129,133 @@ class PFGeneralIntegrator():
             res['dI'] = sigma
         return res
 
-    def integrateImageStack(self,data):
-        indexes = list(data.indexes.keys())
+    '''
+    legacy index ident code:
+     indexes = list(data.indexes.keys())
         indexes.remove('pix_x')
         indexes.remove('pix_y')
+        real_indexes = indexes
+        for idx in indexes:
+            if type(data.indexes[idx]) == pd.core.indexes.multi.MultiIndex:
+                for level in data.indexes[idx].names:
+                    try:
+                        real_indexes.remove(level)
+                    except ValueError:
+                        pass
+        indexes = real_indexes
+    '''
+    
+    def integrateImageStack_legacy(self,data):
+        indexes = list(data.dims)
+        indexes.remove('pix_x')
+        indexes.remove('pix_y')
+        
         if len(indexes) == 1:
-            data_int = data.groupby(indexes[0],squeeze=False).progress_apply(self.integrateSingleImage)
+            data_int = data.groupby(indexes[0],squeeze=False).progress_map(self.integrateSingleImage)
         else:
             #some kinda logic to check for existing multiindexes and stack into them appropriately maybe
             data = data.stack({'pyhyper_internal_multiindex':indexes})
-            data_int = data.groupby('pyhyper_internal_multiindex',squeeze=False).progress_apply(self.integrateSingleImage).unstack('pyhyper_internal_multiindex')
+            data_int = data.groupby('pyhyper_internal_multiindex',squeeze=False)
+            data_int = data_int.progress_map(self.integrateSingleImage)
+            data_int = data_int.unstack('pyhyper_internal_multiindex')
+            #this is a hack to fix the dimension order in case we are being called as an inner function of a Dask reduction
+            if getattr(self,'expected_dim_order',None) is not None:
+                orig_order = data_int.dims
+                data_int = data_int.transpose(*self.expected_dim_order)
+        
         return data_int
         #int_stack = img_stack.groupby('system').map_progress(self.integrateSingleImage)
         #PRSUtils.fix_unstacked_dims(int_stack,img_stack,'system',img_stack.attrs['dims_unpacked'])
         #return int_stack
+        
+    def integrateImageStack_dask(self,data,chunksize=5):
+        #int_stack = img_stack.groupby('system').map(self.integrateSingleImage)   
+        #return int_stack
+        indexes = list(data.dims)
+        try:
+            indexes.remove('pix_x')
+            indexes.remove('pix_y')
+        except ValueError:
+            pass
+        try:
+            indexes.remove('qx')
+            indexes.remove('qy')
+        except ValueError:
+            pass
+
+        if len(indexes) == 1:
+            if data.__getattr__(indexes[0]).to_pandas().drop_duplicates().shape[0] != data.__getattr__(indexes[0]).shape[0]:
+                warnings.warn(f'Axis {indexes[0]} contains duplicate conditions.  This is not supported and may not work.  Try adding additional coords to separate image conditions',stacklevel=2)
+            
+            dim_to_chunk = indexes[0]
+        else:
+            #some kinda logic to check for existing multiindexes and stack into them appropriately maybe
+            if 'energy' in indexes:
+                dim_to_chunk = 'energy'
+            else:
+                dim_to_chunk = indexes[0]
+            #this probably should check which is the longest?  Shortest?  and chunk that.
+        print(f'chunking on {dim_to_chunk}')
+        
+        '''
+            data = data.stack({'pyhyper_internal_multiindex':indexes})
+            if data.pyhyper_internal_multiindex.to_pandas().drop_duplicates().shape[0] != data.pyhyper_internal_multiindex.shape[0]:
+                warnings.warn('Your index set contains duplicate conditions.  This is not supported and may not work.  Try adding additional coords to separate image conditions',stacklevel=2)
+                
+            fake_image_to_process = data.isel(**{'pyhyper_internal_multiindex':0},drop=False)
+            indexes=['pyhyper_internal_multiindex']
+            dim_to_chunk = 'pyhyper_internal_multiindex'
+        '''
+        
+        fake_image_to_process = data.isel(**{dim_to_chunk:0},drop=False)
+        data = data.chunk({dim_to_chunk:chunksize})
+        coord_dict = {}
+        shape = tuple([])
+        demo_integration = self.integrateSingleImage(fake_image_to_process)
+        coord_dict.update({'chi':demo_integration.chi,'q':demo_integration.q})
+        npts_q = len(demo_integration.q)
+              
+        order_list = []
+        for idx in indexes:
+            order_list.append(idx)
+            coord_dict[idx] = data.indexes[idx]
+            shape = shape + tuple([len(data.indexes[idx])])
+        shape = shape + (360,npts_q)
+        
+        desired_order_list = order_list+['chi','q']
+        coord_dict_sorted = {k: coord_dict[k] for k in desired_order_list}
+        
+        
+        
+        template = xr.DataArray(np.empty(shape),coords=coord_dict_sorted)  
+        
+        print(demo_integration.dims)
+        if 'image_num' in demo_integration.dims:
+            template = template.transpose(*[item if item != 'image_num' else dim_to_chunk for item in demo_integration.dims])
+        elif dim_to_chunk not in demo_integration.dims:
+            template = template.transpose(dim_to_chunk, *demo_integration.dims)
+        template = template.chunk({indexes[0]:chunksize})
+        '''
+        try:
+            print(template)
+            print(template.indexes)
+            print(template.pyhyper_internal_multiindex)
+            print(data)
+            print(data.indexes)
+            print(data.pyhyper_internal_multiindex)
+            print(data.pyhyper_internal_multiindex==template.pyhyper_internal_multiindex)
+        except AttributeError:
+            pass
+            
+        '''
+        self.expected_dim_order = template.dims
+        print(f'set expected dim order to {self.expected_dim_order}')
+        integ_fly = data.map_blocks(self.integrateImageStack_legacy,template=template)
+        if dim_to_chunk=='pyhyper_internal_multiindex':
+            integ_fly = integ_fly.unstack('pyhyper_internal_multiindex')
+        return integ_fly 
+    
+    
     def __init__(self,
                  maskmethod='none', 
                  maskpath= '',
@@ -154,6 +272,7 @@ class PFGeneralIntegrator():
                  use_log_ish_binning=False,
                  do_1d_integration=False,
                  return_sigma=False,
+                 use_chunked_processing=False,
                  **kwargs):
         # energy units eV
         if maskmethod == 'nika':
@@ -190,6 +309,7 @@ class PFGeneralIntegrator():
 
         self.maskToNan = maskToNan
         self.return_sigma = return_sigma
+        self.use_chunked_processing = use_chunked_processing
         # self._energy = 0
         if geomethod == "nika":
             self.ni_pixel_x = NIpixsizex
@@ -209,6 +329,22 @@ class PFGeneralIntegrator():
 
     def __str__(self):
         return f"PyFAI general integrator wrapper SDD = {self.dist} m, poni1 = {self.poni1} m, poni2 = {self.poni2} m, rot1 = {self.rot1} rad, rot2 = {self.rot2} rad"
+
+
+    def integrateImageStack(self,img_stack,method=None,chunksize=None):
+        '''
+        
+        '''
+
+        if (self.use_chunked_processing and method is None) or method=='dask':
+            func_args = {}
+            if chunksize is not None:
+                func_args['chunksize'] = chunksize
+            return self.integrateImageStack_dask(img_stack,**func_args)
+        elif (method is None) or method == 'legacy':
+            return self.integrateImageStack_legacy(img_stack)
+        else:
+            raise NotImplementedError(f'unsupported integration method {method}')
 
 
     def loadPolyMask(self,maskpoints = [], **kwargs):
@@ -334,7 +470,10 @@ class PFGeneralIntegrator():
 
         self.pixel1 = raw_xr.pixel1
         self.pixel2 = raw_xr.pixel2
-
+        
+        if self.mask is None:
+            self.mask = np.zeros((len(raw_xr.pix_y),len(raw_xr.pix_x)))
+            warnings.warn(f'Since mask was none, creating an empty mask with shape {self.mask.shape}',stacklevel=2)
         self.recreateIntegrator()
 
     @property

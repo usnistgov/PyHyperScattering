@@ -26,19 +26,18 @@ def filenumber_coord():
             filenumber_coord.update({file:int(file[-10:-5])})
 
     return filenumber_coord
-
-def test_11012_single_scan_import(alsloader,filenumber_coord):
+@pytest.fixture(autouse=True,scope='module')
+def b11012_single_scan(alsloader,filenumber_coord):
     res = alsloader.loadFileSeries(
                                 'Example/11012/CCD/',
                                ['energy','polarization','exposure','filenumber'],
                                coords = {'filenumber':filenumber_coord},
                                md_filter={'sampleid':1,'CCD Shutter Inhibit':0}
                               )
-    assert type(res)==xr.DataArray
     return res
 
-
-def test_11012_single_scan_qxy_import(alsloader,filenumber_coord):
+@pytest.fixture(autouse=True,scope='module')
+def b11012_single_scan_qxy(alsloader,filenumber_coord):
     return alsloader.loadFileSeries(
                                 'Example/11012/CCD/',
                                ['energy','polarization','exposure','filenumber'],
@@ -46,6 +45,14 @@ def test_11012_single_scan_qxy_import(alsloader,filenumber_coord):
                                md_filter={'sampleid':1,'CCD Shutter Inhibit':0},
                               output_qxy=True)
 
+
+def test_11012_single_scan_import(b11012_single_scan):
+    assert type(b11012_single_scan)==xr.DataArray
+
+
+def test_11012_single_scan_qxy_import(b11012_single_scan_qxy):
+    assert type(b11012_single_scan_qxy) == xr.DataArray
+    
 def test_load_insensitive_to_trailing_slash(alsloader,filenumber_coord):
     withslash = alsloader.loadFileSeries(
                                 'Example/11012/CCD/',

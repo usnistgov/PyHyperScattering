@@ -21,7 +21,7 @@ class SST1RSoXSLoader(FileLoader):
     pix_size_1 = 0.06
     pix_size_2 = 0.06
 
-    def __init__(self,corr_mode=None,user_corr_func=None,dark_pedestal=100,exposure_offset=0,constant_md={}):
+    def __init__(self,corr_mode=None,user_corr_func=None,dark_pedestal=100,exposure_offset=0,constant_md={},):
         '''
         Args:
             corr_mode (str): origin to use for the intensity correction.  Can be 'expt','i0','expt+i0','user_func','old',or 'none'
@@ -62,7 +62,7 @@ class SST1RSoXSLoader(FileLoader):
 
 
 
-    def loadSingleImage(self,filepath,coords=None, return_q=False,**kwargs):
+    def loadSingleImage(self,filepath,coords=None, return_q=False,image_slice=None,use_cached_md=False,**kwargs):
         '''
         HELPER FUNCTION that loads a single image and returns an xarray with either pix_x / pix_y dimensions (if return_q == False) or qx / qy (if return_q == True)
 
@@ -74,8 +74,12 @@ class SST1RSoXSLoader(FileLoader):
 
         '''
         if len(kwargs.keys())>0:
-            warnings.warn(f'Loader does not support features for args: {kwargs.keys()}',stacklevel=2)
+            warnings.warn(f'Loader does not support features for kwargs: {kwargs.keys()}',stacklevel=2)
         
+        if image_slice != None:
+            raise NotImplementedError('Image slicing is not supported for SST1')
+        if use_cached_md != False:
+            raise NotImplementedError('Caching of metadata is not supported for SST1')
         img = Image.open(filepath)
 
         headerdict = self.loadMd(filepath)
