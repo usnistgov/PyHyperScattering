@@ -626,7 +626,7 @@ class SST1RSoXSDB:
                 monitors.rename({"time": "system"})
                 .reset_index("system")
                 .assign_coords(system=index)
-                #.drop("system_")                
+                # .drop("system_")
             )
         except Exception:
             warnings.warn(
@@ -671,25 +671,66 @@ class SST1RSoXSDB:
     def peekAtMd(self, run):
         return self.loadMd(run)
 
-    def loadMonitors(self, entry, integrate_onto_images=True, n_thinning_iters=5):
-        """
-        Load the monitor streams for entry.
-        Args:
-           entry (Bluesky document): run to extract monitors from
-           integrate_onto_images (bool, default True): return integral of monitors while shutter was open for images.  if false, returns raw data.
-           n_thinning_iters (int, default 5): how many iterations of binary thinning to use to exclude shutter edges.
+    def loadMonitors(
+        self,
+        entry,
+        integrate_onto_images: bool = True,
+        useShutterThinning: bool = False,
+        n_thinning_iters: int = 5,
+    ):
+        """Load the monitor streams for entry.
 
+        Creates a dataset containing all monitor streams (e.g., Mesh Current, Shutter Timing, etc.) as data variables mapped
+        against time. Optionally, all streams can be indexed against the primary measurement time for the images using
+        integrate_onto_images. Whether or not time integration attempts to account for shutter opening/closing is controlled
+        by useShutterThinning. Warning: for exposure times < 0.5 seconds at SST (as of 230209), useShutterThinning=True
+        may excessively cull data points.
+
+        Parameters
+        ----------
+        entry : databroker.client.BlueskyRun
+            Bluesky Document containing run information.
+            ex: phs.load.SST1RSoXSDB.c[scanID] or databroker.client.CatalogOfBlueskyRuns[scanID]
+        integrate_onto_images : bool, optional
+            whether or not to map timepoints to the image measurement times (as held by the 'primary' stream), by default True
+            Presently bins are averaged between measurements intervals.
+        useShutterThinning : bool, optional
+            Whether or not to attempt to thin (filter) the raw time streams to remove data collected during shutter opening/closing, by default False
+            As of 230209 at NSLS2 SST1, using useShutterThinning= True for exposure times of < 0.5s is
+            not recommended because the shutter data is unreliable and too many points will be culled
+        n_thinning_iters : int, optional
+            how many iterations of thinning to perform, by default 5
+            If the data is becoming too sparse, try fewer iterations
+        Returns
+        -------
+        xr.Dataset
+            xarray dataset containing all monitor streams as data variables mapped against the dimension "time"
         """
+
         monitors = None
+
+        # Iterate through the list of streams held by the Bluesky document 'entry'
         for stream_name in list(entry.keys()):
+            # Add monitor streams to the output xr.Dataset
             if "monitor" in stream_name:
-                if monitors is None:
+                if monitors is None:  # First one
+                    # incantation to extract the dataset from the bluesky stream
                     monitors = entry[stream_name].data.read()
-                else:
+                else:  # merge into the to existing output xarray
                     monitors = xr.merge((monitors, entry[stream_name].data.read()))
+
+        # At this stage monitors has dimension time and all streams as data variables
+        # the time dimension inherited all time values from all streams
+        # the data variables (Mesh current, sample current etc.) are all sparse, with lots of nans
+
+        # For each nan value, replace with the closest value ahead of it in time
+        # For remaining nans, replace with closest value behind it in time
         monitors = monitors.ffill("time").bfill("time")
+
+        # If we need to remap timepoints to match timepoints for data acquisition
         if integrate_onto_images:
             try:
+                # Pull out ndarray of 'primary' timepoints (measurement timepoints)
                 try:
                     primary_time = entry.primary.data["time"].values
                 except AttributeError:
@@ -703,30 +744,49 @@ class SST1RSoXSDB:
                         == tiled.client.array.ArrayClient
                     ):
                         primary_time = entry.primary.data["time"].read()
-                monitors["RSoXS Shutter Toggle_thinned"] = monitors[
-                    "RSoXS Shutter Toggle"
-                ]
-                monitors[
-                    "RSoXS Shutter Toggle_thinned"
-                ].values = scipy.ndimage.binary_erosion(
-                    monitors["RSoXS Shutter Toggle"].values,
-                    iterations=n_thinning_iters,
-                    border_value=0,
-                )
-                monitors = monitors.where(
-                    monitors["RSoXS Shutter Toggle_thinned"] > 0
-                ).dropna("time")
+
+                # If we want to exclude values for when the shutter was opening or closing
+                # This doesn't work for exposure times ~ < 0.5 s, because shutter stream isn't reliable
+                if useShutterThinning:
+                    # Create new data variable to hold shutter toggle values that are thinned
+                    # Shutter Toggle stream is 1 when open (or opening) and 0 when closed (or closing)
+                    monitors["RSoXS Shutter Toggle_thinned"] = monitors[
+                        "RSoXS Shutter Toggle"
+                    ]
+
+                    # Perform thinning to remove edge cases where shutter may be partially open or closed
+                    monitors[
+                        "RSoXS Shutter Toggle_thinned"
+                    ].values = scipy.ndimage.binary_erosion(
+                        monitors["RSoXS Shutter Toggle"].values,
+                        iterations=n_thinning_iters,
+                        border_value=0,
+                    )
+
+                    # Filter monitors to only include timepoints where shutter was open (as determined by thinning)
+                    # Drop any remaining missing values along the time axis
+                    monitors = monitors.where(
+                        monitors["RSoXS Shutter Toggle_thinned"] > 0
+                    ).dropna("time")
+
+                # Bin the indexes in 'time' based on the intervales between timepoints in 'primary_time' and evaluate their mean
+                # Then rename the 'time_bin' dimension that results to 'time'
                 monitors = (
                     monitors.groupby_bins("time", np.insert(primary_time, 0, 0))
                     .mean()
                     .rename_dims({"time_bins": "time"})
                 )
+
+                # Add primary measurement time as a coordinate in monitors that is named 'time'
+                # Remove the coordinate 'time_bins' from the array
                 monitors = (
                     monitors.assign_coords({"time": primary_time})
                     .drop_indexes("time_bins")
                     .reset_coords("time_bins", drop=True)
                 )
-            except Exception:
+
+            except Exception as e:
+                # raise e # for testing
                 warnings.warn(
                     "Error while time-integrating onto images.  Check data.",
                     stacklevel=2,
