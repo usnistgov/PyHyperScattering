@@ -628,7 +628,8 @@ class SST1RSoXSDB:
                 .assign_coords(system=index)
                 .drop("system_")
             )
-        except:
+        except Exception as e:
+            raise (e)
             warnings.warn(
                 "Error assigning monitor readings to system.  Problem with monitors.  Please check.",
                 stacklevel=2,
@@ -726,8 +727,7 @@ class SST1RSoXSDB:
                     .drop_indexes("time_bins")
                     .reset_coords("time_bins", drop=True)
                 )
-            except Exception as e:
-                raise e
+            except Exception:
                 warnings.warn(
                     "Error while time-integrating onto images.  Check data.",
                     stacklevel=2,
