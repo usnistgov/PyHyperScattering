@@ -675,7 +675,7 @@ class SST1RSoXSDB:
         self,
         entry,
         integrate_onto_images: bool = True,
-        useShutterThinning: bool = False,
+        useShutterThinning: bool = True,
         n_thinning_iters: int = 5,
     ):
         """Load the monitor streams for entry.
