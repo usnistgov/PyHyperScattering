@@ -497,7 +497,14 @@ class SST1RSoXSDB:
             .stack(system=new_system)
         )
 
-    def loadRun(self, run, dims=None, coords={}, return_dataset=False):
+    def loadRun(
+        self,
+        run,
+        dims=None,
+        coords={},
+        return_dataset=False,
+        useMonitorShutterThinning=True,
+    ):
         """
         Loads a run entry from a catalog result into a raw xarray.
 
@@ -526,7 +533,7 @@ class SST1RSoXSDB:
             )
 
         md = self.loadMd(run)
-        monitors = self.loadMonitors(run)
+        monitors = self.loadMonitors(run, useShutterThinning=useMonitorShutterThinning)
         if "NEXAFS" in md["start"]["plan_name"]:
             raise NotImplementedError(
                 f"Scan {md['start']['scan_id']} is a {md['start']['plan_name']} NEXAFS scan.  NEXAFS loading is not yet supported."
