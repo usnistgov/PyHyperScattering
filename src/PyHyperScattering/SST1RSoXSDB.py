@@ -626,10 +626,9 @@ class SST1RSoXSDB:
                 monitors.rename({"time": "system"})
                 .reset_index("system")
                 .assign_coords(system=index)
-                .drop("system_")
+                #.drop("system_")                
             )
-        except Exception as e:
-            raise (e)
+        except Exception:
             warnings.warn(
                 "Error assigning monitor readings to system.  Problem with monitors.  Please check.",
                 stacklevel=2,
