@@ -721,8 +721,10 @@ class SST1RSoXSDB:
                     .mean()
                     .rename_dims({"time_bins": "time"})
                 )
-                monitors = monitors.assign_coords({"time": primary_time}).reset_coords(
-                    "time_bins", drop=True
+                monitors = (
+                    monitors.assign_coords({"time": primary_time})
+                    .drop_indexes("time_bins")
+                    .reset_coords("time_bins", drop=True)
                 )
             except Exception as e:
                 raise (e)
