@@ -726,8 +726,7 @@ class SST1RSoXSDB:
                     .drop_indexes("time_bins")
                     .reset_coords("time_bins", drop=True)
                 )
-            except Exception as e:
-                raise (e)
+            except Exception: 
                 warnings.warn(
                     "Error while time-integrating onto images.  Check data.",
                     stacklevel=2,
