@@ -40,18 +40,20 @@ class PFEnergySeriesIntegrator(PFGeneralIntegrator):
         #    get the energy and locate the matching integrator
         #    use that integrator to reduce
         #    return single reduced frame
-        if type(img.energy) != float:
+        
+        # I think that maybe instead we need to feed the energy into this
+        if type(img.en_energy) != float: # so for right now, img.en_energy is an array, just with a single value
             try:
-                en = img.energy.values[0]
-                if len(img.energy)>1:
+                en = float(img.en_energy)
+                if len(img.en_energy)>1:
                     warnings.warn(f'Using the first energy value of {img.energy.values}, check that this is correct.',stacklevel=2)
             except IndexError:
-                en = float(img.energy)
+                en = float(img.en_energy)
             except AttributeError:
-                en = img.energy[0]
+                en = float(img.en_energy)
                 warnings.warn(f'Using the first energy value of {img.energy}, check that this is correct.',stacklevel=2)
         else:
-            en = img.energy
+            en = img.en_energy
         try:
             self.integrator = self.integrator_stack[en]
         except KeyError:
@@ -67,7 +69,7 @@ class PFEnergySeriesIntegrator(PFGeneralIntegrator):
     def setupIntegrators(self,energies):
         for en in energies:
             self.createIntegrator(en)
-        self.createIntegrator(np.median(energies))
+        self.createIntegrator(np.median(energies)) # ???
     def setupDestQ(self,energies):
         self.dest_q = self.integrator_stack[np.median(energies)].integrate2d(np.zeros_like(self.mask).astype(int), self.npts, 
                                                    unit='arcsinh(q.µm)' if self.use_log_ish_binning else 'q_A^-1',
@@ -127,7 +129,8 @@ class PFEnergySeriesIntegrator(PFGeneralIntegrator):
         #energies = img_stack.energy.to_dataframe()
         
         #energies = energies['energy'].drop_duplicates()
-        energies = np.unique(img_stack.energy.data)
+        energies= img_stack.energy # should no longer drop duplicates because there now may be important duplicates
+        #energies = np.unique(img_stack.energy.data)
         #create an integrator for each energy
         self.setupIntegrators(energies)
         # find the output q for the midpoint and set the final q binning
@@ -149,13 +152,13 @@ class PFEnergySeriesIntegrator(PFGeneralIntegrator):
         indexes.remove('pix_x')
         indexes.remove('pix_y')
         
-        if len(indexes) == 1:
-            if img_stack.__getattr__(indexes[0]).to_pandas().drop_duplicates().shape[0] != img_stack.__getattr__(indexes[0]).shape[0]:
+        if len(indexes) == 1: # always executes this
+            if img_stack.__getattr__(indexes[0]).to_pandas().drop_duplicates().shape[0] != img_stack.__getattr__(indexes[0]).shape[0]: # and I think this is always false
                 warnings.warn(f'Axis {indexes[0]} contains duplicate conditions.  This is not supported and may not work.  Try adding additional coords to separate image conditions',stacklevel=2)
             data_int = data.groupby(indexes[0],squeeze=False).progress_apply(self.integrateSingleImage)
         else:
             #some kinda logic to check for existing multiindexes and stack into them appropriately maybe
-            data = data.stack({'pyhyper_internal_multiindex':indexes})
+            data = data.stack({'pyhyper_internal_multiindex':indexes}) # I think this would break if it ever got executed
             if data.pyhyper_internal_multiindex.to_pandas().drop_duplicates().shape[0] != data.pyhyper_internal_multiindex.shape[0]:
                 warnings.warn('Your index set contains duplicate conditions.  This is not supported and may not work.  Try adding additional coords to separate image conditions',stacklevel=2)
         

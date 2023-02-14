@@ -331,13 +331,13 @@ class SST1RSoXSDB:
                             warnString =("Scan: > " + str(currentScanID) + " < Failed to locate metaData entry for > " 
                                          + str(outputVariableName) + " <\n Tried looking for label: > " 
                                          + str(metaDataLabel) + " < in: " + str(metaDataSource))
-                            warnings.warn(warnString,stacklevel=2)
+                            #warnings.warn(warnString,stacklevel=2)
                             
                     except (KeyError,TypeError):
                         warnString =("Scan: > " + str(currentScanID) + " < Failed to locate metaData entry for > " 
                                      + str(outputVariableName) + " <\n Tried looking for label: > " 
                                      + str(metaDataLabel) + " < in: " + str(metaDataSource))
-                        warnings.warn(warnString,stacklevel=2)
+                        #warnings.warn(warnString,stacklevel=2)
                         singleScanOutput.append("N/A")
                     
                 #Append to the filled output list for this entry to the list of lists
@@ -416,6 +416,7 @@ class SST1RSoXSDB:
         Args:
             run (DataBroker result, int of a scan id, list of scan ids, list of DataBroker runs): a single run from BlueSky
             dims (list): list of dimensions you'd like in the resulting xarray.  See list of allowed dimensions in documentation.  If not set or None, tries to auto-hint the dims from the RSoXS plan_name.
+            CHANGE: List of dimensions you'd like. If not set, will set all possibilities as dimensions (x, y, theta, energy, polarization)
             coords (dict): user-supplied dimensions, see syntax examples in documentation.
             return_dataset (bool,default False): return both the data and the monitors as a xr.dataset.  If false (default), just returns the data.
         Returns:
@@ -431,16 +432,45 @@ class SST1RSoXSDB:
         
         md = self.loadMd(run)
         monitors = self.loadMonitors(run)
-        if 'NEXAFS' in md['start']['plan_name']:
-            raise NotImplementedError(f"Scan {md['start']['scan_id']} is a {md['start']['plan_name']} NEXAFS scan.  NEXAFS loading is not yet supported.")
-        elif ('full' in md['start']['plan_name'] or 'short' in md['start']['plan_name'] or 'custom_rsoxs_scan' in md['start']['plan_name']) and dims is None:
-            dims = ['energy']
-        elif 'spiralsearch' in md['start']['plan_name'] and dims is None:
-            dims = ['sam_x','sam_y']
-        elif 'count' in md['start']['plan_name'] and dims is None:
-            dims = ['epoch']
-        elif dims is None:
-            raise NotImplementedError(f"Cannot infer dimensions for a {md['start']['plan_name']} plan.  If this should be broadly supported, please raise an issue with the expected dimensions on the project GitHub.")
+        
+        
+        if ('NEXAFS' or 'nexafs') in md['start']['plan_name']:
+            raise NotImplementedError(f"Scan {md['start']['scan_id']} is a {md['start']['plan_name']} NEXAFS scan.  NEXAFS loading is not yet supported.") # handled case change in "NEXAFS"
+        elif dims == None:
+            # use the dim tols to define the dimensions
+            # dims = []
+            # dim_tols = {'en_polarization': 0.5, 'sam_x': 0.05, 'sam_y':0.05, 'en_energy':0.05, 'exposure': 1., 'sam_th': 0.05} # set the amount dims are allowed to change; could make this user-chosen in the future
+            dims = ['en_energy','time'] # I think this always needs to be an axis due to the way that the integrator is set up
+            dim_tols = {'en_polarization': 0.5, 'sam_x': 0.05, 'sam_y':0.05, 'exposure': 1., 'sam_th': 0.05} # set the amount dims are allowed to change; could make this user-chosen in the future
+            if 'spiral' in md['start']['plan_name']:
+                dims = ['energy','time']
+                dim_tols = {'polarization': 0.5, 'sam_x': 0.05, 'sam_y':0.05, 'exposure': 1., 'sam_th': 0.05} # set the amount dims are allowed to change; could make this user-chosen in the future
+            for k in dim_tols.keys():
+                dim = md[k]
+                dim_std = np.std(dim)
+                if dim_std > dim_tols[k]:
+                    dims.append(k)
+        else: # if the user has already specified the dims; user may frequently specify 'energy' or 'polarization', so just changing that so it's readable to access correct metadata (without en_, they are just setpoints)
+            dims = dims
+            for i in range(0,len(dims)):
+                if dims[i] == 'polarization':
+                    dims[i] = 'en_polarization'
+                if dims[i] == 'energy':
+                    dims[i] = 'en_energy'
+            if len(dims) == 0:
+                raise NotImplementedError('You have not entered any dimensions; please enter at least one, or use None rather than an empty list')
+                
+            
+            
+        # taking away inference of dims from plan name
+        # elif ('full' in md['start']['plan_name'] or 'short' in md['start']['plan_name'] or 'custom_rsoxs_scan' in md['start']['plan_name']) and dims is None:
+        #     dims = ['energy']
+        # elif 'spiralsearch' in md['start']['plan_name'] and dims is None:
+        #     dims = ['sam_x','sam_y']
+        # elif 'count' in md['start']['plan_name'] and dims is None:
+        #     dims = ['epoch']
+        # elif dims is None:
+        #     raise NotImplementedError(f"Cannot infer dimensions for a {md['start']['plan_name']} plan.  If this should be broadly supported, please raise an issue with the expected dimensions on the project GitHub.")
         #data = run['primary']['data'][md['detector']+'_image'] 
         #if self.dark_subtract:
         #    dark = run['dark']['data'][md['detector']+'_image'].mean('time') #@TODO: change to correct dark indexing
