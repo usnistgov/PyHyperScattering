@@ -60,7 +60,9 @@ jobs:
         unzip mask-test-pack.zip
     - name: Test with pytest
       run: |
-        coverage run -m pytest
+        pytest
+        #temporarily disabling coverage for memory usage
+        #coverage run -m pytest
     - name: Report coverage
       run: |
         coverage report
