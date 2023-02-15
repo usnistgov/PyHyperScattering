@@ -22,21 +22,21 @@ def sst_data():
         loader = SST1RSoXSLoader(corr_mode='none')
         return loader.loadFileSeries('Example/SST1/21792/',['energy','polarization'])
     
-@pytest.fixture(autouse=True,scope='module')
+@pytest.fixture()#autouse=True,scope='module')
 def pfgenint(sst_data):
     integrator = PFGeneralIntegrator(maskmethod='none',geomethod='template_xr',template_xr=sst_data)
     return integrator
     
-@pytest.fixture(autouse=True,scope='module')
+@pytest.fixture()#autouse=True,scope='module')
 def pfesint(sst_data):
     integrator = PFEnergySeriesIntegrator(maskmethod='none',geomethod='template_xr',template_xr=sst_data)
     return integrator
 
-@pytest.fixture(autouse=True,scope='module')
+@pytest.fixture()#autouse=True,scope='module')
 def pfesint_dask(sst_data):
     integrator = PFEnergySeriesIntegrator(maskmethod='none',geomethod='template_xr',template_xr=sst_data,use_chunked_processing=True)
     return integrator
-@pytest.fixture(autouse=True,scope='module')
+@pytest.fixture()#autouse=True,scope='module')
 def pfgenint_dask(sst_data):
     integrator = PFGeneralIntegrator(maskmethod='none',geomethod='template_xr',template_xr=sst_data,use_chunked_processing=True)
     return integrator
@@ -59,7 +59,6 @@ def test_integrator_beamcenter_to_poni(pfesint):
     pfesint.nika_beamcenter_y = 600
     assert(math.isclose(pfesint.poni1,0.029445))
     assert(math.isclose(pfesint.poni2,0.0293916))
-    pass
 
 def test_integration_runs_en_series_legacy_2dim_mi(sst_data,pfesint):
     pfesint.integrateImageStack(sst_data)
