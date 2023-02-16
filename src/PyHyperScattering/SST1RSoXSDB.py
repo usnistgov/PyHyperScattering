@@ -331,13 +331,13 @@ class SST1RSoXSDB:
                             warnString =("Scan: > " + str(currentScanID) + " < Failed to locate metaData entry for > " 
                                          + str(outputVariableName) + " <\n Tried looking for label: > " 
                                          + str(metaDataLabel) + " < in: " + str(metaDataSource))
-                            #warnings.warn(warnString,stacklevel=2)
+                            warnings.warn(warnString,stacklevel=2)
                             
                     except (KeyError,TypeError):
                         warnString =("Scan: > " + str(currentScanID) + " < Failed to locate metaData entry for > " 
                                      + str(outputVariableName) + " <\n Tried looking for label: > " 
                                      + str(metaDataLabel) + " < in: " + str(metaDataSource))
-                        #warnings.warn(warnString,stacklevel=2)
+                        warnings.warn(warnString,stacklevel=2)
                         singleScanOutput.append("N/A")
                     
                 #Append to the filled output list for this entry to the list of lists
