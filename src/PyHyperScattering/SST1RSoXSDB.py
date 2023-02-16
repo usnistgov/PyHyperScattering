@@ -12,7 +12,7 @@ from tqdm.auto import tqdm
 import scipy.ndimage
 import asyncio
 import time
-
+import copy
 try:
     os.environ["TILED_SITE_PROFILES"] = '/nsls2/software/etc/tiled/profiles'
     from tiled.client import from_profile
@@ -38,6 +38,18 @@ class SST1RSoXSDB:
     pix_size_2 = 0.06
     
     
+    md_lookup = {
+            'sam_x':'RSoXS Sample Outboard-Inboard',
+            'sam_y':'RSoXS Sample Up-Down',
+            'sam_z':'RSoXS Sample Downstream-Upstream',
+            'sam_th':'RSoXS Sample Rotation',
+            'polarization':'en_polarization_setpoint',
+            'energy':'en_energy_setpoint',
+            'exposure':'RSoXS Shutter Opening Time (ms)' #md['detector']+'_cam_acquire_time'
+        }
+    md_secondary_lookup = {
+            'energy':'en_monoen_setpoint',
+            }
 
     def __init__(self,corr_mode=None,user_corr_fun=None,dark_subtract=True,dark_pedestal=0,exposure_offset=0,catalog=None,catalog_kwargs={},use_precise_positions=False,use_chunked_loading=False):
         '''
@@ -433,9 +445,61 @@ class SST1RSoXSDB:
         md = self.loadMd(run)
         monitors = self.loadMonitors(run)
         
+        if dims is None:
+            if ('NEXAFS' or 'nexafs') in md['start']['plan_name']:
+                raise NotImplementedError(f"Scan {md['start']['scan_id']} is a {md['start']['plan_name']} NEXAFS scan.  NEXAFS loading is not yet supported.") # handled case change in "NEXAFS"
+            elif ('full' in md['start']['plan_name'] or 'short' in md['start']['plan_name'] or 'custom_rsoxs_scan' in md['start']['plan_name']) and dims is None:
+                dims = ['energy']
+            elif 'spiralsearch' in md['start']['plan_name'] and dims is None:
+                dims = ['sam_x','sam_y']
+            elif 'count' in md['start']['plan_name'] and dims is None:
+                dims = ['epoch']
+            else:
+                axes_to_include = []
+                rsd_cutoff = 0.005
+
+                # begin with a list of the things that are primary streams
+                axis_list = list(run['primary']['data'].keys())
+                # next, knock out anything that has 'image', 'fullframe' in it - these aren't axes
+                axis_list = [x for x in axis_list if 'image' not in x]
+                axis_list = [x for x in axis_list if 'fullframe' not in x]
+
+                # now, clean up duplicates.
+                axis_list = [x for x in axis_list if 'setpoint' not in x]
+                # now, figure out what's actually moving.  we use a relative standard deviation to do this.
+                # arbitrary cutoff of 0.5% motion = it moved intentionally.
+                for axis in axis_list:
+                    std = np.std(run["primary"]["data"][axis])
+                    mean = np.mean(run["primary"]["data"][axis])
+                    rsd = std/mean
+                    
+                    if rsd > rsd_cutoff:
+                        axes_to_include.append(axis)
+
+                # next, construct the reverse lookup table - best mapping we can make of key to pyhyper word
+                # we start with the lookup table used by loadMd()
+                reverse_lut =  {v: k for k, v in self.md_lookup.items()}
+                reverse_lut_secondary =  {v: k for k, v in self.md_secondary_lookup.items()}
+                reverse_lut.update(reverse_lut_secondary)
+
+                # here, we broaden the table to make a value that default sources from '_setpoint' actually match on either
+                # the bare value or the readback value.
+                reverse_lut_adds = {}
+                for k in reverse_lut.keys():
+                    if 'setpoint' in k:
+                        reverse_lut_adds[k.replace('_setpoint','')] = reverse_lut[k]
+                        reverse_lut_adds[k.replace('_setpoint','_readback')] = reverse_lut[k]
+                reverse_lut.update(reverse_lut_adds)
+            
+                pyhyper_axes_to_use = []
+                for x in axes_to_include:
+                    try:
+                        pyhyper_axes_to_use.append(reverse_lut[x])
+                    except KeyError:
+                        pyhyper_axes_to_use.append(x)
+                dims = pyhyper_axes_to_use 
         
-        if ('NEXAFS' or 'nexafs') in md['start']['plan_name']:
-            raise NotImplementedError(f"Scan {md['start']['scan_id']} is a {md['start']['plan_name']} NEXAFS scan.  NEXAFS loading is not yet supported.") # handled case change in "NEXAFS"
+        '''
         elif dims == None:
             # use the dim tols to define the dimensions
             # dims = []
@@ -459,25 +523,7 @@ class SST1RSoXSDB:
                     dims[i] = 'en_energy'
             if len(dims) == 0:
                 raise NotImplementedError('You have not entered any dimensions; please enter at least one, or use None rather than an empty list')
-                
-            
-            
-        # taking away inference of dims from plan name
-        # elif ('full' in md['start']['plan_name'] or 'short' in md['start']['plan_name'] or 'custom_rsoxs_scan' in md['start']['plan_name']) and dims is None:
-        #     dims = ['energy']
-        # elif 'spiralsearch' in md['start']['plan_name'] and dims is None:
-        #     dims = ['sam_x','sam_y']
-        # elif 'count' in md['start']['plan_name'] and dims is None:
-        #     dims = ['epoch']
-        # elif dims is None:
-        #     raise NotImplementedError(f"Cannot infer dimensions for a {md['start']['plan_name']} plan.  If this should be broadly supported, please raise an issue with the expected dimensions on the project GitHub.")
-        #data = run['primary']['data'][md['detector']+'_image'] 
-        #if self.dark_subtract:
-        #    dark = run['dark']['data'][md['detector']+'_image'].mean('time') #@TODO: change to correct dark indexing
-        #    image = data - dark - self.dark_pedestal
-        #else:
-        #    image = data - self.dark_pedestal
-        
+        '''
 
         data = run['primary']['data'][md['detector']+'_image']
         if type(data) == tiled.client.array.ArrayClient or type(data) == tiled.client.array.DaskArrayClient:
@@ -675,20 +721,10 @@ class SST1RSoXSDB:
             primary = run['primary']['data']
         except (KeyError,HTTPStatusError):
             raise Exception('No primary stream --> probably you caught run before image was written.  Try again.')
-        md_lookup = {
-            'sam_x':'RSoXS Sample Outboard-Inboard',
-            'sam_y':'RSoXS Sample Up-Down',
-            'sam_z':'RSoXS Sample Downstream-Upstream',
-            'sam_th':'RSoXS Sample Rotation',
-            'polarization':'en_polarization_setpoint',
-            'energy':'en_energy_setpoint',
-            'exposure':'RSoXS Shutter Opening Time (ms)' #md['detector']+'_cam_acquire_time'
-        }
-        md_secondary_lookup = {
-            'energy':'en_monoen_setpoint',
-            }
         
-                
+        md_lookup = copy.deepcopy(self.md_lookup)
+        md_secondary_lookup = copy.deepcopy(self.md_secondary_lookup)
+
         for key in primary.keys():
             if key not in md_lookup.values():
                 if '_image' not in key:
