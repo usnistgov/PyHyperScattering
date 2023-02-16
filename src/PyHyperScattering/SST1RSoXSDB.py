@@ -693,7 +693,7 @@ class SST1RSoXSDB:
         Creates a dataset containing all monitor streams (e.g., Mesh Current, Shutter Timing, etc.) as data variables mapped
         against time. Optionally, all streams can be indexed against the primary measurement time for the images using
         integrate_onto_images. Whether or not time integration attempts to account for shutter opening/closing is controlled
-        by useShutterThinning. Warning: for exposure times < 0.5 seconds at SST (as of 230209), useShutterThinning=True
+        by useShutterThinning. Warning: for exposure times < 0.5 seconds at SST (as of 9 Feb 2023), useShutterThinning=True
         may excessively cull data points.
 
         Parameters
