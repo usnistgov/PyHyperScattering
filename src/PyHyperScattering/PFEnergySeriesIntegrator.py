@@ -40,20 +40,18 @@ class PFEnergySeriesIntegrator(PFGeneralIntegrator):
         #    get the energy and locate the matching integrator
         #    use that integrator to reduce
         #    return single reduced frame
-        
-        # I think that maybe instead we need to feed the energy into this
-        if type(img.en_energy) != float: # so for right now, img.en_energy is an array, just with a single value
+        if type(img.energy) != float:
             try:
-                en = float(img.en_energy)
-                if len(img.en_energy)>1:
+                en = img.energy.values[0]
+                if len(img.energy)>1:
                     warnings.warn(f'Using the first energy value of {img.energy.values}, check that this is correct.',stacklevel=2)
             except IndexError:
-                en = float(img.en_energy)
+                en = float(img.energy)
             except AttributeError:
-                en = float(img.en_energy)
+                en = img.energy[0]
                 warnings.warn(f'Using the first energy value of {img.energy}, check that this is correct.',stacklevel=2)
         else:
-            en = img.en_energy
+            en = img.energy
         try:
             self.integrator = self.integrator_stack[en]
         except KeyError:
@@ -67,9 +65,21 @@ class PFEnergySeriesIntegrator(PFGeneralIntegrator):
         except TypeError:
             return res
     def setupIntegrators(self,energies):
+        '''
+        Sets up the integrator stack as a function of energy.
+
+        The final statement ensures that the integrator for the median of the set is created.  This integrator is used to set
+        the output q-binning.
+
+        Details: (copied from a message)
+
+        The fact that energy is changing during reduction means that if not forced to something, the output q bins of the integrator will move as well (since the pixel to q mappings are moving with energy). Because sparse data in q is a nightmare, we pick a given set of q bins corresponding to the median of the energies in the scan. That is a compromise between a few approaches. This line manually creates that integrator with default q binning settings so we can take those bins and tell all the other integrators to use that output q grid.
+
+It would cosmically be better (for things like resolution calculation) to have the q bins actually move, but sparse arrays are computationally hard. Eventually (2-3 years of high performance Python evolution) I think that will be the right way to do it, this is an intermediate.
+        '''
         for en in energies:
             self.createIntegrator(en)
-        self.createIntegrator(np.median(energies)) # ???
+        self.createIntegrator(np.median(energies))
     def setupDestQ(self,energies):
         self.dest_q = self.integrator_stack[np.median(energies)].integrate2d(np.zeros_like(self.mask).astype(int), self.npts, 
                                                    unit='arcsinh(q.µm)' if self.use_log_ish_binning else 'q_A^-1',
@@ -129,8 +139,7 @@ class PFEnergySeriesIntegrator(PFGeneralIntegrator):
         #energies = img_stack.energy.to_dataframe()
         
         #energies = energies['energy'].drop_duplicates()
-        energies= img_stack.energy # should no longer drop duplicates because there now may be important duplicates
-        #energies = np.unique(img_stack.energy.data)
+        energies = np.unique(img_stack.energy.data)
         #create an integrator for each energy
         self.setupIntegrators(energies)
         # find the output q for the midpoint and set the final q binning
@@ -151,14 +160,18 @@ class PFEnergySeriesIntegrator(PFGeneralIntegrator):
         indexes = list(data.dims)
         indexes.remove('pix_x')
         indexes.remove('pix_y')
+
+        # the following section attempts to shape the array that we have so that it meets the requirements for the xarray GroupBy/map
+        # paradigm; specifically, it needs one index that's not pixel x/y.  We either identify if that is the case, or we make it the
+        # case.  however, there are probably edge cases not handled here.
         
-        if len(indexes) == 1: # always executes this
-            if img_stack.__getattr__(indexes[0]).to_pandas().drop_duplicates().shape[0] != img_stack.__getattr__(indexes[0]).shape[0]: # and I think this is always false
+        if len(indexes) == 1:
+            if img_stack.__getattr__(indexes[0]).to_pandas().drop_duplicates().shape[0] != img_stack.__getattr__(indexes[0]).shape[0]:
                 warnings.warn(f'Axis {indexes[0]} contains duplicate conditions.  This is not supported and may not work.  Try adding additional coords to separate image conditions',stacklevel=2)
             data_int = data.groupby(indexes[0],squeeze=False).progress_apply(self.integrateSingleImage)
         else:
             #some kinda logic to check for existing multiindexes and stack into them appropriately maybe
-            data = data.stack({'pyhyper_internal_multiindex':indexes}) # I think this would break if it ever got executed
+            data = data.stack({'pyhyper_internal_multiindex':indexes})
             if data.pyhyper_internal_multiindex.to_pandas().drop_duplicates().shape[0] != data.pyhyper_internal_multiindex.shape[0]:
                 warnings.warn('Your index set contains duplicate conditions.  This is not supported and may not work.  Try adding additional coords to separate image conditions',stacklevel=2)
         
