@@ -20,7 +20,7 @@ try:
     import tiled
     import dask
     from databroker.queries import RawMongo, Key, FullText, Contains, Regex
-except:
+except Exception:
     print(
         "Imports failed.  Are you running on a machine with proper libraries for databroker, tiled, etc.?"
     )
