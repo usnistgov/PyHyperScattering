@@ -33,7 +33,7 @@ Detailed Instructions
 
 	**If you are not NIST staff, you should fork the repository first and clone your fork, because you will not be able to push back to usnistgov.  Contributions from outside NIST are encouraged, but we can only accept changes back via pull request.
 	
-	**If you are at NIST, create a new branch
+	If you are at NIST, create a new branch:
 		
 		`git checkout -b [few word descriptor of the feature you plan to add]`
 
