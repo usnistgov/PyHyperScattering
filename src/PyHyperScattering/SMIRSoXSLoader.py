@@ -18,17 +18,15 @@ class SMIRSoXSLoader(FileLoader):
     '''
     Loader for reduced data (processed by Patryk Wasik) from NSLS-II SMI 
 
-    This code is modified from cyrsoxsLoader.py and written by Phong Nguyen (php@ucsb.edu)
+    This code is modified from cyrsoxsLoader.py
     '''
     
-    def __init__(self, profile_time = True, pol90_str = '-rot'):
+    def __init__(self, profile_time = True):
         '''
         Args:
             profile_time (bool, default True): print time/profiling data to console
-            pol90_str (str, default '-rot'): substring in file name which indicates whether the sample was rotated by 90 degrees (SMI's beamline polarization is fixed)
         '''
         self.profile_time = profile_time
-        self.pol90_str = pol90_str
         
     def list_files(self,file_path,include_str):
         files = []
@@ -92,12 +90,16 @@ class SMIRSoXSLoader(FileLoader):
                 list_of_strings.append(all_substr(list_of_unique))
             print(pd.Series(list_of_strings))
             
-    def loadDirectory(self, directory, pol90_str):
+    def loadDirectory(self, directory, pol_strs = [], pols = [], remove_tail = '_xxxx.xxeV_qmap_Intensity.tif', remove_strs = []):
         '''
         Loads a processed SMI output directory into a Dask-backed qx/qy xarray.
         
         Args:
             directory  (string or Path): folder which contains subfolders with data analysed by Patryk Wasik (NSLS-II SMI)
+            pol_strs (list of strings): list of substrings in file name which correspond to provided X-ray beam polarizations (provided in pols)
+            pols (list of values): list of X-ray beam polarization values which correspond to provided pol_strs
+            remove_tail (string): string that corresponds to the length to be trimmed from the end of the file name. File name is inherited from first file in directory.
+            remove_strs (list of strings): list of substrings to be removed from file name which is then pushed to sample_name and sampleid attributes returned.
         '''
         if self.profile_time:
             start = datetime.datetime.now()
@@ -161,17 +163,18 @@ class SMIRSoXSLoader(FileLoader):
             outlist.append(img)
         data = da.stack(outlist,axis=2)
 
-        sample_name = files[0][:-len('_xxxx.xxeV_qmap_Intensity.tif')]
-        config['sampleid'] = sample_name
-        config['sample_name'] = config['sampleid'].replace('PN_', '')
-        
-        if pol90_str in config['sample_name']:
-            config['polarization'] = 90
-        else:
-            config['polarization'] = 0
-            
-        config['sample_name'] = config['sample_name'].replace(pol90_str, '')
-        
+        config['sample_name'] = files[0][:-len(remove_tail)]
+        for remove_str in remove_strs:
+            config['sample_name'] = config['sample_name'].replace(remove_str, '')
+
+        config['sampleid'] = config['sample_name']
+
+        for i, pol_str in enumerate(pol_strs):
+            if pol_str in config['sample_name']:
+                config['polarization'] = pols[i]
+            else:
+                config['polarization'] = 0
+
         if np.nanmax(Qx) > 1 or np.nanmax(Qy) > 1:
             config['rsoxs_config'] = 'waxs'
         else:
