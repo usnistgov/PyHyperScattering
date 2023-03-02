@@ -87,7 +87,7 @@ class SMIRSoXSLoader(FileLoader):
             print(f'No part of the file names contain {substring}. Here are all the substrings that will work. Substrings of these substrings also work:')
             list_of_strings = []
             for list_of_unique in list_of_uniques:
-                list_of_strings.append(all_substr(list_of_unique))
+                list_of_strings.append(self.all_substr(list_of_unique))
             print(pd.Series(list_of_strings))
             
     def loadDirectory(self, directory, pol_strs = [], pols = [], remove_tail = '_xxxx.xxeV_qmap_Intensity.tif', remove_strs = []):
