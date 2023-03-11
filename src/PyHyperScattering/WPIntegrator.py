@@ -91,12 +91,12 @@ class WPIntegrator():
     def integrateSingleImage(self,img):
         img_to_integ = img.values.squeeze()
  
-        center_x = float(xr.DataArray(np.linspace(0,len(img.qx)-1,len(img.qx)))
+        center_x = float(xr.DataArray(np.linspace(0,len(img.qx)-1,len(img.qx))
                     .assign_coords({'dim_0':img.qx.values})
                     .rename({'dim_0':'qx'})
                     .interp(qx=0)
                     .data)
-        center_y = float(xr.DataArray(np.linspace(0,len(img.qy)-1,len(img.qy)))
+        center_y = float(xr.DataArray(np.linspace(0,len(img.qy)-1,len(img.qy))
                     .assign_coords({'dim_0':img.qy.values})
                     .rename({'dim_0':'qy'})
                     .interp(qy=0)
