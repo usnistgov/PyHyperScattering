@@ -1,5 +1,6 @@
 MACHINE_HAS_CUDA = True
 from PyHyperScattering.FileLoader import FileLoader
+from scipy.ndimage import label
 import os
 import xarray as xr
 import pandas as pd
@@ -42,6 +43,25 @@ class WPIntegrator():
             
         self.return_cupy = return_cupy
         self.use_chunked_processing=use_chunked_processing
+        
+    def mask_image(self, image, max_size = 5):
+        # Create binary mask of the image by thresholding at 0
+        mask = (image <= 0.1)
+
+        # Label the connected regions of the mask
+        labels, num_features = label(mask)
+
+        # Mask out regions that are smaller than max_size
+        for i in range(1, num_features+1):
+            size = np.sum(labels == i)
+            if size <= max_size:
+                mask[labels == i] = False
+
+        # Convert the maskesd values to NaN
+        image = image.astype(float)
+        image[mask] = np.nan
+
+        return image
     
     def warp_polar_gpu(self,image, center=None, radius=None, output_shape=None, **kwargs):
         """
@@ -116,7 +136,8 @@ class WPIntegrator():
         else:
             TwoD = skimage.transform.warp_polar(img_to_integ,center=(center_x,center_y), radius = np.nanmax(img_to_integ.shape))
 
-        
+        TwoD = self.mask_image(TwoD, max_size = 5)
+            
         qx = img.qx
         qy = img.qy
         q = np.sqrt(qy**2+qx**2)
@@ -125,6 +146,8 @@ class WPIntegrator():
         # warp_polar maps to 0-360 instead of -180-180
         chi = np.linspace(-179.5,179.5,360)
         # chi = np.linspace(0.5,359.5,360)
+        
+        # masking
         
         try:
             return xr.DataArray([TwoD],dims=[stacked_axis,'chi','q'],coords={'q':q,'chi':chi,stacked_axis:system_to_integ},attrs=img.attrs)
