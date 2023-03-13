@@ -1,6 +1,7 @@
 MACHINE_HAS_CUDA = True
 from PyHyperScattering.FileLoader import FileLoader
 from scipy.ndimage import label
+from skimage import filters
 import os
 import xarray as xr
 import pandas as pd
@@ -30,7 +31,7 @@ class WPIntegrator():
     Integrator for qx/qy format xarrays using skimage.transform.warp_polar or a custom cuda-accelerated version, warp_polar_gpu
     '''
     
-    def __init__(self,return_cupy=False,force_np_backend=False,use_chunked_processing=False):
+    def __init__(self,return_cupy=False,force_np_backend=False,use_chunked_processing=False,dezing=True):
         '''
         Args:
             return_cupy (bool, default False): return arrays as cupy rather than numpy, for further GPU processing
@@ -43,10 +44,11 @@ class WPIntegrator():
             
         self.return_cupy = return_cupy
         self.use_chunked_processing=use_chunked_processing
+        self.dezing = dezing
         
-    def mask_image(self, image, max_size = 5):
+    def mask_image(self, image, max_size = 50):
         # Create binary mask of the image by thresholding at 0
-        mask = (image <= 0.1)
+        mask = (image <= 0.25)
 
         # Label the connected regions of the mask
         labels, num_features = label(mask)
@@ -57,11 +59,44 @@ class WPIntegrator():
             if size <= max_size:
                 mask[labels == i] = False
 
-        # Convert the maskesd values to NaN
+        # Convert the masked values to NaN
         image = image.astype(float)
         image[mask] = np.nan
 
         return image
+
+    def remove_zingers(self, data_array, threshold = 3):        
+        # Compute the mean intensity value across the chi axis for each q
+        mean_intensity = np.nanmean(data_array, axis=1)
+
+        # Compute the standard deviation of the intensity values at each q
+        std_intensity = np.nanstd(data_array, axis=1)
+
+        # Compute the z-score for each intensity value at each q
+        z_score = (data_array - mean_intensity[:, np.newaxis]) / std_intensity[:, np.newaxis]
+
+        # Identify outliers by thresholding the z-score array
+        outliers = np.abs(z_score) > threshold
+
+        # Iterate over each q coordinate with outliers
+        for i, q in enumerate(outliers):
+            if np.any(q):
+                # Compute the mean intensity value across all chi for this q
+                mean_intensity_q = np.nanmean(data_array[i][~q])
+
+                # Compute the standard deviation of the intensity values at this q
+                std_intensity_q = np.nanstd(data_array[i][~q])
+
+                # Compute the z-score for each intensity value at this q
+                z_score_q = (data_array[i] - mean_intensity_q) / std_intensity_q
+
+                # Identify outliers by thresholding the z-score array for this q
+                outliers_q = np.abs(z_score_q) > threshold
+
+                # Mask the outliers with NaN values
+                data_array[i][outliers_q] = np.nan
+
+        return data_array
     
     def warp_polar_gpu(self,image, center=None, radius=None, output_shape=None, **kwargs):
         """
@@ -132,11 +167,15 @@ class WPIntegrator():
             pass
         
         if self.MACHINE_HAS_CUDA:
-            TwoD = self.warp_polar_gpu(img_to_integ,center=(center_x,center_y), radius = np.nanmax(img_to_integ.shape))
+            TwoD = self.warp_polar_gpu(img_to_integ,center=(center_x,center_y), radius = np.sqrt((img_to_integ.shape[0] - center_x)**2 + (img_to_integ.shape[1] - center_y)**2))
         else:
-            TwoD = skimage.transform.warp_polar(img_to_integ,center=(center_x,center_y), radius = np.nanmax(img_to_integ.shape))
+            TwoD = skimage.transform.warp_polar(img_to_integ,center=(center_x,center_y), radius = np.sqrt((img_to_integ.shape[0] - center_x)**2 + (img_to_integ.shape[1] - center_y)**2))
 
-        TwoD = self.mask_image(TwoD, max_size = 5)
+        TwoD_dezinged = self.remove_zingers(np.array(TwoD))
+        
+        TwoD_dezinged_masked = self.mask_image(TwoD_dezinged)
+        
+        xarr = TwoD_dezinged_masked
             
         qx = img.qx
         qy = img.qy
@@ -146,14 +185,11 @@ class WPIntegrator():
         # warp_polar maps to 0-360 instead of -180-180
         chi = np.linspace(-179.5,179.5,360)
         # chi = np.linspace(0.5,359.5,360)
-        
-        # masking
-        
-        try:
-            return xr.DataArray([TwoD],dims=[stacked_axis,'chi','q'],coords={'q':q,'chi':chi,stacked_axis:system_to_integ},attrs=img.attrs)
-        except ValueError:
-            return xr.DataArray(TwoD,dims=['chi','q'],coords={'q':q,'chi':chi},attrs=img.attrs)
 
+        try:
+            return xr.DataArray([xarr],dims=[stacked_axis,'chi','q'],coords={'q':q,'chi':chi,stacked_axis:system_to_integ},attrs=img.attrs)
+        except ValueError:
+            return xr.DataArray(xarr,dims=['chi','q'],coords={'q':q,'chi':chi},attrs=img.attrs)
 
     def integrateImageStack(self,img_stack,method=None,chunksize=None):
         '''
