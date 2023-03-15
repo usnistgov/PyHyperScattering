@@ -5,6 +5,8 @@ import pandas as pd
 import numpy as np
 import warnings
 import re
+import PyHyperScattering
+
 try:
     from astropy.io import fits
 except ImportError:
@@ -43,6 +45,13 @@ class ALS11012RSoXSLoader(FileLoader):
         else:
             self.corr_mode = corr_mode
         
+        if data_collected_after_mar2021 is None:
+            warnings.warn("The default behavior will change in PyHyperScattering 0.3 to assume data was collected after March 2021.  Set kwarg explicitly to override.", DeprecationWarning)
+            if PyHyperScattering.__version__ < 0.3:
+                data_collected_after_mar2021 = False
+            else:
+                data_collected_after_mar2021 = True
+                
         if data_collected_after_mar2021:
             self.shutter_inhibit = 'CCD Camera Shutter Inhibit'
         else:
