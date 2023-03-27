@@ -569,7 +569,7 @@ class SST1RSoXSDB:
                 # next, knock out anything that has 'image', 'fullframe' in it - these aren't axes
                 axis_list = [x for x in axis_list if 'image' not in x]
                 axis_list = [x for x in axis_list if 'fullframe' not in x]
-
+                axis_list = [x for x in axis_list if 'stats' not in x]
                 # now, clean up duplicates.
                 axis_list = [x for x in axis_list if 'setpoint' not in x]
                 # now, figure out what's actually moving.  we use a relative standard deviation to do this.
