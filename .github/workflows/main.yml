@@ -53,6 +53,8 @@ jobs:
         unzip cyrsoxs-example.zip
         wget https://github.com/usnistgov/PyHyperScattering/releases/download/0.0.0-example-data/mask-test-pack.zip
         unzip mask-test-pack.zip
+        wget https://github.com/usnistgov/PyHyperScattering/releases/download/0.0.0-example-data/PSS300nm_C_ccd100.zip
+        unzip PSS300nm_C_ccd100.zip
         wget https://github.com/usnistgov/PyHyperScattering/releases/download/0.0.0-example-data/smi_example.zip
         unzip smi_example.zip
     - name: Fetch and unzip example data (Windows)
@@ -64,6 +66,8 @@ jobs:
         unzip cyrsoxs-example.zip
         C:\msys64\usr\bin\wget.exe https://github.com/usnistgov/PyHyperScattering/releases/download/0.0.0-example-data/mask-test-pack.zip
         unzip mask-test-pack.zip
+        C:\msys64\usr\bin\wget.exe https://github.com/usnistgov/PyHyperScattering/releases/download/0.0.0-example-data/PSS300nm_C_ccd100.zip
+        unzip PSS300nm_C_ccd100.zip
         C:\msys64\usr\bin\wget.exe https://github.com/usnistgov/PyHyperScattering/releases/download/0.0.0-example-data/smi_example.zip
         unzip smi_example.zip
     - name: Test with pytest
