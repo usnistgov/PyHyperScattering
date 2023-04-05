@@ -1,7 +1,7 @@
 import sys
 sys.path.append("src/")
 
-from PyHyperScattering.load import SST1RSoXSLoader
+from PyHyperScattering.load import SMIRSoXSLoader
 
 from PyHyperScattering.integrate import PFEnergySeriesIntegrator
 import numpy as np
