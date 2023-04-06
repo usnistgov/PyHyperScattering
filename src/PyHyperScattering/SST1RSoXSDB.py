@@ -93,6 +93,10 @@ class SST1RSoXSDB:
             self.c = from_profile("rsoxs", **catalog_kwargs)
         else:
             self.c = catalog
+            if use_chunked_loading:
+                raise SyntaxError('use_chunked_loading is incompatible with externally supplied catalog.  when creating the catalog, pass structure_clients = "dask" as a kwarg.')
+            if len(catalog_kwargs) != 0:
+                raise SyntaxError('catalog_kwargs is incompatible with externally supplied catalog.  pass those kwargs to whoever gave you the catalog you passed in.')
         self.dark_subtract = dark_subtract
         self.dark_pedestal = dark_pedestal
         self.exposure_offset = exposure_offset
