@@ -70,7 +70,7 @@ class Check:
         ax.add_patch(beamcenter)
         ax.add_patch(guide1)
         ax.add_patch(guide2)
-    def checkAll(integrator,img,img_min=1,img_max=10000,img_scaling='log',alpha=1):
+    def checkAll(integrator,img,img_min=1,img_max=10000,img_scaling='log',alpha=1,d_inner=50,d_outer=150):
         '''
             draw the beamcenter and overlay mask on an image
 
@@ -92,8 +92,8 @@ class Check:
         img.plot(norm=norm,ax=ax)
         ax.set_aspect(1)
         beamcenter = plt.Circle((integrator.ni_beamcenter_x, integrator.ni_beamcenter_y), 5, color='lawngreen')
-        guide1 = plt.Circle((integrator.ni_beamcenter_x, integrator.ni_beamcenter_y), 50, color='lawngreen',fill=False)
-        guide2 = plt.Circle((integrator.ni_beamcenter_x, integrator.ni_beamcenter_y), 150, color='lawngreen',fill=False)
+        guide1 = plt.Circle((integrator.ni_beamcenter_x, integrator.ni_beamcenter_y), d_inner, color='lawngreen',fill=False)
+        guide2 = plt.Circle((integrator.ni_beamcenter_x, integrator.ni_beamcenter_y), d_outer, color='lawngreen',fill=False)
         ax.add_patch(beamcenter)
         ax.add_patch(guide1)
         ax.add_patch(guide2)
