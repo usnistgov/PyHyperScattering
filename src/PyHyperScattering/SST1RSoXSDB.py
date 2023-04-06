@@ -677,7 +677,6 @@ class SST1RSoXSDB:
                     dims_to_join.append(md[dim])
                 dim_names_to_join.append(dim)
             except TypeError:
-                print(md[dim])
                 dims_to_join.append([md[dim]] * run.start["num_points"])
                 dim_names_to_join.append(dim)
 
