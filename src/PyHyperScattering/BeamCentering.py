@@ -6,7 +6,7 @@ from scipy.optimize import minimize
 from tqdm.auto import tqdm
 
 
-@xr.register_dataarray_accessor('util')
+@xr.register_dataarray_accessor('beamcenter')
 class CenteringAccessor:
 
     def __init__(self, xr_obj):
@@ -75,8 +75,12 @@ class CenteringAccessor:
                            bounds=bounds, method=method, options=options)
 
         if res.success:
-            print(f'Optimization successful. Updating beamcenter to ({res.x[0]},{res.x[1]}), old values were ({self._obj.poni1},{self._obj.poni2})')
-            self._obj.attrs['poni1'] = res.x[0]
-            self._obj.attrs['poni2'] = res.x[1]
+            if (res.x == (self._obj.poni1,self._obj.poni2)).all():
+                print(f'Optimization successful, already at optimum values.  Nothing changed.')
+                
+            else:
+                print(f'Optimization successful. Updating beamcenter to ({res.x[0]},{res.x[1]}), old values were ({self._obj.poni1},{self._obj.poni2})')
+                self._obj.attrs['poni1'] = res.x[0]
+                self._obj.attrs['poni2'] = res.x[1]
         else:
             warnings.warn('Optimization was unsuccessful. Try new guesses and start again')
