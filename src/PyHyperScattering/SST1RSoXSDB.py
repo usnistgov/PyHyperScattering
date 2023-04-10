@@ -143,7 +143,7 @@ class SST1RSoXSDB:
         userOutputs: list = [],
         **kwargs,
     ) -> pd.DataFrame:
-        """Search the databroker.client.CatalogOfBlueskyRuns for scans matching all provided keywords and return metadata as a dataframe.
+        """Search the Bluesky catalog for scans matching all provided keywords and return metadata as a dataframe.
 
         Matches are made based on the values in the top level of the 'start' dict within the metadata of each
         entry in the Bluesky Catalog (databroker.client.CatalogOfBlueskyRuns). Based on the search arguments provided,
@@ -203,7 +203,7 @@ class SST1RSoXSDB:
                 e.g., userOutputs = [["Exposure Multiplier","exptime", r'catalog.start'], ["Stop Time","time",r'catalog.stop']]
 
         Returns:
-            pd.Dataframe containing the results of the search, or an empty dataframe if the search fails
+            Pandas dataframe containing the results of the search, or an empty dataframe if the search fails
         """
 
         # Pull in the reference to the databroker.client.CatalogOfBlueskyRuns attribute
@@ -250,10 +250,7 @@ class SST1RSoXSDB:
         # Iterate through search terms sequentially, reducing the size of the catalog based on successful matches
 
         reducedCatalog = bsCatalog
-        loopDesc = "Searching by keyword arguments"
-        for index, searchSeries in tqdm(
-            df_SearchDet.iterrows(), total=df_SearchDet.shape[0], desc=loopDesc
-        ):
+        for searchSeries in tqdm(df_SearchDet.iterrows(), desc = "Searching by keyword arguments"):
 
             # Skip arguments with value None, and quits if the catalog was reduced to 0 elements
             if (searchSeries[1] is not None) and (len(reducedCatalog) > 0):
@@ -299,8 +296,7 @@ class SST1RSoXSDB:
         if (outputType == "scans"):  
             # Branch 2.1, if only scan IDs needed, build and return a 1-column dataframe
             scan_ids = []
-            loopDesc = "Building scan list"
-            for scanEntry in tqdm(reducedCatalog.values(), desc=loopDesc):
+            for scanEntry in tqdm(reducedCatalog.values(), desc = "Building scan list"):
                 scan_ids.append(scanEntry.start["scan_id"])
             return pd.DataFrame(scan_ids, columns=["Scan ID"])
 
