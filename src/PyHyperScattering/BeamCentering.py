@@ -38,8 +38,8 @@ class CenteringAccessor:
                           chi_min=-179, chi_max=179,
                           num_points=150):
         #print(f'evaluating objective at {x}')
-        obj.create_integrator(energy,poni1=x[0],poni2=x[1])
-        _, image_int = obj.integrator.integrate_radial(image, num_points,
+        integrator = obj.create_integrator(energy,poni1=x[0],poni2=x[1])
+        _, image_int = integrator.integrate_radial(image, num_points,
                                                    radial_range=(q_min, q_max),
                                                    azimuth_range=(chi_min, chi_max),
                                                    radial_unit='q_A^-1')
