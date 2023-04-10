@@ -19,7 +19,8 @@ try:
     from httpx import HTTPStatusError
     import tiled
     import dask
-    from databroker.queries import RawMongo, Key, FullText, Contains, Regex
+    from databroker.queries import RawMongo, Key, FullText, Contains, Regex, ScanIDRange
+    from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 except:
     print(
         "Imports failed.  Are you running on a machine with proper libraries for databroker, tiled, etc.?"
@@ -295,15 +296,12 @@ class SST1RSoXSDB:
 
         ### Part 2: Build and return output dataframe
 
-        if (
-            outputType == "scans"
-        ):  # Branch 2.1, if only scan IDs needed, build and return a 1-column dataframe
+        if (outputType == "scans"):  
+            # Branch 2.1, if only scan IDs needed, build and return a 1-column dataframe
             scan_ids = []
             loopDesc = "Building scan list"
-            for index, scanEntry in tqdm(
-                (enumerate(reducedCatalog)), total=len(reducedCatalog), desc=loopDesc
-            ):
-                scan_ids.append(reducedCatalog[scanEntry].start["scan_id"])
+            for scanEntry in tqdm(reducedCatalog.values(), desc=loopDesc):
+                scan_ids.append(scanEntry.start["scan_id"])
             return pd.DataFrame(scan_ids, columns=["Scan ID"])
 
         else:  # Branch 2.2, Output metadata from a variety of sources within each the catalog entry
@@ -324,7 +322,7 @@ class SST1RSoXSDB:
                 ["bar_spot", "bar_spot", r"catalog.start", "ext_msmt"],
                 ["plan", "plan_name", r"catalog.start", "default"],
                 ["detector", "RSoXS_Main_DET", r"catalog.start", "default"],
-                ["polarization", "pol", r'catalog.start["plan_args"]', "default"],
+                ["polarization", "en_polarization_setpoint", r'catalog.start', "default"],
                 ["sample_rotation", "angle", r"catalog.start", "ext_msmt"],
                 ["exit_status", "exit_status", r"catalog.stop", "default"],
                 ["num_Images", "primary", r'catalog.stop["num_events"]', "default"],
@@ -371,20 +369,17 @@ class SST1RSoXSDB:
             # Build output dataframe as a list of lists
             outputList = []
 
-            # Outer loop: Catalog entries
-            loopDesc = "Building output dataframe"
-            for index, scanEntry in tqdm(
-                (enumerate(reducedCatalog)), total=len(reducedCatalog), desc=loopDesc
-            ):
-
+            # Outer loop: Catalog entries 
+            for scanEntry in tqdm(reducedCatalog.values(),desc = "Building output dataframe"):
                 singleScanOutput = []
 
                 # Pull the start and stop docs once
-                currentCatalogStart = reducedCatalog[scanEntry].start
-                currentCatalogStop = reducedCatalog[scanEntry].stop
-
+                               
+                currentCatalogStart = scanEntry.start
+                currentCatalogStop = scanEntry.stop
+                
                 currentScanID = currentCatalogStart["scan_id"]
-
+                
                 # Inner loop: append output values
                 for outputEntry in activeOutputValues:
                     outputVariableName = outputEntry[0]
@@ -405,35 +400,20 @@ class SST1RSoXSDB:
                                 currentCatalogStop["num_events"][metaDataLabel]
                             )
                         else:
-                            warnString = (
-                                "Scan: > "
-                                + str(currentScanID)
-                                + " < Failed to locate metaData entry for > "
-                                + str(outputVariableName)
-                                + " <\n Tried looking for label: > "
-                                + str(metaDataLabel)
-                                + " < in: "
-                                + str(metaDataSource)
-                            )
-                            warnings.warn(warnString, stacklevel=2)
+                            warnings.warn(
+                            f'Failed to locate metadata for {outputVariableName} in scan {currentScanID}.',
+                                stacklevel=2)
 
                     except (KeyError, TypeError):
-                        warnString = (
-                            "Scan: > "
-                            + str(currentScanID)
-                            + " < Failed to locate metaData entry for > "
-                            + str(outputVariableName)
-                            + " <\n Tried looking for label: > "
-                            + str(metaDataLabel)
-                            + " < in: "
-                            + str(metaDataSource)
-                        )
-                        warnings.warn(warnString, stacklevel=2)
+                        warnings.warn(
+                            f'Failed to locate metadata for {outputVariableName} in scan {currentScanID}.',
+                                stacklevel=2)
                         singleScanOutput.append("N/A")
 
                 # Append to the filled output list for this entry to the list of lists
                 outputList.append(singleScanOutput)
-
+                
+                 
             # Convert to dataframe for export
             return pd.DataFrame(outputList, columns=activeOutputLabels)
 
