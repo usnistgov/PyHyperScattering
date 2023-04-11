@@ -248,7 +248,7 @@ class SST1RSoXSDB:
         # Iterate through search terms sequentially, reducing the size of the catalog based on successful matches
 
         reducedCatalog = bsCatalog
-        for searchSeries in tqdm(df_SearchDet.iterrows(), desc = "Searching by keyword arguments"):
+        for _,searchSeries in tqdm(df_SearchDet.iterrows(),total = df_SearchDet.shape[0], desc = "Searching by keyword arguments"):
 
             # Skip arguments with value None, and quits if the catalog was reduced to 0 elements
             if (searchSeries[1] is not None) and (len(reducedCatalog) > 0):
@@ -314,8 +314,8 @@ class SST1RSoXSDB:
                 ["sample_id", "sample_id", r"catalog.start", "default"],
                 ["bar_spot", "bar_spot", r"catalog.start", "ext_msmt"],
                 ["plan", "plan_name", r"catalog.start", "default"],
-                ["detector", "RSoXS_Main_DET", r"catalog.start", "default"],
-                ["polarization", "en_polarization_setpoint", r'catalog.start', "default"],
+                ["detector", "RSoXS_Main_DET", r"catalog.start", "default"], 
+                ["polarization", "pol", r'catalog.start["plan_args"]', "default"],
                 ["sample_rotation", "angle", r"catalog.start", "ext_msmt"],
                 ["exit_status", "exit_status", r"catalog.stop", "default"],
                 ["num_Images", "primary", r'catalog.stop["num_events"]', "default"],
