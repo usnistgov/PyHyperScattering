@@ -141,6 +141,7 @@ class SST1RSoXSDB:
         sampleID: str = None,
         plan: str = None,
         userOutputs: list = [],
+        debugWarnings: bool = False,
         **kwargs,
     ) -> pd.DataFrame:
         """Search the Bluesky catalog for scans matching all provided keywords and return metadata as a dataframe.
@@ -201,7 +202,7 @@ class SST1RSoXSDB:
                 Valid options for the Metadata Source are any of [r'catalog.start', r'catalog.start["plan_args"], r'catalog.stop',
                 r'catalog.stop["num_events"]']
                 e.g., userOutputs = [["Exposure Multiplier","exptime", r'catalog.start'], ["Stop Time","time",r'catalog.stop']]
-
+            debugWarnings (bool, optional): if True, raises a warning with debugging information whenever a key can't be found.
         Returns:
             Pandas dataframe containing the results of the search, or an empty dataframe if the search fails
         """
@@ -234,11 +235,8 @@ class SST1RSoXSDB:
             elif isinstance(value, list) and len(value) == 2:
                 userSearchList.append([userLabel, value[0], value[1]])
             else:  # bad user input
-                warnString = (
-                    "Error parsing a keyword search term, check the format.\nSkipped argument: "
-                    + str(value)
-                )
-                warnings.warn(warnString, stacklevel=2)
+                raise ValueError(
+                    f"Error parsing a keyword search term, check the format.  Skipped argument: {value} ")
 
         # combine the lists of lists
         fullSearchList = defaultSearchDetails + userSearchList
@@ -284,9 +282,8 @@ class SST1RSoXSDB:
                 # If a match fails, notify the user which search parameter yielded 0 results
                 if len(reducedCatalog) == 0:
                     warnString = (
-                        "Catalog reduced to zero when attempting to match the following condition:\n"
-                        + searchSeries.to_string()
-                        + "\n If this is a user-provided search parameter, check spelling/syntax.\n"
+                        f"Catalog reduced to zero when attempting to match {searchSeries}\n"
+                        +f"If this is a user-provided search parameter, check spelling/syntax."
                     )
                     warnings.warn(warnString, stacklevel=2)
                     return pd.DataFrame()
@@ -301,7 +298,7 @@ class SST1RSoXSDB:
             return pd.DataFrame(scan_ids, columns=["Scan ID"])
 
         else:  # Branch 2.2, Output metadata from a variety of sources within each the catalog entry
-
+            missesDuringLoad = False
             # Store details of output values as a list of lists
             # List elements are [Output Column Title, Bluesky Metadata Code, Metadata Source location, Applicable Output flag]
             outputValueLibrary = [
@@ -344,11 +341,7 @@ class SST1RSoXSDB:
                     activeOutputValues.append(userOutEntry)
                     activeOutputLabels.append(userOutEntry[0])
                 else:  # bad user input
-                    warnString = (
-                        "Error parsing user-provided output request, check the format.\nSkipped: "
-                        + str(userOutEntry)
-                    )
-                    warnings.warn(warnString, stacklevel=2)
+                    raise ValueError(f"Error parsing user-provided output request {userOutEntry}, check the format.", stacklevel=2)
 
             # Add any user-provided search terms
             for userSearchEntry in userSearchList:
@@ -396,14 +389,18 @@ class SST1RSoXSDB:
                                 currentCatalogStop["num_events"][metaDataLabel]
                             )
                         else:
-                            warnings.warn(
-                            f'Failed to locate metadata for {outputVariableName} in scan {currentScanID}.',
-                                stacklevel=2)
+                            if debugWarnings:
+                                warnings.warn(
+                                f'Failed to locate metadata for {outputVariableName} in scan {currentScanID}.',
+                                    stacklevel=2)
+                            missesDuringLoad = True
 
                     except (KeyError, TypeError):
-                        warnings.warn(
-                            f'Failed to locate metadata for {outputVariableName} in scan {currentScanID}.',
-                                stacklevel=2)
+                        if debugWarnings:
+                            warnings.warn(
+                                f'Failed to locate metadata for {outputVariableName} in scan {currentScanID}.',
+                                    stacklevel=2)
+                        missesDuringLoad = True
                         singleScanOutput.append("N/A")
 
                 # Append to the filled output list for this entry to the list of lists
@@ -411,6 +408,10 @@ class SST1RSoXSDB:
                 
                  
             # Convert to dataframe for export
+            if debugWarnings:
+                            warnings.warn(
+                                f'One or more missing field(s) during this load.  Re-run with debugWarnings=True to see details.',
+                                    stacklevel=2)
             return pd.DataFrame(outputList, columns=activeOutputLabels)
 
     def background(f):
@@ -757,7 +758,7 @@ class SST1RSoXSDB:
             Presently bins are averaged between measurements intervals.
         useShutterThinning : bool, optional
             Whether or not to attempt to thin (filter) the raw time streams to remove data collected during shutter opening/closing, by default False
-            As of 230209 at NSLS2 SST1, using useShutterThinning= True for exposure times of < 0.5s is
+            As of 9 Feb 2023 at NSLS2 SST1, using useShutterThinning= True for exposure times of < 0.5s is
             not recommended because the shutter data is unreliable and too many points will be culled
         n_thinning_iters : int, optional
             how many iterations of thinning to perform, by default 5
@@ -849,7 +850,7 @@ class SST1RSoXSDB:
             except Exception as e:
                 # raise e # for testing
                 warnings.warn(
-                    "Error while time-integrating onto images.  Check data.",
+                    "Error while time-integrating monitors onto images.  Usually, this indicates a problem with the monitors, this is a critical error if doing normalization otherwise fine to ignore.",
                     stacklevel=2,
                 )
         return monitors
