@@ -248,7 +248,7 @@ class SST1RSoXSDB:
         # Iterate through search terms sequentially, reducing the size of the catalog based on successful matches
 
         reducedCatalog = bsCatalog
-        for _,searchSeries in tqdm(df_SearchDet.iterrows(),total = df_SearchDet.shape[0], desc = "Searching by keyword arguments"):
+        for _,searchSeries in tqdm(df_SearchDet.iterrows(),total = df_SearchDet.shape[0], desc = "Running catalog search..."):
 
             # Skip arguments with value None, and quits if the catalog was reduced to 0 elements
             if (searchSeries[1] is not None) and (len(reducedCatalog) > 0):
@@ -304,7 +304,7 @@ class SST1RSoXSDB:
             outputValueLibrary = [
                 ["scan_id", "scan_id", r"catalog.start", "default"],
                 ["uid", "uid", r"catalog.start", "ext_bio"],
-                ["start time", "time", r"catalog.start", "default"],
+                ["start_time", "time", r"catalog.start", "default"],
                 ["cycle", "cycle", r"catalog.start", "default"],
                 ["saf", "SAF", r"catalog.start", "ext_bio"],
                 ["user_name", "user_name", r"catalog.start", "ext_bio"],
@@ -359,7 +359,7 @@ class SST1RSoXSDB:
             outputList = []
 
             # Outer loop: Catalog entries 
-            for scanEntry in tqdm(reducedCatalog.values(),desc = "Building output dataframe"):
+            for scanEntry in tqdm(reducedCatalog.values(),desc = "Retrieving results..."):
                 singleScanOutput = []
 
                 # Pull the start and stop docs once
@@ -376,7 +376,10 @@ class SST1RSoXSDB:
                     metaDataSource = outputEntry[2]
 
                     try:  # Add the metadata value depending on where it is located
-                        if metaDataSource == r"catalog.start":
+                        if metaDataLabel == 'time':
+                            singleScanOutput.append(datetime.datetime.fromtimestamp(currentCatalogStart['time']))
+                            # see Zen of Python # 9,8 for justification
+                        elif metaDataSource == r"catalog.start":
                             singleScanOutput.append(currentCatalogStart[metaDataLabel])
                         elif metaDataSource == r'catalog.start["plan_args"]':
                             singleScanOutput.append(
@@ -408,9 +411,9 @@ class SST1RSoXSDB:
                 
                  
             # Convert to dataframe for export
-            if debugWarnings:
+            if missesDuringLoad:
                             warnings.warn(
-                                f'One or more missing field(s) during this load.  Re-run with debugWarnings=True to see details.',
+                                f'One or more missing field(s) during this load were replaced with "N/A".  Re-run with debugWarnings=True to see details.',
                                     stacklevel=2)
             return pd.DataFrame(outputList, columns=activeOutputLabels)
 
