@@ -12,14 +12,15 @@ from tqdm.auto import tqdm
 import scipy.ndimage
 import asyncio
 import time
-
+import copy
 try:
     os.environ["TILED_SITE_PROFILES"] = "/nsls2/software/etc/tiled/profiles"
     from tiled.client import from_profile
     from httpx import HTTPStatusError
     import tiled
     import dask
-    from databroker.queries import RawMongo, Key, FullText, Contains, Regex
+    from databroker.queries import RawMongo, Key, FullText, Contains, Regex, ScanIDRange
+    from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 except:
     print(
         "Imports failed.  Are you running on a machine with proper libraries for databroker, tiled, etc.?"
@@ -39,6 +40,19 @@ class SST1RSoXSDB:
     md_loading_is_quick = True
     pix_size_1 = 0.06
     pix_size_2 = 0.06
+   
+    md_lookup = {
+            'sam_x':'RSoXS Sample Outboard-Inboard',
+            'sam_y':'RSoXS Sample Up-Down',
+            'sam_z':'RSoXS Sample Downstream-Upstream',
+            'sam_th':'RSoXS Sample Rotation',
+            'polarization':'en_polarization_setpoint',
+            'energy':'en_energy_setpoint',
+            'exposure':'RSoXS Shutter Opening Time (ms)' #md['detector']+'_cam_acquire_time'
+        }
+    md_secondary_lookup = {
+            'energy':'en_monoen_setpoint',
+            }
 
     def __init__(
         self,
@@ -63,6 +77,7 @@ class SST1RSoXSDB:
             use_precise_positions (bool): if False, rounds sam_x and sam_y to 1 digit.  If True, keeps default rounding (4 digits).  Needed for spiral scans to work with readback positions.
             use_chunked_loading (bool): if True, returns Dask backed arrays for further Dask processing.  if false, behaves in conventional Numpy-backed way
         """
+        
         if corr_mode == None:
             warnings.warn(
                 "Correction mode was not set, not performing *any* intensity corrections.  Are you sure this is "
@@ -126,9 +141,10 @@ class SST1RSoXSDB:
         sampleID: str = None,
         plan: str = None,
         userOutputs: list = [],
+        debugWarnings: bool = False,
         **kwargs,
     ) -> pd.DataFrame:
-        """Search the databroker.client.CatalogOfBlueskyRuns for scans matching all provided keywords and return metadata as a dataframe.
+        """Search the Bluesky catalog for scans matching all provided keywords and return metadata as a dataframe.
 
         Matches are made based on the values in the top level of the 'start' dict within the metadata of each
         entry in the Bluesky Catalog (databroker.client.CatalogOfBlueskyRuns). Based on the search arguments provided,
@@ -186,9 +202,9 @@ class SST1RSoXSDB:
                 Valid options for the Metadata Source are any of [r'catalog.start', r'catalog.start["plan_args"], r'catalog.stop',
                 r'catalog.stop["num_events"]']
                 e.g., userOutputs = [["Exposure Multiplier","exptime", r'catalog.start'], ["Stop Time","time",r'catalog.stop']]
-
+            debugWarnings (bool, optional): if True, raises a warning with debugging information whenever a key can't be found.
         Returns:
-            pd.Dataframe containing the results of the search, or an empty dataframe if the search fails
+            Pandas dataframe containing the results of the search, or an empty dataframe if the search fails
         """
 
         # Pull in the reference to the databroker.client.CatalogOfBlueskyRuns attribute
@@ -219,11 +235,8 @@ class SST1RSoXSDB:
             elif isinstance(value, list) and len(value) == 2:
                 userSearchList.append([userLabel, value[0], value[1]])
             else:  # bad user input
-                warnString = (
-                    "Error parsing a keyword search term, check the format.\nSkipped argument: "
-                    + str(value)
-                )
-                warnings.warn(warnString, stacklevel=2)
+                raise ValueError(
+                    f"Error parsing a keyword search term, check the format.  Skipped argument: {value} ")
 
         # combine the lists of lists
         fullSearchList = defaultSearchDetails + userSearchList
@@ -235,10 +248,7 @@ class SST1RSoXSDB:
         # Iterate through search terms sequentially, reducing the size of the catalog based on successful matches
 
         reducedCatalog = bsCatalog
-        loopDesc = "Searching by keyword arguments"
-        for index, searchSeries in tqdm(
-            df_SearchDet.iterrows(), total=df_SearchDet.shape[0], desc=loopDesc
-        ):
+        for _,searchSeries in tqdm(df_SearchDet.iterrows(),total = df_SearchDet.shape[0], desc = "Running catalog search..."):
 
             # Skip arguments with value None, and quits if the catalog was reduced to 0 elements
             if (searchSeries[1] is not None) and (len(reducedCatalog) > 0):
@@ -272,34 +282,29 @@ class SST1RSoXSDB:
                 # If a match fails, notify the user which search parameter yielded 0 results
                 if len(reducedCatalog) == 0:
                     warnString = (
-                        "Catalog reduced to zero when attempting to match the following condition:\n"
-                        + searchSeries.to_string()
-                        + "\n If this is a user-provided search parameter, check spelling/syntax.\n"
+                        f"Catalog reduced to zero when attempting to match {searchSeries}\n"
+                        +f"If this is a user-provided search parameter, check spelling/syntax."
                     )
                     warnings.warn(warnString, stacklevel=2)
                     return pd.DataFrame()
 
         ### Part 2: Build and return output dataframe
 
-        if (
-            outputType == "scans"
-        ):  # Branch 2.1, if only scan IDs needed, build and return a 1-column dataframe
+        if (outputType == "scans"):  
+            # Branch 2.1, if only scan IDs needed, build and return a 1-column dataframe
             scan_ids = []
-            loopDesc = "Building scan list"
-            for index, scanEntry in tqdm(
-                (enumerate(reducedCatalog)), total=len(reducedCatalog), desc=loopDesc
-            ):
-                scan_ids.append(reducedCatalog[scanEntry].start["scan_id"])
+            for scanEntry in tqdm(reducedCatalog.values(), desc = "Building scan list"):
+                scan_ids.append(scanEntry.start["scan_id"])
             return pd.DataFrame(scan_ids, columns=["Scan ID"])
 
         else:  # Branch 2.2, Output metadata from a variety of sources within each the catalog entry
-
+            missesDuringLoad = False
             # Store details of output values as a list of lists
             # List elements are [Output Column Title, Bluesky Metadata Code, Metadata Source location, Applicable Output flag]
             outputValueLibrary = [
                 ["scan_id", "scan_id", r"catalog.start", "default"],
                 ["uid", "uid", r"catalog.start", "ext_bio"],
-                ["start time", "time", r"catalog.start", "default"],
+                ["start_time", "time", r"catalog.start", "default"],
                 ["cycle", "cycle", r"catalog.start", "default"],
                 ["saf", "SAF", r"catalog.start", "ext_bio"],
                 ["user_name", "user_name", r"catalog.start", "ext_bio"],
@@ -309,7 +314,7 @@ class SST1RSoXSDB:
                 ["sample_id", "sample_id", r"catalog.start", "default"],
                 ["bar_spot", "bar_spot", r"catalog.start", "ext_msmt"],
                 ["plan", "plan_name", r"catalog.start", "default"],
-                ["detector", "RSoXS_Main_DET", r"catalog.start", "default"],
+                ["detector", "RSoXS_Main_DET", r"catalog.start", "default"], 
                 ["polarization", "pol", r'catalog.start["plan_args"]', "default"],
                 ["sample_rotation", "angle", r"catalog.start", "ext_msmt"],
                 ["exit_status", "exit_status", r"catalog.stop", "default"],
@@ -336,11 +341,7 @@ class SST1RSoXSDB:
                     activeOutputValues.append(userOutEntry)
                     activeOutputLabels.append(userOutEntry[0])
                 else:  # bad user input
-                    warnString = (
-                        "Error parsing user-provided output request, check the format.\nSkipped: "
-                        + str(userOutEntry)
-                    )
-                    warnings.warn(warnString, stacklevel=2)
+                    raise ValueError(f"Error parsing user-provided output request {userOutEntry}, check the format.", stacklevel=2)
 
             # Add any user-provided search terms
             for userSearchEntry in userSearchList:
@@ -357,20 +358,17 @@ class SST1RSoXSDB:
             # Build output dataframe as a list of lists
             outputList = []
 
-            # Outer loop: Catalog entries
-            loopDesc = "Building output dataframe"
-            for index, scanEntry in tqdm(
-                (enumerate(reducedCatalog)), total=len(reducedCatalog), desc=loopDesc
-            ):
-
+            # Outer loop: Catalog entries 
+            for scanEntry in tqdm(reducedCatalog.values(),desc = "Retrieving results..."):
                 singleScanOutput = []
 
                 # Pull the start and stop docs once
-                currentCatalogStart = reducedCatalog[scanEntry].start
-                currentCatalogStop = reducedCatalog[scanEntry].stop
-
+                               
+                currentCatalogStart = scanEntry.start
+                currentCatalogStop = scanEntry.stop
+                
                 currentScanID = currentCatalogStart["scan_id"]
-
+                
                 # Inner loop: append output values
                 for outputEntry in activeOutputValues:
                     outputVariableName = outputEntry[0]
@@ -378,7 +376,10 @@ class SST1RSoXSDB:
                     metaDataSource = outputEntry[2]
 
                     try:  # Add the metadata value depending on where it is located
-                        if metaDataSource == r"catalog.start":
+                        if metaDataLabel == 'time':
+                            singleScanOutput.append(datetime.datetime.fromtimestamp(currentCatalogStart['time']))
+                            # see Zen of Python # 9,8 for justification
+                        elif metaDataSource == r"catalog.start":
                             singleScanOutput.append(currentCatalogStart[metaDataLabel])
                         elif metaDataSource == r'catalog.start["plan_args"]':
                             singleScanOutput.append(
@@ -391,36 +392,29 @@ class SST1RSoXSDB:
                                 currentCatalogStop["num_events"][metaDataLabel]
                             )
                         else:
-                            warnString = (
-                                "Scan: > "
-                                + str(currentScanID)
-                                + " < Failed to locate metaData entry for > "
-                                + str(outputVariableName)
-                                + " <\n Tried looking for label: > "
-                                + str(metaDataLabel)
-                                + " < in: "
-                                + str(metaDataSource)
-                            )
-                            warnings.warn(warnString, stacklevel=2)
+                            if debugWarnings:
+                                warnings.warn(
+                                f'Failed to locate metadata for {outputVariableName} in scan {currentScanID}.',
+                                    stacklevel=2)
+                            missesDuringLoad = True
 
                     except (KeyError, TypeError):
-                        warnString = (
-                            "Scan: > "
-                            + str(currentScanID)
-                            + " < Failed to locate metaData entry for > "
-                            + str(outputVariableName)
-                            + " <\n Tried looking for label: > "
-                            + str(metaDataLabel)
-                            + " < in: "
-                            + str(metaDataSource)
-                        )
-                        warnings.warn(warnString, stacklevel=2)
+                        if debugWarnings:
+                            warnings.warn(
+                                f'Failed to locate metadata for {outputVariableName} in scan {currentScanID}.',
+                                    stacklevel=2)
+                        missesDuringLoad = True
                         singleScanOutput.append("N/A")
 
                 # Append to the filled output list for this entry to the list of lists
                 outputList.append(singleScanOutput)
-
+                
+                 
             # Convert to dataframe for export
+            if missesDuringLoad:
+                            warnings.warn(
+                                f'One or more missing field(s) during this load were replaced with "N/A".  Re-run with debugWarnings=True to see details.',
+                                    stacklevel=2)
             return pd.DataFrame(outputList, columns=activeOutputLabels)
 
     def background(f):
@@ -511,6 +505,7 @@ class SST1RSoXSDB:
         Args:
             run (DataBroker result, int of a scan id, list of scan ids, list of DataBroker runs): a single run from BlueSky
             dims (list): list of dimensions you'd like in the resulting xarray.  See list of allowed dimensions in documentation.  If not set or None, tries to auto-hint the dims from the RSoXS plan_name.
+            CHANGE: List of dimensions you'd like. If not set, will set all possibilities as dimensions (x, y, theta, energy, polarization)
             coords (dict): user-supplied dimensions, see syntax examples in documentation.
             return_dataset (bool,default False): return both the data and the monitors as a xr.dataset.  If false (default), just returns the data.
         Returns:
@@ -533,31 +528,91 @@ class SST1RSoXSDB:
             )
 
         md = self.loadMd(run)
-        monitors = self.loadMonitors(run, useShutterThinning=useMonitorShutterThinning)
-        if "NEXAFS" in md["start"]["plan_name"]:
-            raise NotImplementedError(
-                f"Scan {md['start']['scan_id']} is a {md['start']['plan_name']} NEXAFS scan.  NEXAFS loading is not yet supported."
-            )
-        elif (
-            "full" in md["start"]["plan_name"]
-            or "short" in md["start"]["plan_name"]
-            or "custom_rsoxs_scan" in md["start"]["plan_name"]
-        ) and dims is None:
-            dims = ["energy"]
-        elif "spiralsearch" in md["start"]["plan_name"] and dims is None:
-            dims = ["sam_x", "sam_y"]
-        elif "count" in md["start"]["plan_name"] and dims is None:
-            dims = ["epoch"]
-        elif dims is None:
-            raise NotImplementedError(
-                f"Cannot infer dimensions for a {md['start']['plan_name']} plan.  If this should be broadly supported, please raise an issue with the expected dimensions on the project GitHub."
-            )
-        # data = run['primary']['data'][md['detector']+'_image']
-        # if self.dark_subtract:
-        #    dark = run['dark']['data'][md['detector']+'_image'].mean('time') #@TODO: change to correct dark indexing
-        #    image = data - dark - self.dark_pedestal
-        # else:
-        #    image = data - self.dark_pedestal
+        
+        monitors = self.loadMonitors(run)
+        
+        if dims is None:
+            if ('NEXAFS' or 'nexafs') in md['start']['plan_name']:
+                raise NotImplementedError(f"Scan {md['start']['scan_id']} is a {md['start']['plan_name']} NEXAFS scan.  NEXAFS loading is not yet supported.") # handled case change in "NEXAFS"
+            elif ('full' in md['start']['plan_name'] or 'short' in md['start']['plan_name'] or 'custom_rsoxs_scan' in md['start']['plan_name']) and dims is None:
+                dims = ['energy']
+            elif 'spiralsearch' in md['start']['plan_name'] and dims is None:
+                dims = ['sam_x','sam_y']
+            elif 'count' in md['start']['plan_name'] and dims is None:
+                dims = ['epoch']
+            else:
+                axes_to_include = []
+                rsd_cutoff = 0.005
+
+                # begin with a list of the things that are primary streams
+                axis_list = list(run['primary']['data'].keys())
+                # next, knock out anything that has 'image', 'fullframe' in it - these aren't axes
+                axis_list = [x for x in axis_list if 'image' not in x]
+                axis_list = [x for x in axis_list if 'fullframe' not in x]
+                axis_list = [x for x in axis_list if 'stats' not in x]
+                axis_list = [x for x in axis_list if 'saturated' not in x]
+                axis_list = [x for x in axis_list if 'under_exposed' not in x]
+                # now, clean up duplicates.
+                axis_list = [x for x in axis_list if 'setpoint' not in x]
+                # now, figure out what's actually moving.  we use a relative standard deviation to do this.
+                # arbitrary cutoff of 0.5% motion = it moved intentionally.
+                for axis in axis_list:
+                    std = np.std(run["primary"]["data"][axis])
+                    mean = np.mean(run["primary"]["data"][axis])
+                    rsd = std/mean
+                    
+                    if rsd > rsd_cutoff:
+                        axes_to_include.append(axis)
+
+                # next, construct the reverse lookup table - best mapping we can make of key to pyhyper word
+                # we start with the lookup table used by loadMd()
+                reverse_lut =  {v: k for k, v in self.md_lookup.items()}
+                reverse_lut_secondary =  {v: k for k, v in self.md_secondary_lookup.items()}
+                reverse_lut.update(reverse_lut_secondary)
+
+                # here, we broaden the table to make a value that default sources from '_setpoint' actually match on either
+                # the bare value or the readback value.
+                reverse_lut_adds = {}
+                for k in reverse_lut.keys():
+                    if 'setpoint' in k:
+                        reverse_lut_adds[k.replace('_setpoint','')] = reverse_lut[k]
+                        reverse_lut_adds[k.replace('_setpoint','_readback')] = reverse_lut[k]
+                reverse_lut.update(reverse_lut_adds)
+            
+                pyhyper_axes_to_use = []
+                for x in axes_to_include:
+                    try:
+                        pyhyper_axes_to_use.append(reverse_lut[x])
+                    except KeyError:
+                        pyhyper_axes_to_use.append(x)
+                dims = pyhyper_axes_to_use 
+        
+        '''
+        elif dims == None:
+            # use the dim tols to define the dimensions
+            # dims = []
+            # dim_tols = {'en_polarization': 0.5, 'sam_x': 0.05, 'sam_y':0.05, 'en_energy':0.05, 'exposure': 1., 'sam_th': 0.05} # set the amount dims are allowed to change; could make this user-chosen in the future
+            dims = ['en_energy','time'] # I think this always needs to be an axis due to the way that the integrator is set up
+            dim_tols = {'en_polarization': 0.5, 'sam_x': 0.05, 'sam_y':0.05, 'exposure': 1., 'sam_th': 0.05} # set the amount dims are allowed to change; could make this user-chosen in the future
+            if 'spiral' in md['start']['plan_name']:
+                dims = ['energy','time']
+                dim_tols = {'polarization': 0.5, 'sam_x': 0.05, 'sam_y':0.05, 'exposure': 1., 'sam_th': 0.05} # set the amount dims are allowed to change; could make this user-chosen in the future
+            for k in dim_tols.keys():
+                dim = md[k]
+                dim_std = np.std(dim)
+                if dim_std > dim_tols[k]:
+                    dims.append(k)
+        else: # if the user has already specified the dims; user may frequently specify 'energy' or 'polarization', so just changing that so it's readable to access correct metadata (without en_, they are just setpoints)
+            dims = dims
+            for i in range(0,len(dims)):
+                if dims[i] == 'polarization':
+                    dims[i] = 'en_polarization'
+                if dims[i] == 'energy':
+                    dims[i] = 'en_energy'
+            if len(dims) == 0:
+                raise NotImplementedError('You have not entered any dimensions; please enter at least one, or use None rather than an empty list')
+        '''
+
 
         data = run["primary"]["data"][md["detector"] + "_image"]
         if (
@@ -706,7 +761,7 @@ class SST1RSoXSDB:
             Presently bins are averaged between measurements intervals.
         useShutterThinning : bool, optional
             Whether or not to attempt to thin (filter) the raw time streams to remove data collected during shutter opening/closing, by default False
-            As of 230209 at NSLS2 SST1, using useShutterThinning= True for exposure times of < 0.5s is
+            As of 9 Feb 2023 at NSLS2 SST1, using useShutterThinning= True for exposure times of < 0.5s is
             not recommended because the shutter data is unreliable and too many points will be culled
         n_thinning_iters : int, optional
             how many iterations of thinning to perform, by default 5
@@ -798,7 +853,7 @@ class SST1RSoXSDB:
             except Exception as e:
                 # raise e # for testing
                 warnings.warn(
-                    "Error while time-integrating onto images.  Check data.",
+                    "Error while time-integrating monitors onto images.  Usually, this indicates a problem with the monitors, this is a critical error if doing normalization otherwise fine to ignore.",
                     stacklevel=2,
                 )
         return monitors
@@ -887,23 +942,12 @@ class SST1RSoXSDB:
 
         # items coming from primary
         try:
-            primary = run["primary"]["data"]
-        except (KeyError, HTTPStatusError):
-            raise Exception(
-                "No primary stream --> probably you caught run before image was written.  Try again."
-            )
-        md_lookup = {
-            "sam_x": "RSoXS Sample Outboard-Inboard",
-            "sam_y": "RSoXS Sample Up-Down",
-            "sam_z": "RSoXS Sample Downstream-Upstream",
-            "sam_th": "RSoXS Sample Rotation",
-            "polarization": "en_polarization_setpoint",
-            "energy": "en_energy_setpoint",
-            "exposure": "RSoXS Shutter Opening Time (ms)",  # md['detector']+'_cam_acquire_time'
-        }
-        md_secondary_lookup = {
-            "energy": "en_monoen_setpoint",
-        }
+            primary = run['primary']['data']
+        except (KeyError,HTTPStatusError):
+            raise Exception('No primary stream --> probably you caught run before image was written.  Try again.')
+        
+        md_lookup = copy.deepcopy(self.md_lookup)
+        md_secondary_lookup = copy.deepcopy(self.md_secondary_lookup)
 
         for key in primary.keys():
             if key not in md_lookup.values():
