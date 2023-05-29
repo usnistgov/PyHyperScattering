@@ -205,54 +205,54 @@ class DrawMask:
 
         return mask
 
-    def automask(self, image, max_size = 50):
-        # Create binary mask of the image by thresholding at 0
-        mask = (image < 0)
+def automask(self, image, max_size = 50):
+    # Create binary mask of the image by thresholding at 0
+    mask = (image < 0)
 
-        # Label the connected regions of the mask
-        labels, num_features = label(mask)
+    # Label the connected regions of the mask
+    labels, num_features = label(mask)
 
-        # Mask out regions that are smaller than max_size
-        for i in range(1, num_features+1):
-            size = np.sum(labels == i)
-            if size <= max_size:
-                mask[labels == i] = False
+    # Mask out regions that are smaller than max_size
+    for i in range(1, num_features+1):
+        size = np.sum(labels == i)
+        if size <= max_size:
+            mask[labels == i] = False
 
-        # Convert the masked values to NaN
-        image = image.astype(float)
-        image[mask] = np.nan
+    # Convert the masked values to NaN
+    image = image.astype(float)
+    image[mask] = np.nan
 
-        return image
+    return image
 
-    def remove_zingers(self, data_array, threshold1 = 10, threshold2 = 10):        
-        # Compute the mean intensity value across the chi axis for each q
-        mean_intensity = np.nanmean(data_array, axis=1)
+def remove_zingers(self, data_array, threshold1 = 10, threshold2 = 10):        
+    # Compute the mean intensity value across the chi axis for each q
+    mean_intensity = np.nanmean(data_array, axis=1)
 
-        # Compute the standard deviation of the intensity values at each q
-        std_intensity = np.nanstd(data_array, axis=1)
+    # Compute the standard deviation of the intensity values at each q
+    std_intensity = np.nanstd(data_array, axis=1)
 
-        # Compute the z-score for each intensity value at each q
-        z_score = (data_array - mean_intensity[:, np.newaxis]) / std_intensity[:, np.newaxis]
+    # Compute the z-score for each intensity value at each q
+    z_score = (data_array - mean_intensity[:, np.newaxis]) / std_intensity[:, np.newaxis]
 
-        # Identify outliers by thresholding the z-score array
-        outliers = np.abs(z_score) > threshold1
+    # Identify outliers by thresholding the z-score array
+    outliers = np.abs(z_score) > threshold1
 
-        # Iterate over each q coordinate with outliers
-        for i, q in enumerate(outliers):
-            if np.any(q):
-                # Compute the mean intensity value across all chi for this q
-                mean_intensity_q = np.nanmean(data_array[i][~q])
+    # Iterate over each q coordinate with outliers
+    for i, q in enumerate(outliers):
+        if np.any(q):
+            # Compute the mean intensity value across all chi for this q
+            mean_intensity_q = np.nanmean(data_array[i][~q])
 
-                # Compute the standard deviation of the intensity values at this q
-                std_intensity_q = np.nanstd(data_array[i][~q])
+            # Compute the standard deviation of the intensity values at this q
+            std_intensity_q = np.nanstd(data_array[i][~q])
 
-                # Compute the z-score for each intensity value at this q
-                z_score_q = (data_array[i] - mean_intensity_q) / std_intensity_q
+            # Compute the z-score for each intensity value at this q
+            z_score_q = (data_array[i] - mean_intensity_q) / std_intensity_q
 
-                # Identify outliers by thresholding the z-score array for this q
-                outliers_q = np.abs(z_score_q) > threshold2
+            # Identify outliers by thresholding the z-score array for this q
+            outliers_q = np.abs(z_score_q) > threshold2
 
-                # Mask the outliers with NaN values
-                data_array[i][outliers_q] = np.nan
+            # Mask the outliers with NaN values
+            data_array[i][outliers_q] = np.nan
 
-        return data_array
+    return data_array
