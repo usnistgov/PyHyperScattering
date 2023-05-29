@@ -65,7 +65,7 @@ class WPIntegrator():
 
         return image
 
-    def remove_zingers(self, data_array, threshold1 = 10, threshold2 = 5):        
+    def remove_zingers(self, data_array, threshold1 = 10, threshold2 = 10):        
         # Compute the mean intensity value across the chi axis for each q
         mean_intensity = np.nanmean(data_array, axis=1)
 

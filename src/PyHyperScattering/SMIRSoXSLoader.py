@@ -165,7 +165,6 @@ class SMIRSoXSLoader(FileLoader):
 
         config['sample_name'] = files[0][:-len(remove_tail)]
 
-
         config['sampleid'] = config['sample_name']
 
         for i, pol_str in enumerate(pol_strs):
@@ -186,4 +185,4 @@ class SMIRSoXSLoader(FileLoader):
         if self.profile_time: 
              print(f'Finished reading ' + str(num_energies) + ' energies. Time required: ' + str(datetime.datetime.now()-start))
 
-        return xr.DataArray(data, dims=("qx", "qy", "energy"), coords={"qy":max_range_Qy, "qx":max_range_Qx, "energy":elist},attrs=config).rename(config['sample_name'])
+        return xr.DataArray(data, dims=("qx", "qy", "energy"), coords={"qy":max_range_Qy, "qx":max_range_Qx, "energy":elist},attrs=config).rename(config['sampleid'])
