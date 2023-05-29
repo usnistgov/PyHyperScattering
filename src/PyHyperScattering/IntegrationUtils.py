@@ -2,6 +2,7 @@ import warnings
 import xarray as xr
 import numpy as np
 import math
+from scipy.ndimage import label
 
 try:
     import holoviews as hv
@@ -205,9 +206,9 @@ class DrawMask:
 
         return mask
 
-def automask(self, image, max_size = 50):
+def automask(image, max_size = 50):
     # Create binary mask of the image by thresholding at 0
-    mask = (image < 0)
+    mask = (image <= 0.25)
 
     # Label the connected regions of the mask
     labels, num_features = label(mask)
@@ -224,7 +225,7 @@ def automask(self, image, max_size = 50):
 
     return image
 
-def remove_zingers(self, data_array, threshold1 = 10, threshold2 = 10):        
+def remove_zingers(data_array, threshold1 = 10, threshold2 = 10):        
     # Compute the mean intensity value across the chi axis for each q
     mean_intensity = np.nanmean(data_array, axis=1)
 

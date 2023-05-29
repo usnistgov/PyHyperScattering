@@ -1,6 +1,5 @@
 MACHINE_HAS_CUDA = True
 from PyHyperScattering.FileLoader import FileLoader
-from scipy.ndimage import label
 from skimage import filters
 from .IntegrationUtils import automask, remove_zingers
 import os
@@ -31,7 +30,7 @@ class WPIntegrator():
     Integrator for qx/qy format xarrays using skimage.transform.warp_polar or a custom cuda-accelerated version, warp_polar_gpu
     '''
     
-    def __init__(self,return_cupy=False,force_np_backend=False,use_chunked_processing=False,automask=False,dezing=False):
+    def __init__(self,return_cupy=False,force_np_backend=False,use_chunked_processing=False,use_automask=False, use_dezing=False):
         '''
         Args:
             return_cupy (bool, default False): return arrays as cupy rather than numpy, for further GPU processing
@@ -45,7 +44,9 @@ class WPIntegrator():
         self.return_cupy = return_cupy
         self.use_chunked_processing=use_chunked_processing
         self.automask = automask
-        self.dezing = dezing
+        self.remove_zingers = remove_zingers
+        self.use_automask = use_automask
+        self.use_dezing = use_dezing
             
     def warp_polar_gpu(self,image, center=None, radius=None, output_shape=None, **kwargs):
         """
@@ -120,17 +121,17 @@ class WPIntegrator():
         else:
             TwoD = skimage.transform.warp_polar(img_to_integ,center=(center_x,center_y), radius = np.sqrt((img_to_integ.shape[0] - center_x)**2 + (img_to_integ.shape[1] - center_y)**2))
 
-        if self.dezing:
-            TwoD_dezinged = self.remove_zingers(np.array(TwoD))
-        else:
-            TwoD_dezinged = np.array(TwoD)
+        xarr = np.array(TwoD)
         
-        if self.automask:
-            TwoD_dezinged_masked = self.automask(TwoD_dezinged)
+        if self.use_dezing:
+            xarr = self.remove_zingers(data_array = xarr)
         else:
-            TwoD_dezinged_masked = TwoD_dezinged
+            None
         
-        xarr = TwoD_dezinged_masked
+        if self.use_automask:
+            xarr = self.automask(xarr)
+        else:
+            None
             
         qx = img.qx
         qy = img.qy
