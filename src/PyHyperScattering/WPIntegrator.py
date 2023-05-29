@@ -44,7 +44,7 @@ class WPIntegrator():
             
         self.return_cupy = return_cupy
         self.use_chunked_processing=use_chunked_processing
-	  self.automask = automask
+        self.automask = automask
         self.dezing = dezing
             
     def warp_polar_gpu(self,image, center=None, radius=None, output_shape=None, **kwargs):
@@ -120,15 +120,15 @@ class WPIntegrator():
         else:
             TwoD = skimage.transform.warp_polar(img_to_integ,center=(center_x,center_y), radius = np.sqrt((img_to_integ.shape[0] - center_x)**2 + (img_to_integ.shape[1] - center_y)**2))
 
-	  if self.dezing:
-        	TwoD_dezinged = self.remove_zingers(np.array(TwoD))
-	  else:
-		TwoD_dezinged = np.array(TwoD)
+        if self.dezing:
+            TwoD_dezinged = self.remove_zingers(np.array(TwoD))
+        else:
+            TwoD_dezinged = np.array(TwoD)
         
-	  if self.automask:
-        	TwoD_dezinged_masked = self.automask(TwoD_dezinged)
-	  else:
-		TwoD_dezinged_masked = TwoD_dezinged
+        if self.automask:
+            TwoD_dezinged_masked = self.automask(TwoD_dezinged)
+        else:
+            TwoD_dezinged_masked = TwoD_dezinged
         
         xarr = TwoD_dezinged_masked
             
