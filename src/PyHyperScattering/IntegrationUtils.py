@@ -3,6 +3,7 @@ import xarray as xr
 import numpy as np
 import math
 from scipy.ndimage import label
+import scipy.optimize
 
 try:
     import holoviews as hv
@@ -257,3 +258,82 @@ def remove_zingers(data_array, threshold1 = 10, threshold2 = 10):
             data_array[i][outliers_q] = np.nan
 
     return data_array
+
+def remove_XRF_background(xarray, q_lower1, q_upper1, q_lower2, q_upper2, pre, post):
+    """
+    This function computes the X-ray Fluorescence (XRF) background from a xarray and subtracts it from the xarray's 
+    intensity data. The XRF background is calculated for two different q-range regions, then subtracted from the 
+    entire q-range. The function returns the xarray data with the XRF background subtracted, as well as the constant 
+    offset xrf_fit. Both are returned as xarray objects.
+    
+    Parameters:
+    - xarray: xarray DataArray containing the xarray data, with 'energy', 'q', 'chi', 'polarization', and 'xarray_name' 
+              dimensions.
+    - q_lower1, q_upper1: The lower and upper bounds for the first q-range to consider when calculating the XRF background.
+    - q_lower2, q_upper2: The lower and upper bounds for the second q-range to consider when calculating the XRF background.
+    - pre, post: Two specific energy values at which to compute the XRF background.
+
+    Returns:
+    - xrf_subtracted_data: The xarray data with the XRF background subtracted, as an xarray DataArray object.
+    - xrf_fit: The constant offset used in the XRF background subtraction, as an xarray DataArray object.
+    """
+    
+    # Define the functions to fit high q scattering with background fluorescence
+    def exp_func(q, para):
+        A, B, C = para
+        return A * q**B + C
+
+    def err(para,q,y):
+        return abs(exp_func(q, para)-y)
+
+    def err_global(para, q1, q2, y1, y2):
+        p1 = para[0], para[2], 0
+        p2 = para[1], para[2], para[3]
+        err1 = err(p1,q1,y1)
+        err2 = err(p2,q2,y2)
+        return np.concatenate((err1,err2))
+
+    # Extract [q,I] and fit to determine power law scaling
+    pre_int = xarray.sel(energy=pre, q=slice(q_lower1,q_upper1)).mean('chi').values.flatten()
+    pre_q = xarray.sel(energy=pre, q=slice(q_lower1,q_upper1)).mean('chi')['q']
+    post_int = xarray.sel(energy=post, q=slice(q_lower1,q_upper1)).mean('chi').values.flatten()
+    post_q = xarray.sel(energy=post, q=slice(q_lower1,q_upper1)).mean('chi')['q']
+
+    init_guess = [1, 1, -4, 0]
+    para_best, _ = scipy.optimize.leastsq(err_global, init_guess, args=(pre_q, post_q, pre_int, post_int))
+
+    xrf_power_law_fit = para_best[2]
+
+    # Redefine function with power law scaling set by previous optimization
+    def exp_func2(q, para):
+        A, C = para
+        return A * q**xrf_power_law_fit + C
+
+    def err2(para, q, y):
+        return abs(exp_func2(q, para)-y)
+
+    # Initialize a copy of the xarray xarray for the XRF background-removed data
+    xrf_subtracted_data = xarray.copy()
+
+    # Fit all energies
+    xrf_fit = []
+    for energy in xarray.energy:
+        intensity = xarray.sel(energy=energy, q=slice(q_lower2,q_upper2)).mean('chi').values
+        intensity = intensity[:,0,0]
+        q_values = xarray.sel(energy=energy, q=slice(q_lower2,q_upper2)).mean('chi')['q']
+
+        init_guess = [1, 80]
+        para_best, _ = scipy.optimize.leastsq(err2, init_guess, args=(q_values, intensity))
+
+        # Subtract the constant offset for the current energy from all q values
+        xrf_subtracted_data.loc[{'energy': energy}] -= para_best[1]
+        
+        xrf_fit.append(para_best[1])
+
+    # Construct the xrf_fit xarray, which only depends on the energy dimension
+    xrf_fit = xr.DataArray(xrf_fit, coords=[xarray.energy], dims=['energy'])
+    
+    # xrf_fit = xrf_fit.where(xrf_fit > 0, 0)  # set negative values to 0
+    # xrf_fit = xrf_fit.where(xarray.energy > 285, 0)  # set energy values less than 285 to 0
+
+    return xrf_subtracted_data, xrf_fit
