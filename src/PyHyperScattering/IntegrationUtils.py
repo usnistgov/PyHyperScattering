@@ -260,107 +260,23 @@ def remove_zingers(data_array, threshold1 = 10, threshold2 = 10):
 
     return data_array
 
-# def remove_XRF_background(xarray, q_lower1, q_upper1, q_lower2, q_upper2, pre, post):
-#     """
-#     This function computes the X-ray Fluorescence (XRF) background from a xarray and subtracts it from the xarray's 
-#     intensity data. The XRF background is calculated for two different q-range regions, then subtracted from the 
-#     entire q-range. The function returns the xarray data with the XRF background subtracted, as well as the constant 
-#     offset xrf_fit. Both are returned as xarray objects.
-    
-#     Parameters:
-#     - xarray: xarray DataArray containing the xarray data, with 'energy', 'q', 'chi', 'polarization', and 'xarray_name' 
-#               dimensions.
-#     - q_lower1, q_upper1: The lower and upper bounds for the first q-range to consider when calculating the XRF background.
-#     - q_lower2, q_upper2: The lower and upper bounds for the second q-range to consider when calculating the XRF background.
-#     - pre, post: Two specific energy values at which to compute the XRF background.
-
-#     Returns:
-#     - xrf_subtracted_data: The xarray data with the XRF background subtracted, as an xarray DataArray object.
-#     - xrf_fit: The constant offset used in the XRF background subtraction, as an xarray DataArray object.
-#     """
-    
-#     # Define the functions to fit high q scattering with background fluorescence
-#     scaling_factor = 1e6  # Scaling factor for C
-    
-#     def exp_func(q, para):
-#         A, B, C = para
-#         return A * q**B + C / scaling_factor
-
-#     def err(para, q, y):
-#         return exp_func(q, para) - y
-
-#     def err_global(para, q1, q2, y1, y2):
-#         p1 = para[0], para[2], 0
-#         p2 = para[1], para[2], para[3]
-#         err1 = err(p1, q1, y1)
-#         err2 = err(p2, q2, y2)
-#         return np.concatenate((err1, err2))
-
-#     # Extract [q,I] and fit to determine power law scaling
-#     pre_int = xarray.sel(energy=pre, q=slice(q_lower1,q_upper1)).mean('chi').values.flatten()
-#     pre_q = xarray.sel(energy=pre, q=slice(q_lower1,q_upper1)).mean('chi')['q']
-#     post_int = xarray.sel(energy=post, q=slice(q_lower1,q_upper1)).mean('chi').values.flatten()
-#     post_q = xarray.sel(energy=post, q=slice(q_lower1,q_upper1)).mean('chi')['q']
-
-#     init_guess = [0.05, 0.05, -1, 20]
-#     result = least_squares(err_global, init_guess, bounds=([0, 0, -np.inf, 0], [np.inf, np.inf, 0, np.inf]), args=(pre_q, post_q, pre_int, post_int))
-#     para_best = result.x
-#     para_best1 = [para_best[0], para_best[2], 0]
-#     para_best2 = [para_best[1], para_best[2], para_best[3]]
-
-#     xrf_power_law_fit = para_best[2]
-
-#     # Redefine function with power law scaling set by previous optimization
-#     def exp_func2(q, para):
-#         A, C = para
-#         return A * q**xrf_power_law_fit + C / scaling_factor
-
-#     def err2(para, q, y):
-#         return exp_func2(q, para) - y
-
-#     # Initialize a copy of the xarray xarray for the XRF background-removed data
-#     xrf_subtracted_data = xarray.copy()
-
-#     # Fit all energies
-#     xrf_fit = []
-#     for energy in xarray.energy:
-#         intensity = xarray.sel(energy=energy, q=slice(q_lower2,q_upper2)).mean('chi').values.flatten()
-#         q_values = xarray.sel(energy=energy, q=slice(q_lower2,q_upper2)).mean('chi')['q']
-
-#         init_guess = [1, 80]
-#         para_best, _ = scipy.optimize.leastsq(err2, init_guess, args=(q_values, intensity))
-
-#         # Subtract the constant offset for the current energy from all q values
-#         xrf_subtracted_data.loc[{'energy': energy}] -= para_best[1]
-        
-#         xrf_fit.append(para_best[1])
-
-#     # Construct the xrf_fit xarray, which only depends on the energy dimension
-#     xrf_fit = xr.DataArray(xrf_fit, coords=[xarray.energy], dims=['energy'])
-    
-#     # xrf_fit = xrf_fit.where(xrf_fit > 0, 0)  # set negative values to 0
-#     # xrf_fit = xrf_fit.where(xarray.energy > 285, 0)  # set energy values less than 285 to 0
-
-#     return xrf_subtracted_data, xrf_fit
-
 def remove_XRF_background(sample, q_lower1, q_upper1, q_lower2, q_upper2, pre, post, printE=None, make_plots=False):
     """
-    This function fits an exponential model to the XRF background, 
-    and then uses the result to calculate the XRF background for each energy in the sample.
+    This function fits an exponential model to the XRF background, calculates the XRF background for each energy 
+    in the sample, and subtracts the background from the intensity data.
     
     Parameters:
-    sample (xarray): The data sample.
-    q_lower1, q_upper1 (float): The lower and upper bounds for the first q-range.
-    q_lower2, q_upper2 (float): The lower and upper bounds for the second q-range.
-    pre, post (float): The pre-edge and post-edge energies.
-    printE (float, optional): Energy at which to print the fit. 
-                              If not provided, it defaults to the midpoint between pre and post.
-    make_plots (bool, optional): Whether to produce plots. Defaults to False.
+    sample (xarray): The data sample containing intensity information.
+    q_lower1, q_upper1 (float): The lower and upper bounds for the first q-range for XRF background calculation.
+    q_lower2, q_upper2 (float): The lower and upper bounds for the second q-range for XRF background calculation.
+    pre, post (float): The pre-edge and post-edge energies for XRF background calculation.
+    printE (float, optional): Energy at which to print the fit. If not provided, defaults to the midpoint between pre and post.
+    make_plots (bool, optional): If True, produces diagnostic plots. Defaults to False.
     
     Returns:
-    list: The XRF offset values and XRF fitting parameters A for each energy.
+    list: Two xarray DataArray objects - the XRF-subtracted data, and the calculated XRF vs energy for each energy.
     """    
-    # Function for the exponential model
+    # Exponential model function
     def exp_func(q, para):
         A, B, C = para
         return A * q**B + C
@@ -371,13 +287,13 @@ def remove_XRF_background(sample, q_lower1, q_upper1, q_lower2, q_upper2, pre, p
 
     # Error function for the global fit
     def err_global(para, q1, q2, y1, y2):
-        p1 = para[0], para[2], 0
-        p2 = para[1], para[2], para[3]
+        p1 = para[0], para[2], para[3]
+        p2 = para[1], para[2], para[4]
         err1 = err(p1, q1, y1)
         err2 = err(p2, q2, y2)
         return np.concatenate((err1, err2))
 
-    # Select the pre-edge and post-edge intensities and q values
+    # Extract pre-edge and post-edge intensities and q values
     pre_int = sample.sel(energy=pre, method='nearest').sel(q=slice(q_lower1, q_upper1)).mean('chi').values.flatten()
     pre_q = sample.sel(energy=pre, method='nearest').sel(q=slice(q_lower1, q_upper1)).mean('chi')['q']
     post_int = sample.sel(energy=post, method='nearest').sel(q=slice(q_lower1, q_upper1)).mean('chi').values.flatten()
@@ -393,13 +309,13 @@ def remove_XRF_background(sample, q_lower1, q_upper1, q_lower2, q_upper2, pre, p
         plt.show()
 
     # Initial guess for the least squares fit
-    init_guess = [0.05, 0.05, -1, 20]
+    init_guess = [0.05, 0.05, -1, 0, 20]
 
     # Perform the least squares fit
-    result = least_squares(err_global, init_guess, bounds=([0, 0, -np.inf, 0], [np.inf, np.inf, 0, np.inf]), args=(pre_q, post_q, pre_int, post_int))
+    result = least_squares(err_global, init_guess, bounds=([0, 0, -np.inf, 0, 0], [np.inf, np.inf, 0, np.inf, np.inf]), args=(pre_q, post_q, pre_int, post_int))
     para_best = result.x
-    para_best1 = [para_best[0], para_best[2], 0]
-    para_best2 = [para_best[1], para_best[2], para_best[3]]
+    para_best1 = [para_best[0], para_best[2], para_best[3]]
+    para_best2 = [para_best[1], para_best[2], para_best[4]]
 
     xrf_power_law_fit = para_best[2]
     
@@ -416,7 +332,7 @@ def remove_XRF_background(sample, q_lower1, q_upper1, q_lower2, q_upper2, pre, p
         plt.ylabel('Intensity (a.u.)')
         plt.show()
 
-    # Function for the exponential model with fixed B parameter
+    # Exponential model function with fixed B parameter
     def exp_func2(q, para):
         A, C = para
         return A * q**xrf_power_law_fit + C
@@ -425,14 +341,14 @@ def remove_XRF_background(sample, q_lower1, q_upper1, q_lower2, q_upper2, pre, p
     def err2(para, q, y):
         return exp_func2(q, para) - y
 
-    # Initialize a copy of the xarray xarray for the XRF background-removed data
+    # Initialize a copy of the xarray for the XRF background-removed data
     xrf_subtracted_data = sample.copy()
     xrf_fit_C = []  # List to store the fitted C values
 
     init_guess = [0.05, 20]  # Initial guess for the first iteration
     
     if printE is None:
-        printE = (pre + post) / 2  # Use the midpoint between pre and post as the default printE
+        printE = (pre + post) / 2  # Default printE to the midpoint between pre and post
 
     # Iterate over each energy in the sample
     for v in sample.energy:
@@ -450,18 +366,18 @@ def remove_XRF_background(sample, q_lower1, q_upper1, q_lower2, q_upper2, pre, p
         # Update the initial guess for the next iteration
         init_guess = para_best  
 
-        if v == printE and make_plots:
-            sample.sel(energy=printE).mean('chi').plot(yscale='log', xscale='log', label=str(np.asarray(printE)) + ' eV Data')
-            plt.plot(q_values, exp_func2(q_values, para_best), label=str(np.asarray(printE)) + ' eV Fit', color='blue', linewidth=3)
+        if v == sample.sel(energy=printE, method='nearest').energy and make_plots:
+            sample.sel(energy=printE, method='nearest').mean('chi').plot(yscale='log', xscale='log', label=str(np.asarray(v)) + ' eV Data')
+            plt.plot(q_values, exp_func2(q_values, para_best), label=str(np.asarray(v)) + ' eV Fit', color='blue', linewidth=3)
             plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
             plt.xlabel('$\it{q}$ (Å$^{-1}$)')
-            plt.ylabel('Intensity')
+            plt.ylabel('Intensity (a.u.)')
             plt.show()
 
     if make_plots:
         plt.plot(sample.energy, xrf_fit_C, marker='.')
         plt.xlabel('Energy (eV)')
-        plt.ylabel('XRF Offset Value')
+        plt.ylabel('XRF Offset Value (a.u.)')
         plt.show()
 
     # Construct the xrf_fit xarray, which only depends on the energy dimension
