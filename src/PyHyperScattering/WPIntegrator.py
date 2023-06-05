@@ -124,12 +124,12 @@ class WPIntegrator():
         xarr = np.array(TwoD)
         
         if self.use_dezing:
-            xarr = self.remove_zingers(data_array = xarr)
+            xarr, zingers = self.remove_zingers(data_array = xarr)
         else:
             None
         
         if self.use_automask:
-            xarr = self.automask(xarr)
+            xarr, mask = self.automask(xarr)
         else:
             None
             

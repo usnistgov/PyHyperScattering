@@ -208,26 +208,78 @@ class DrawMask:
 
         return mask
 
-def automask(image, max_size = 50):
-    # Create binary mask of the image by thresholding at 0
-    mask = (image <= 0.25)
+def automask(image, max_region_size = 50, threshold_value = 0.25):
+    """
+    This function generates an automatic mask for an input image. This mask is primarily used to hide regions 
+    from the image that have a low-intensity value (less than or equal to a threshold value) and are larger 
+    than a defined maximum size. The latter is particularly useful when you want to ignore non-contributing 
+    regions in the image, such as the edges of a detector or structural components that are not X-ray sensitive.
 
-    # Label the connected regions of the mask
-    labels, num_features = label(mask)
+    Default values for max_region_size and threshold_value are optimized for the Pilatus 1M and Pilatus 900k 
+    detectors at NSLS-II SMI.
 
-    # Mask out regions that are smaller than max_size
+    Parameters:
+    image (np.array): The input image provided as a NumPy array.
+    max_region_size (int, optional): Defines the maximum size a region can be to remain unmasked. If a region 
+                                     is larger than this value, it will be masked out. Default is 50.
+    threshold_value (float, optional): A critical intensity value used to create the initial binary mask. Any 
+                                       pixel with intensity less than or equal to this value will be marked for 
+                                       potential masking. Default is 0.25.
+
+    Returns:
+    tuple: A tuple containing the masked image (np.array) and the binary mask (np.array). In the masked image, 
+           the intensity of masked regions is replaced with NaN. In the binary mask, True values correspond to 
+           the masked regions.
+    """
+    
+    # Create a binary mask where each pixel is True if its intensity is less than or equal to the threshold_value
+    binary_mask = (image <= threshold_value)
+
+    # Identify and label the connected regions in the binary mask
+    labels, num_features = label(binary_mask)
+
+    # Loop over each labeled region
     for i in range(1, num_features+1):
-        size = np.sum(labels == i)
-        if size <= max_size:
-            mask[labels == i] = False
+        # Compute the total number of pixels in the current region
+        region_size = np.sum(labels == i)
+        
+        # If the region's size exceeds the max_region_size, confirm its masking by setting the corresponding 
+        # binary_mask values to True
+        if region_size > max_region_size:
+            binary_mask[labels == i] = True
 
-    # Convert the masked values to NaN
-    image = image.astype(float)
-    image[mask] = np.nan
+    # Duplicate the original image to prevent unwanted modifications
+    masked_image = np.copy(image)
 
-    return image
+    # Convert the image pixel values to float type to support NaN values
+    masked_image = masked_image.astype(float)
+    
+    # In the masked_image, replace the intensity of all pixels that need to be masked (True in binary_mask) with NaN
+    masked_image[binary_mask] = np.nan
 
-def remove_zingers(data_array, threshold1 = 10, threshold2 = 10):        
+    # Return the masked image and the binary mask
+    return masked_image, binary_mask
+
+def remove_zingers(data_array, z_score_threshold1 = 10, z_score_threshold2 = 10):        
+    """
+    This function removes outliers (zingers) from a data array. It operates by 
+    identifying values that are extreme outliers in terms of their z-scores 
+    (the number of standard deviations away from the mean). It returns the data
+    with outliers removed, as well as an array of the outlier values themselves.
+    
+    Parameters:
+    data_array (np.array): The input data array.
+    z_score_threshold1 (float): The initial z-score threshold for detecting outliers.
+    z_score_threshold2 (float): The refined z-score threshold for detecting outliers within suspected regions.
+    
+    Returns:
+    tuple: The dezingered data array (np.array) and the zingers (np.array).
+    """
+    
+    # Create a new array for the zingers, initialized with NaN values
+    zingers = np.empty(data_array.shape)
+    zingers[:] = np.nan
+
     # Compute the mean intensity value across the chi axis for each q
     mean_intensity = np.nanmean(data_array, axis=1)
 
@@ -237,30 +289,33 @@ def remove_zingers(data_array, threshold1 = 10, threshold2 = 10):
     # Compute the z-score for each intensity value at each q
     z_score = (data_array - mean_intensity[:, np.newaxis]) / std_intensity[:, np.newaxis]
 
-    # Identify outliers by thresholding the z-score array
-    outliers = np.abs(z_score) > threshold1
+    # Identify potential outliers by thresholding the z-score array with the initial threshold
+    potential_outliers = np.abs(z_score) > z_score_threshold1
 
-    # Iterate over each q coordinate with outliers
-    for i, q in enumerate(outliers):
+    # Iterate over each q coordinate with potential outliers
+    for i, q in enumerate(potential_outliers):
         if np.any(q):
-            # Compute the mean intensity value across all chi for this q
+            # Compute the mean intensity value across all chi for this q, excluding potential outliers
             mean_intensity_q = np.nanmean(data_array[i][~q])
 
-            # Compute the standard deviation of the intensity values at this q
+            # Compute the standard deviation of the intensity values at this q, excluding potential outliers
             std_intensity_q = np.nanstd(data_array[i][~q])
 
             # Compute the z-score for each intensity value at this q
             z_score_q = (data_array[i] - mean_intensity_q) / std_intensity_q
 
-            # Identify outliers by thresholding the z-score array for this q
-            outliers_q = np.abs(z_score_q) > threshold2
+            # Identify confirmed outliers by thresholding the z-score array for this q with the refined threshold
+            confirmed_outliers_q = np.abs(z_score_q) > z_score_threshold2
 
-            # Mask the outliers with NaN values
-            data_array[i][outliers_q] = np.nan
+            # Transfer the zingers to the zingers array
+            zingers[i][confirmed_outliers_q] = data_array[i][confirmed_outliers_q]
 
-    return data_array
+            # Mask the confirmed outliers with NaN values
+            data_array[i][confirmed_outliers_q] = np.nan
 
-def remove_XRF_background(sample, q_lower1, q_upper1, q_lower2, q_upper2, pre, post, printE=None, make_plots=False):
+    return data_array, zingers
+
+def remove_XRF_background(sample, q_lower, q_upper, pre, post, printE=None, make_plots=False):
     """
     This function fits an exponential model to the XRF background, calculates the XRF background for each energy 
     in the sample, and subtracts the background from the intensity data.
@@ -275,17 +330,21 @@ def remove_XRF_background(sample, q_lower1, q_upper1, q_lower2, q_upper2, pre, p
     
     Returns:
     list: Two xarray DataArray objects - the XRF-subtracted data, and the calculated XRF vs energy for each energy.
-    """    
-    # Exponential model function
+    """
+    # Define the exponential model function for initial fit.
+    # A, B, C are the parameters of this model, where:
+    # A is the amplitude of the exponential,
+    # B is the power to which q is raised,
+    # C is a constant offset.    
     def exp_func(q, para):
         A, B, C = para
         return A * q**B + C
 
-    # Error function for the exponential model
+    # The error function associated with the initial exponential model
     def err(para, q, y):
         return exp_func(q, para) - y
 
-    # Error function for the global fit
+    # Error function for a combined fit over two regions (pre-edge and post-edge)
     def err_global(para, q1, q2, y1, y2):
         p1 = para[0], para[2], para[3]
         p2 = para[1], para[2], para[4]
@@ -293,11 +352,11 @@ def remove_XRF_background(sample, q_lower1, q_upper1, q_lower2, q_upper2, pre, p
         err2 = err(p2, q2, y2)
         return np.concatenate((err1, err2))
 
-    # Extract pre-edge and post-edge intensities and q values
-    pre_int = sample.sel(energy=pre, method='nearest').sel(q=slice(q_lower1, q_upper1)).mean('chi').values.flatten()
-    pre_q = sample.sel(energy=pre, method='nearest').sel(q=slice(q_lower1, q_upper1)).mean('chi')['q']
-    post_int = sample.sel(energy=post, method='nearest').sel(q=slice(q_lower1, q_upper1)).mean('chi').values.flatten()
-    post_q = sample.sel(energy=post, method='nearest').sel(q=slice(q_lower1, q_upper1)).mean('chi')['q']
+    # Extracting intensity and q values for both pre-edge and post-edge regions
+    pre_int = sample.sel(energy=pre, method='nearest').sel(q=slice(q_lower, q_upper)).mean('chi').values.flatten()
+    pre_q = sample.sel(energy=pre, method='nearest').sel(q=slice(q_lower, q_upper))['q']
+    post_int = sample.sel(energy=post, method='nearest').sel(q=slice(q_lower, q_upper)).mean('chi').values.flatten()
+    post_q = sample.sel(energy=post, method='nearest').sel(q=slice(q_lower, q_upper))['q']
 
     if make_plots:
         plt.plot(post_q, post_int, label='Post Edge Intensity')
@@ -308,21 +367,34 @@ def remove_XRF_background(sample, q_lower1, q_upper1, q_lower2, q_upper2, pre, p
         plt.ylabel('Intensity (a.u.)')
         plt.show()
 
-    # Initial guess for the least squares fit
-    init_guess = [0.05, 0.05, -1, 0, 20]
+    # Initial guess for parameters used for the least squares fit.
+    # The initial guess is chosen based on empirical observation and understanding of the underlying physics.
+    # init_A_1: Initial guess for the amplitude (A) of the exponential for the pre-edge region.
+    # init_A_2: Initial guess for the amplitude (A) of the exponential for the post-edge region.
+    # init_B: Initial guess for the power to which q is raised (B), it's shared between the two regions (B is the XRF power law fit parameter).
+    # init_C_1: Initial guess for the constant offset (C) in the pre-edge region.
+    # init_C_2: Initial guess for the constant offset (C) in the post-edge region.
+    init_A_1 = 1e-5
+    init_A_2 = 1e-5
+    init_B = -2
+    init_C_1 = 0
+    init_C_2 = 2
+    init_guess = [init_A_1, init_A_2, init_B, init_C_1, init_C_2]
 
-    # Perform the least squares fit
+    # Fitting process using least squares fit. Here, the fit is performed over the pre-edge and post-edge regions
     result = least_squares(err_global, init_guess, bounds=([0, 0, -np.inf, 0, 0], [np.inf, np.inf, 0, np.inf, np.inf]), args=(pre_q, post_q, pre_int, post_int))
+    
+    # Extracting optimal parameters from fit
     para_best = result.x
     para_best1 = [para_best[0], para_best[2], para_best[3]]
     para_best2 = [para_best[1], para_best[2], para_best[4]]
 
+    # Parameter B is taken as the XRF power law fit from the optimized parameters
     xrf_power_law_fit = para_best[2]
     
+    # Plot of the fitted model and the original data        
     if make_plots:
         print(f"XRF Power Law Fit: {xrf_power_law_fit}")
-
-    if make_plots:
         sample.sel(energy=pre, method='nearest').mean('chi').plot(yscale='log', xscale='log', label='Pre-edge')
         sample.sel(energy=post, method='nearest').mean('chi').plot(yscale='log', xscale='log', label='Post-edge')
         plt.plot(pre_q, exp_func(pre_q, para_best1), label='Pre-edge fit', color='blue', linewidth=3)
@@ -332,55 +404,82 @@ def remove_XRF_background(sample, q_lower1, q_upper1, q_lower2, q_upper2, pre, p
         plt.ylabel('Intensity (a.u.)')
         plt.show()
 
-    # Exponential model function with fixed B parameter
+    # The second exponential model function used for fitting at each energy. B is fixed to xrf_power_law_fit.
     def exp_func2(q, para):
         A, C = para
         return A * q**xrf_power_law_fit + C
 
-    # Error function for the second exponential model
+    # The error function associated with the second exponential model
     def err2(para, q, y):
         return exp_func2(q, para) - y
 
-    # Initialize a copy of the xarray for the XRF background-removed data
+    # Creating a copy of the original xarray to store the XRF background-subtracted data
     xrf_subtracted_data = sample.copy()
     xrf_fit_C = []  # List to store the fitted C values
 
-    init_guess = [0.05, 20]  # Initial guess for the first iteration
+    # Initialization of parameters for the iterative least squares fitting process
+    # Here, we use the fitted amplitude and offset from the previous global fit as initial guesses.
+    # init_A_iter: Initial guess for the amplitude (A) for iterative fitting at each energy level. It's based on the amplitude of the pre-edge fit.
+    # init_C_iter: Initial guess for the constant offset (C) for iterative fitting at each energy level. It's based on the offset of the pre-edge fit.
+    init_A_iter = para_best1[0]
+    init_C_iter = para_best1[2]
+    init_guess = [init_A_iter, init_C_iter]
     
     if printE is None:
         printE = (pre + post) / 2  # Default printE to the midpoint between pre and post
 
-    # Iterate over each energy in the sample
-    for v in sample.energy:
-        intensity = sample.sel(energy=v, q=slice(q_lower2, q_upper2)).mean('chi').values.flatten()
-        q_values = sample.sel(energy=v, q=slice(q_lower2, q_upper2)).mean('chi')['q']
+    # Flag to indicate if an error occurred at printE
+    error_at_printE = False
+    
+    # catch all warnings to be displayed at the end for the user
+    with warnings.catch_warnings(record=True) as caught_warnings:
+        # Loop over each energy in the sample
+        for v in sample.energy:
+            intensity = sample.sel(energy=v, q=slice(q_lower, q_upper)).mean('chi').values.flatten()
+            q_values = sample.sel(energy=v, q=slice(q_lower, q_upper)).mean('chi')['q']
 
-        # Perform the least squares fit for the current energy
-        result = least_squares(err2, init_guess, bounds=([0, 0], [np.inf, np.inf]), args=(q_values, intensity))
-        para_best = result.x
-        xrf_fit_C.append(para_best[1])
-        
-        # Subtract the constant offset for the current energy from all q values
-        xrf_subtracted_data.loc[{'energy': v}] -= para_best[1]
+            try:
+                # Perform the least squares fit for the current energy. The fitted model is used to calculate the XRF background.
+                result = least_squares(err2, init_guess, bounds=([0, 0], [np.inf, np.inf]), args=(q_values, intensity))
+                para_best = result.x
+                xrf_fit_C.append(para_best[1])
 
-        # Update the initial guess for the next iteration
-        init_guess = para_best  
+                # Subtract the constant offset for the current energy from all q values. This is the background subtraction step.
+                xrf_subtracted_data.loc[{'energy': v}] -= para_best[1]
+            except ValueError:
+                # If an error occurs during the fit, the original data is kept and a warning is issued
+                xrf_subtracted_data.loc[{'energy': v}] = sample.loc[{'energy': v}]
+                xrf_fit_C.append(np.nan)
+                warnings.warn(f'ValueError at {np.asarray(v)} eV. Original data used, XRF fit skipped. Please check data at this energy.')
 
-        if v == sample.sel(energy=printE, method='nearest').energy and make_plots:
-            sample.sel(energy=printE, method='nearest').mean('chi').plot(yscale='log', xscale='log', label=str(np.asarray(v)) + ' eV Data')
-            plt.plot(q_values, exp_func2(q_values, para_best), label=str(np.asarray(v)) + ' eV Fit', color='blue', linewidth=3)
-            plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
-            plt.xlabel('$\it{q}$ (Å$^{-1}$)')
-            plt.ylabel('Intensity (a.u.)')
-            plt.show()
+            # Flag to mark if an error occurred at printE
+            if v == sample.sel(energy=printE, method='nearest').energy:
+                error_at_printE = True
 
+            # The initial guess for the next iteration is updated to be the optimized parameters from the current iteration
+            init_guess = para_best  
+
+            # Plotting for data at printE if specified
+            if v == sample.sel(energy=printE, method='nearest').energy and make_plots and not error_at_printE:
+                sample.sel(energy=printE, method='nearest').mean('chi').plot(yscale='log', xscale='log', label=str(np.asarray(v)) + ' eV Data')
+                plt.plot(q_values, exp_func2(q_values, para_best), label=str(np.asarray(v)) + ' eV Fit', color='blue', linewidth=3)
+                plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+                plt.xlabel('$\it{q}$ (Å$^{-1}$)')
+                plt.ylabel('Intensity (a.u.)')
+                plt.show()
+    
+    # Final plot of the fitted XRF offset as a function of energy
     if make_plots:
         plt.plot(sample.energy, xrf_fit_C, marker='.')
         plt.xlabel('Energy (eV)')
         plt.ylabel('XRF Offset Value (a.u.)')
         plt.show()
 
-    # Construct the xrf_fit xarray, which only depends on the energy dimension
+    # Print out all caught warnings
+    for warn in caught_warnings:
+        print(str(warn.message))
+        
+    # Constructing the xrf_fit xarray, which only depends on the energy dimension
     xrf_fit_C = xr.DataArray(xrf_fit_C, coords=[sample.energy], dims=['energy'])
     
     return xrf_subtracted_data, xrf_fit_C
