@@ -45,7 +45,7 @@ class CMSGIWAXSLoader(FileLoader):
             attr_dict[md_item] = md_list[i]
         return attr_dict
     
-    def loadSeries(self, basePath, filter):
+    def loadSeries(self, basePath, filter, time_start=0):
         """
         Load many raw TIFFs into an xarray DataArray
         """
@@ -59,7 +59,9 @@ class CMSGIWAXSLoader(FileLoader):
         out = xr.concat(data_rows, 'series_number')
         out = out.assign_coords({
             'series_number': out.series_number.data,
-            'time': ('series_number', out.series_number.data*float(out.exposure_time[:-1]))
+            'time': ('series_number', 
+                     out.series_number.data*np.round(float(out.exposure_time[:-1]),
+                                                     1)+time_start)
         })
         out = out.swap_dims({'series_number': 'time'})
         del out.attrs['series_number']
