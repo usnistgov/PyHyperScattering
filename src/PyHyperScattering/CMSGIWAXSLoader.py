@@ -18,10 +18,10 @@ class CMSGIWAXSLoader(FileLoader):
     def __init__(self, md_scheme=None):
         self.md_scheme = md_scheme
 
-    def loadSingleImage(self, filepath):
+    def loadSingleImage(self, filepath, md_naming_scheme):
         image = Image.open(filepath)
         image_data = np.flipud(np.array(image))
-        attr_dict = self.loadMd(filepath)
+        attr_dict = self.loadMd(filepath, md_naming_scheme)
         image_da = xr.DataArray(data = image_data, 
                                 dims=['pix_y', 'pix_x'],
                                 attrs=attr_dict)
