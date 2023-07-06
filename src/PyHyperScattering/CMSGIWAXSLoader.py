@@ -28,6 +28,10 @@ class CMSGIWAXSLoader(FileLoader):
         image_da = xr.DataArray(data = image_data, 
                                 dims=['pix_y', 'pix_x'],
                                 attrs=attr_dict)
+        image_da = image_da.assign_coords({
+            'pix_x': image_da.pix_x.data,
+            'pix_y': image_da.pix_y.data
+        })
         return image_da
     
     def loadMd(self, filepath):
@@ -53,6 +57,12 @@ class CMSGIWAXSLoader(FileLoader):
             data_rows.append(image_da)
 
         out = xr.concat(data_rows, 'series_number')
+        out.assign_coords({
+            'series_number': out.series_number.data,
+            'time': ('series_number', out.series_number.data*float(out.exposure_time[:-1]))
+        })
+        out.swap_dims({'series_number': 'time'})
+        del out.attrs['series_number']
 
         return out
 
