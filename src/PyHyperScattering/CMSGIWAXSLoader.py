@@ -15,23 +15,45 @@ class CMSGIWAXSLoader(FileLoader):
     """
     Loader for TIFF files from NSLS-II 11-BM CMS
     """
-    def __init__(self, md_scheme=None):
-        self.md_scheme = md_scheme
+    def __init__(self, md_naming_scheme=None):
+        self.md_naming_scheme = md_naming_scheme
 
-    def loadSingleImage(self, filepath, md_naming_scheme):
+    def loadSingleImage(self, filepath):
+        """
+        Loads a single xarray DataArray from a filepath to a raw TIFF
+        """
         image = Image.open(filepath)
         image_data = np.flipud(np.array(image))
-        attr_dict = self.loadMd(filepath, md_naming_scheme)
+        attr_dict = self.loadMd(filepath, self.md_naming_scheme)
         image_da = xr.DataArray(data = image_data, 
                                 dims=['pix_y', 'pix_x'],
                                 attrs=attr_dict)
         return image_da
     
-    def loadMd(self, filepath, md_naming_scheme):
+    def loadMd(self, filepath):
+        """
+        Uses md_naming_scheme to generate dictionary of metadata based on filename
+        """
         attr_dict = {}
         name = filepath.name
         md_list = name.split('_')
-        for i, md_item in enumerate(md_naming_scheme):
+        for i, md_item in enumerate(self.md_naming_scheme):
             attr_dict[md_item] = md_list[i]
         return attr_dict
+    
+    def loadSeries(self, basePath, filter):
+        """
+        Load many raw TIFFs into an xarray DataArray
+        """
+        data_rows = []
+        for filepath in basePath.glob(f'*{filter}*'):
+            image_da = self.loadSingleImage(filepath)
+            image_da.assign_coords({'series_number': int(image_da.series_number)})
+            image_da.expand_dims(dim={'series_number': 1})
+            data_rows.append(image_da)
+
+        out = xr.concat(data_rows, 'series_number')
+
+        return out
+
 
