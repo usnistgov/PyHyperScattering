@@ -21,6 +21,17 @@ class CMSGIWAXSLoader(FileLoader):
     def loadSingleImage(self, filepath):
         image = Image.open(filepath)
         image_data = np.flipud(np.array(image))
-        image_da = xr.DataArray(image_data, dims=['pix_y', 'pix_x'])
+        attr_dict = self.loadMd(filepath)
+        image_da = xr.DataArray(data = image_data, 
+                                dims=['pix_y', 'pix_x'],
+                                attrs=attr_dict)
         return image_da
     
+    def loadMd(self, filepath, md_naming_scheme):
+        attr_dict = {}
+        name = filepath.name
+        md_list = name.split('_')
+        for i, md_item in enumerate(md_naming_scheme):
+            attr_dict[md_item] = md_list[i]
+        return attr_dict
+
