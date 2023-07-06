@@ -57,12 +57,13 @@ class CMSGIWAXSLoader(FileLoader):
             data_rows.append(image_da)
 
         out = xr.concat(data_rows, 'series_number')
+        del out.attrs['series_number']
+        
         out.assign_coords({
             'series_number': out.series_number.data,
             'time': ('series_number', out.series_number.data*float(out.exposure_time[:-1]))
         })
         out.swap_dims({'series_number': 'time'})
-        del out.attrs['series_number']
 
         return out
 
