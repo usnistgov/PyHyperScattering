@@ -178,11 +178,11 @@ class DrawMask:
         '''
         with open(fname,'r') as f:
             strlist = json.load(f)
-        print(strlist)
+        # print(strlist)
         dflist = []
         for item in strlist:
             dflist.append(pd.read_json(item))
-        print(dflist)
+        # print(dflist)
         self.poly = hv.Polygons(dflist)
         
         self.path_annotator(
