@@ -15,7 +15,7 @@ class CMSGIWAXSLoader(FileLoader):
     """
     Loader for TIFF files from NSLS-II 11-BM CMS
     """
-    def __init__(self, md_naming_scheme=None):
+    def __init__(self, md_naming_scheme=[]):
         self.md_naming_scheme = md_naming_scheme
 
     def loadSingleImage(self, filepath):
