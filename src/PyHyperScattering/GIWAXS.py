@@ -44,7 +44,7 @@ def pg_convert(da, poniPath, maskPath, inplane_config='q_xy'):
                             coords={
                                 'q_z': qz,
                                 inplane_config: qxy,
-                                'time': float(da.time)
+                                'time': np.array([float(da.time)])
                             },
                             attrs=da.attrs)
 
@@ -61,7 +61,7 @@ def pg_convert(da, poniPath, maskPath, inplane_config='q_xy'):
                         coords={
                             'chi': chi,
                             'qr': qr,
-                            'time': float(da.time)
+                            'time': np.array([float(da.time)])
                         },
                         attrs=da.attrs)
     caked_da.attrs['inplane_config'] = inplane_config
