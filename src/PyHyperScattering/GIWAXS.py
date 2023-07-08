@@ -62,7 +62,7 @@ def pg_convert(da, poniPath, maskPath, inplane_config='q_xy'):
                         attrs=da.attrs)
     caked_da.attrs['inplane_config'] = inplane_config
 
-    if 'time' in da.dims:
+    if 'time' in da.coords:
         recip_da = recip_da.assign_coords({'time': float(da.time)})
         recip_da = recip_da.expand_dims(dim={'time': 1})
         caked_da = caked_da.assign_coords({'time': float(da.time)})
