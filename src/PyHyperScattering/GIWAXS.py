@@ -66,4 +66,4 @@ def pg_convert(da, poniPath, maskPath, inplane_config='q_xy'):
     
     return recip_da, caked_da
     
-def pg_convert_series(da, poniPath, maskPath, inplane_config='q_xy'):
+# def pg_convert_series(da, poniPath, maskPath, inplane_config='q_xy'):
