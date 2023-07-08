@@ -57,7 +57,7 @@ def pg_convert(da, poniPath, maskPath, inplane_config='q_xy'):
                         dims=['chi', 'qr'],
                         coords={
                             'chi': ('chi', chi, {'units': '°'}),
-                            'qr': ('chi', qr, {'units': '1/Å'})
+                            'qr': ('qr', qr, {'units': '1/Å'})
                         },
                         attrs=da.attrs)
     caked_da.attrs['inplane_config'] = inplane_config
