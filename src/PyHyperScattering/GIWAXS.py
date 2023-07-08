@@ -68,4 +68,25 @@ def pg_convert(da, poniPath, maskPath, inplane_config='q_xy'):
     
     return recip_da, caked_da
     
-# def pg_convert_series(da, poniPath, maskPath, inplane_config='q_xy'):
+def pg_convert_series(da, poniPath, maskPath, inplane_config='q_xy'):
+    """
+    Converts raw GIWAXS DataArray to q-space and returns Cartesian & Polar DataArrays
+
+    Inputs: Raw GIWAXS DataArray with a time dimension
+    Outputs: 2 DataArrays in q-space with dimensions (q_z, inplane_config (default is q_xy), time) and (chi, qr, time)
+    """
+    recip_das = []
+    caked_das = []
+    for time in da.time:
+        da_slice = da.sel(time=float(time))
+        recip_da_slice, caked_da_slice = pg_convert(da=da_slice, 
+                                                    poniPath=poniPath,
+                                                    maskPath=maskPath,
+                                                    inplane_config=inplane_config)
+        recip_das.append(recip_da_slice)
+        caked_das.append(caked_da_slice)
+        
+    recip_da_series = xr.concat(recip_das, 'time')
+    caked_da_series = xr.concat(caked_das, 'time')
+    
+    return recip_da_series, caked_da_series
