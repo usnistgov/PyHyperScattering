@@ -57,6 +57,7 @@ class CMSGIWAXSLoader(FileLoader):
             data_rows.append(image_da)
 
         out = xr.concat(data_rows, 'series_number')
+        out.sortby('series_number')
         out = out.assign_coords({
             'series_number': out.series_number.data,
             'time': ('series_number', 
