@@ -37,6 +37,7 @@ def pg_convert(da, poniPath, maskPath, inplane_config='q_xy'):
                                                   unit='A',
                                                   mask=np.flipud(mask),
                                                   correctSolidAngle=True)
+    recip_data = np.reshape(recip_data, (recip_data.shape[0], recip_data.shape[1], 1))
     
     recip_da = xr.DataArray(data=recip_data,
                             dims=['q_z', inplane_config, 'time'],
@@ -53,6 +54,7 @@ def pg_convert(da, poniPath, maskPath, inplane_config='q_xy'):
                                              unit='q_A^-1',
                                              mask=np.flipud(mask),
                                              correctSolidAngle=True)
+    caked_data = np.reshape(caked_data, (caked_data.shape[0], caked_data.shape[1], 1))
 
     caked_da = xr.DataArray(data=caked_data,
                         dims=['chi', 'qr', 'time'],
