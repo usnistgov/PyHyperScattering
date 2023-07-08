@@ -61,7 +61,7 @@ class CMSGIWAXSLoader(FileLoader):
             'series_number': out.series_number.data,
             'time': ('series_number', 
                      out.series_number.data*np.round(float(out.exposure_time[:-1]),
-                                                     1)+time_start)
+                                                     1)+np.round(float(out.exposure_time[:-1]),1)+time_start)
         })
         out = out.swap_dims({'series_number': 'time'})
         del out.attrs['series_number']

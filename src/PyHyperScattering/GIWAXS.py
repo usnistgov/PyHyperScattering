@@ -39,13 +39,14 @@ def pg_convert(da, poniPath, maskPath, inplane_config='q_xy'):
                                                   correctSolidAngle=True)
     
     recip_da = xr.DataArray(data=recip_data,
-                            dims=['q_z', inplane_config],
+                            dims=['q_z', inplane_config, 'time'],
                             coords={
                                 'q_z': qz,
-                                inplane_config: qxy
+                                inplane_config: qxy,
+                                'time': float(da.time)
                             },
                             attrs=da.attrs)
-    
+
     caked_data, qr, chi = pg.transform_image(da.data, 
                                              process='polar',
                                              method = 'bbox',
@@ -54,13 +55,15 @@ def pg_convert(da, poniPath, maskPath, inplane_config='q_xy'):
                                              correctSolidAngle=True)
 
     caked_da = xr.DataArray(data=caked_data,
-                        dims=['chi', 'qr'],
+                        dims=['chi', 'qr', 'time'],
                         coords={
                             'chi': chi,
-                            'qr': qr
+                            'qr': qr,
+                            'time': float(da.time)
                         },
                         attrs=da.attrs)
     caked_da.attrs['inplane_config'] = inplane_config
     
     return recip_da, caked_da
     
+def pg_convert_series(da, poniPath, maskPath, inplane_config='q_xy'):
