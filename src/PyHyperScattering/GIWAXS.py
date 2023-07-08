@@ -6,3 +6,61 @@ File that will contain functions to:
     4. etc.
     
 """
+
+import xarray as xr
+import numpy as np
+import pygix
+from PyHyperScattering.IntegrationUtils import DrawMask
+
+def pg_convert(da, poniPath, maskPath, inplane_config='q_xy'):
+    """
+    Converts raw GIWAXS detector image to q-space data. Returns two DataArrays, Qz vs Qxy & Q vs Chi
+    
+    Inputs: Raw GIWAXS DataArray
+            Path to .poni file for converting to q-space & applying missing wedge correction
+    Outputs: Cartesian & Polar DataArrays
+    """
+
+    # Initialize pygix transform object
+    pg = pygix.Transform()
+    pg.load(str(poniPath))
+    pg.sample_orientation = 3
+    pg.incident_angle = float(da.incident_angle[2:])
+
+    # Load PyHyper-drawn mask
+    draw = DrawMask(da)
+    draw.load(maskPath)
+    mask = draw.mask
+
+    recip_data, qxy, qz = pg.transform_reciprocal(da.data,
+                                                  method='bbox',
+                                                  unit='A',
+                                                  mask=np.flipud(mask),
+                                                  correctSolidAngle=True)
+    
+    recip_da = xr.DataArray(data=recip_data,
+                            dims=['q_z', inplane_config],
+                            coords={
+                                'q_z': qz,
+                                inplane_config: qxy
+                            },
+                            attrs=da.attrs)
+    
+    caked_data, qr, chi = pg.transform_image(da.data, 
+                                             process='polar',
+                                             method = 'bbox',
+                                             unit='q_A^-1',
+                                             mask=np.flipud(mask),
+                                             correctSolidAngle=True)
+
+    caked_da = xr.DataArray(data=caked_data,
+                        dims=['chi', 'qr'],
+                        coords={
+                            'chi': chi,
+                            'qr': qr
+                        },
+                        attrs=da.attrs)
+    caked_da.attrs['inplane_config'] = inplane_config
+    
+    return recip_da, caked_da
+    

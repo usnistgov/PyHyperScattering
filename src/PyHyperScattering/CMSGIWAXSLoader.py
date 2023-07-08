@@ -23,7 +23,7 @@ class CMSGIWAXSLoader(FileLoader):
         Loads a single xarray DataArray from a filepath to a raw TIFF
         """
         image = Image.open(filepath)
-        image_data = np.flipud(np.array(image))
+        image_data = np.array(image)
         attr_dict = self.loadMd(filepath)
         image_da = xr.DataArray(data = image_data, 
                                 dims=['pix_y', 'pix_x'],
