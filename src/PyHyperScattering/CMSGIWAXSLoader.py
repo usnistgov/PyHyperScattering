@@ -52,8 +52,8 @@ class CMSGIWAXSLoader(FileLoader):
         data_rows = []
         for filepath in basePath.glob(f'*{filter}*'):
             image_da = self.loadSingleImage(filepath)
-            image_da.assign_coords({'series_number': int(image_da.series_number)})
-            image_da.expand_dims(dim={'series_number': 1})
+            image_da = image_da.assign_coords({'series_number': int(image_da.series_number)})
+            image_da = image_da.expand_dims(dim={'series_number': 1})
             data_rows.append(image_da)
 
         out = xr.concat(data_rows, 'series_number')
