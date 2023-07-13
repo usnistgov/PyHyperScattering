@@ -128,7 +128,8 @@ class DrawMask:
             
         self.frame = frame
         
-        self.fig = frame.hvplot(cmap=cmap, clim=clim, logz=True, data_aspect=1)
+        self.fig = frame.hvplot(cmap=cmap, clim=clim, logz=True, data_aspect=1, 
+                                x=frame.dims[1], y=frame.dims[0])
 
         self.poly = hv.Polygons([])
         self.path_annotator = hv.annotate.instance()
@@ -144,8 +145,8 @@ class DrawMask:
         print('Usage: click the "PolyAnnotator" tool at top right.  DOUBLE CLICK to start drawing a masked object, SINGLE CLICK to add a vertex, then DOUBLE CLICK to finish.  Click/drag individual vertex to adjust.')
         return self.path_annotator(
                 self.fig * self.poly.opts(
-                            width=self.frame.shape[0], 
-                            height=self.frame.shape[1], 
+                            width=self.frame.shape[1], 
+                            height=self.frame.shape[0], 
                             responsive=False), 
                 annotations=['Label'], 
             vertex_annotations=['Value'])
