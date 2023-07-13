@@ -129,8 +129,7 @@ class DrawMask:
         self.frame = frame
         
         self.fig = frame.hvplot(cmap=cmap, clim=clim, logz=True, data_aspect=1, 
-                                x=frame.dims[1], y=frame.dims[0], width=width, 
-                                height=height)
+                                width=width, height=height)
 
         self.poly = hv.Polygons([])
         self.path_annotator = hv.annotate.instance()
