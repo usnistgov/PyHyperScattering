@@ -144,10 +144,11 @@ class DrawMask:
 
         '''
         print('Usage: click the "PolyAnnotator" tool at top right.  DOUBLE CLICK to start drawing a masked object, SINGLE CLICK to add a vertex, then DOUBLE CLICK to finish.  Click/drag individual vertex to adjust.')
-        return self.path_annotator(
-                self.fig * self.poly.opts(responsive=False), 
-                annotations=['Label'], 
-            vertex_annotations=['Value'])
+        annotator_plot = self.path_annotator(
+                                    self.fig * self.poly.opts(responsive=False), 
+                                    annotations=['Label'], 
+                                    vertex_annotations=['Value'])
+        return annotator_plot.opts(toolbar='left')
 
 
     def save(self,fname):
