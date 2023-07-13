@@ -114,21 +114,21 @@ class DrawMask:
 
     '''
     
-    def __init__(self,frame):
+    def __init__(self,frame, cmap='viridis', clim=(5e0, 5e3)):
         '''
         Construct a DrawMask object
 
         Args:
             frame (xarray): a single data frame with pix_x and pix_y axes
 
-
         '''
+
         if len(frame.shape) > 2:
             warnings.warn('This tool needs a single frame, not a stack!  .sel down to a single frame before starting!',stacklevel=2)
             
-        self.frame=frame
+        self.frame = frame
         
-        self.fig = frame.hvplot(cmap='terrain',clim=(5,5000),logz=True,data_aspect=1)
+        self.fig = frame.hvplot(cmap=cmap, clim=clim, logz=True, data_aspect=1)
 
         self.poly = hv.Polygons([])
         self.path_annotator = hv.annotate.instance()
@@ -139,8 +139,6 @@ class DrawMask:
 
 
         Returns: the holoviews object
-
-
 
         '''
         print('Usage: click the "PolyAnnotator" tool at top right.  DOUBLE CLICK to start drawing a masked object, SINGLE CLICK to add a vertex, then DOUBLE CLICK to finish.  Click/drag individual vertex to adjust.')
