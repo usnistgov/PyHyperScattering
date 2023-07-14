@@ -61,12 +61,16 @@ class CMSGIWAXSLoader(FileLoader):
                 image_da = image_da.assign_coords({'series_number': int(image_da.series_number)})
                 image_da = image_da.expand_dims(dim={'series_number': 1})
                 data_rows.append(image_da)
-        elif files is set:
-            for filepath in files:
-                image_da = self.loadSingleImage(filepath)
-                image_da = image_da.assign_coords({'series_number': int(image_da.series_number)})
-                image_da = image_da.expand_dims(dim={'series_number': 1})
-                data_rows.append(image_da)            
+        else:
+            try:
+                for filepath in files:
+                    image_da = self.loadSingleImage(filepath)
+                    image_da = image_da.assign_coords({'series_number': int(image_da.series_number)})
+                    image_da = image_da.expand_dims(dim={'series_number': 1})
+                    data_rows.append(image_da)  
+            except TypeError:
+                warnings.warn('"files" needs to be a pathlib.Path or iterable')  
+                return None      
 
         out = xr.concat(data_rows, 'series_number')
         out = out.sortby('series_number')
