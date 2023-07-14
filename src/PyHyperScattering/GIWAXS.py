@@ -11,6 +11,7 @@ import xarray as xr
 import numpy as np
 import pygix  # type: ignore
 from PyHyperScattering.IntegrationUtils import DrawMask
+from tqdm.auto import tqdm 
 
 def pg_convert(da, poniPath, maskPath, inplane_config='q_xy'):
     """
@@ -79,7 +80,7 @@ def pg_convert_series(da, poniPath, maskPath, inplane_config='q_xy'):
     """
     recip_das = []
     caked_das = []
-    for time in da.time:
+    for time in tqdm(da.time):
         da_slice = da.sel(time=float(time))
         recip_da_slice, caked_da_slice = pg_convert(da=da_slice, 
                                                     poniPath=poniPath,
