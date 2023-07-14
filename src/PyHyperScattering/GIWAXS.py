@@ -9,7 +9,7 @@ File that will contain functions to:
 
 import xarray as xr
 import numpy as np
-import pygix
+import pygix  # type: ignore
 from PyHyperScattering.IntegrationUtils import DrawMask
 
 def pg_convert(da, poniPath, maskPath, inplane_config='q_xy'):

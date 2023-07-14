@@ -55,7 +55,7 @@ class CMSGIWAXSLoader(FileLoader):
         """
 
         data_rows = []
-        if issubclass(type(files), pathlib.Path)
+        if issubclass(type(files), pathlib.Path):
             for filepath in files.glob(f'*{filter}*'):
                 image_da = self.loadSingleImage(filepath)
                 image_da = image_da.assign_coords({'series_number': int(image_da.series_number)})
