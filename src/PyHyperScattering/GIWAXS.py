@@ -36,7 +36,7 @@ def pg_convert(da, poniPath, maskPath, inplane_config='q_xy'):
     recip_data, qxy, qz = pg.transform_reciprocal(da.data,
                                                   method='bbox',
                                                   unit='A',
-                                                  mask=np.flipud(mask),
+                                                  mask=mask,
                                                   correctSolidAngle=True)
     
     recip_da = xr.DataArray(data=recip_data,
@@ -51,7 +51,7 @@ def pg_convert(da, poniPath, maskPath, inplane_config='q_xy'):
                                              process='polar',
                                              method = 'bbox',
                                              unit='q_A^-1',
-                                             mask=np.flipud(mask),
+                                             mask=mask,
                                              correctSolidAngle=True)
 
     caked_da = xr.DataArray(data=caked_data,
