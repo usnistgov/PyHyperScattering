@@ -45,16 +45,28 @@ class CMSGIWAXSLoader(FileLoader):
             attr_dict[md_item] = md_list[i]
         return attr_dict
     
-    def loadSeries(self, basePath, filter, time_start=0):
+    def loadSeries(self, files, filter='', time_start=0):
         """
         Load many raw TIFFs into an xarray DataArray
+
+        Input: files: Either a pathlib.Path object that can be filtered with a 
+                      glob filter or an iterable that contains the filepaths
+        Output: xr.DataArray with appropriate dimensions & coordinates
         """
+
         data_rows = []
-        for filepath in basePath.glob(f'*{filter}*'):
-            image_da = self.loadSingleImage(filepath)
-            image_da = image_da.assign_coords({'series_number': int(image_da.series_number)})
-            image_da = image_da.expand_dims(dim={'series_number': 1})
-            data_rows.append(image_da)
+        if issubclass(type(files), pathlib.Path)
+            for filepath in files.glob(f'*{filter}*'):
+                image_da = self.loadSingleImage(filepath)
+                image_da = image_da.assign_coords({'series_number': int(image_da.series_number)})
+                image_da = image_da.expand_dims(dim={'series_number': 1})
+                data_rows.append(image_da)
+        elif files is set:
+            for filepath in files:
+                image_da = self.loadSingleImage(filepath)
+                image_da = image_da.assign_coords({'series_number': int(image_da.series_number)})
+                image_da = image_da.expand_dims(dim={'series_number': 1})
+                data_rows.append(image_da)            
 
         out = xr.concat(data_rows, 'series_number')
         out = out.sortby('series_number')
