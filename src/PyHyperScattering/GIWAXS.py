@@ -10,6 +10,7 @@ File that will contain functions to:
 import xarray as xr
 import numpy as np
 import pygix  # type: ignore
+import fabio # fabio package for .edf imports
 from PyHyperScattering.IntegrationUtils import DrawMask
 from tqdm.auto import tqdm 
 
@@ -35,10 +36,23 @@ class Transform:
         pg.sample_orientation = 3
         pg.incident_angle = float(da.incident_angle[2:])
 
-        # Load PyHyper-drawn mask
-        draw = DrawMask(da)
-        draw.load(self.maskPath)
-        mask = draw.mask
+        # print (self.maskPath.suffix)
+        if self.maskPath.suffix == '.json':
+            # Load PyHyper-drawn mask
+            draw = DrawMask(da)  # Assuming 'da' is defined somewhere in your code
+            draw.load(self.maskPath)
+            mask = draw.mask
+        elif self.maskPath.suffix == '.edf':
+            # Load EDF file using MNE
+            # mask = mne.io.read_raw_edf(self.maskPath)
+            mask = fabio.open(self.maskPath).data # load mask file
+        else:
+            print(f"Unsupported file type: {self.maskPath.suffix}")
+
+        # # Load PyHyper-drawn mask
+        # draw = DrawMask(da)
+        # draw.load(self.maskPath)
+        # mask = draw.mask
 
         recip_data, qxy, qz = pg.transform_reciprocal(da.data,
                                                       method='bbox',
