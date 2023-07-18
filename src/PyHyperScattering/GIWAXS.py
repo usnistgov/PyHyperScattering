@@ -140,15 +140,53 @@ class Transform:
         file_path = pathlib.Path(base_path).joinpath(f"{prefix}_{suffix}.zarr")
         ds.to_zarr(file_path, mode=mode)
 
-class Process(Transform):
-    """
-    Class for processing GIWAXS data.
-    
-    It inherits from Transform class and can apply integrations on the DataArrays.
-    """
-    def __init__(self, poniPath, maskPath, inplane_config='q_xy'):
-        super().__init__(poniPath, maskPath, inplane_config)
-        
+class ProcessData:
+    def __init__(self, raw_zarr_file_path: Union[str, pathlib.Path], pg_transformer: Transform):
+        """
+        Constructor of the ProcessData class.
+
+        Parameters:
+            raw_zarr_file_path (Union[str, pathlib.Path]): The path to the raw .zarr file.
+            pg_transformer (Transform): An instance of the Transform class for performing the conversion.
+        """
+        self.raw_zarr_file_path = pathlib.Path(raw_zarr_file_path)
+        self.pg_transformer = pg_transformer
+        self.raw_da = self.load_zarr(self.raw_zarr_file_path)
+
+        self.recip_zarr_file_path, self.caked_zarr_file_path = self.convert_raw_zarr_to_recip_and_caked()
+        self.recip_da = self.load_zarr(self.recip_zarr_file_path)
+        self.caked_da = self.load_zarr(self.caked_zarr_file_path)
+
+    def load_zarr(self, file_path: Union[str, pathlib.Path]):
+        """
+        Load a .zarr file as an xarray DataArray.
+
+        Parameters:
+            file_path (Union[str, pathlib.Path]): The path to the .zarr file.
+
+        Returns:
+            xr.DataArray: The loaded xarray DataArray.
+        """
+        return xr.open_zarr(str(file_path)).DA
+
+    def convert_raw_zarr_to_recip_and_caked(self):
+        """
+        Convert the raw DataArray to reciprocal and caked DataArrays, and save them as .zarr files.
+        The paths to the new .zarr files are returned.
+
+        Returns:
+            Tuple[pathlib.Path, pathlib.Path]: The paths to the .zarr files for the reciprocal and caked DataArrays.
+        """
+        recip_da, caked_da = self.pg_transformer.pg_convert_series(self.raw_da)
+
+        recip_zarr_file_path = self.raw_zarr_file_path.with_name(f"recip_{self.raw_zarr_file_path.stem}.zarr")
+        recip_da.to_dataset(name='DA').to_zarr(recip_zarr_file_path, mode='w')
+
+        caked_zarr_file_path = self.raw_zarr_file_path.with_name(f"caked_{self.raw_zarr_file_path.stem}.zarr")
+        caked_da.to_dataset(name='DA').to_zarr(caked_zarr_file_path, mode='w')
+
+        return recip_zarr_file_path, caked_zarr_file_path
+
     def azimuthal_integration(self, recip_da_series: xr.DataArray, caked_da_series: xr.DataArray, dim: Union[str, Tuple[str]]):
         """
         Perform 1D azimuthal integration using boxcuts.
