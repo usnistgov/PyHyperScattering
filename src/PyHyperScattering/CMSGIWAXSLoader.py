@@ -1,6 +1,7 @@
 from PIL import Image
 from PyHyperScattering.FileLoader import FileLoader
-import os, pathlib, datetime, warnings, json, corrections
+import os, pathlib, datetime, warnings, json
+# import corrections
 import xarray as xr
 import pandas as pd
 #from pyFAI import azimuthalIntegrator
