@@ -17,6 +17,7 @@ class CMSGIWAXSLoader(FileLoader):
         self.md_naming_scheme = md_naming_scheme
         self.root_folder = root_folder
         self.sample_dict = None
+        self.selected_series = []
 
     def loadSingleImage(self, filepath):
         """
@@ -118,6 +119,16 @@ class CMSGIWAXSLoader(FileLoader):
         The dictionary will contain: sample name, scanID list, series scanID list, 
         a pathlib object variable for each sample's data folder (which contains the /maxs/raw/ subfolders),
         and time_start and exposure_time for each series of scans.
+        
+        The method uses alias mappings to identify important metadata from the filenames:
+        SCAN ID : Defines the scan ID number in the convention used at 11-BM (CMS), specific to a single shot exposure or time series.
+            aliases : scan_id: 'scanid', 'id', 'scannum', 'scan', 'scan_id', 'scan_ID'
+        SERIES NUMBER : Within a series (fixed SCAN ID), the exposure number in the series with respect to the starting TIME START (clocktime)
+            aliases : series_number: 'seriesnum', 'seriesid', 'series_id', 'series_ID', 'series', 'series_number', 'series_num'
+        TIME START : Also generically referred to as CLOCK TIME, logs the start of the exposure or series acquisition. This time is constant for all exposures within a series.
+            aliases : time_start: 'start_time', 'starttime', 'start', 'clocktime', 'clock', 'clockpos', 'clock_time', 'time', 'time_start'
+        EXPOSURE TIME : The duration of a single shot or exposure, either in a single image or within a series.
+            aliases : 'exptime', 'exp_time', 'exposuretime', 'etime', 'exp', 'expt', 'exposure_time'
         """
 
         # Ensure the root_folder is a pathlib.Path object
@@ -188,91 +199,92 @@ class CMSGIWAXSLoader(FileLoader):
         return sample_dict
 
     def selectSampleAndSeries(self):
-        """
-        Prompts the user to select a sample and one or more series of scans from that sample.
-        The user can choose to select all series of scans.
-        The selections will be stored as the 'selected_series' attribute.
-        """
-        # Check if sample_dict has been generated
-        if not self.sample_dict:
-            print("Error: Sample dictionary has not been generated. Please run createSampleDictionary() first.")
-            return
-    
-        while True:
-            # Show the user a list of sample names and get their selection
-            print("Please select a sample (or 'q' to exit):")
-            sample_names = list(self.sample_dict.keys())
-            for i, sample_name in enumerate(sample_names, 1):
-                print(f"[{i}] {sample_name}")
-            print("[q] Exit")
-            selection = input("Enter the number of your choice: ")
-            if selection.lower() == 'q':
-                print("Exiting selection.")
+            """
+            Prompts the user to select a sample and one or more series of scans from that sample.
+            The user can choose to select all series of scans.
+            The selections will be stored as the 'selected_series' attribute and returned.
+            """
+            # Check if sample_dict has been generated
+            if not self.sample_dict:
+                print("Error: Sample dictionary has not been generated. Please run createSampleDictionary() first.")
                 return
-            else:
-                sample_index = int(selection) - 1
-                selected_sample = sample_names[sample_index]
 
-            # Show the user a choice between single image or image series and get their selection
-            print("\nWould you like to choose a single image or an image series? (or 'q' to exit)")
-            print("[1] Single Image")
-            print("[2] Image Series")
-            print("[q] Exit")
-            choice = input("Enter the number of your choice: ")
-            if choice.lower() == 'q':
-                print("Exiting selection.")
-                return
-            choice = int(choice)
-
-            # Get the selected sample's scan list and series list
-            scan_list = self.sample_dict[selected_sample]['scanlist']
-            series_list = self.sample_dict[selected_sample]['serieslist']
-
-            # Identify series scan IDs and single image scan IDs
-            series_scan_ids = set(series_list.keys())
-            single_image_scan_ids = [scan_id for scan_id in scan_list if scan_id not in series_scan_ids]
-
-            if choice == 1:
-                # The user has chosen to select a single image
-                print("\nPlease select a scan ID (or 'q' to exit):")
-                for i, scan_id in enumerate(single_image_scan_ids, 1):
-                    print(f"[{i}] {scan_id}")
+            while True:
+                # Show the user a list of sample names and get their selection
+                print("Please select a sample (or 'q' to exit):")
+                sample_names = list(self.sample_dict.keys())
+                for i, sample_name in enumerate(sample_names, 1):
+                    print(f"[{i}] {sample_name}")
                 print("[q] Exit")
                 selection = input("Enter the number of your choice: ")
                 if selection.lower() == 'q':
                     print("Exiting selection.")
-                    return
+                    return self.selected_series
                 else:
-                    scan_id_index = int(selection) - 1
-                    self.selected_series = [(selected_sample, single_image_scan_ids[scan_id_index])]
-            else:
-                # The user has chosen to select an image series
-                print("\nPlease select one or more series (Enter 'a' to select all series, 'q' to finish selection):")
-                selected_series = []
-                while True:
-                    for i, series_scan_id in enumerate(series_scan_ids, 1):
-                        series_data = series_list[series_scan_id]
-                        print(f"[{i}] Series {series_scan_id} (start time: {series_data[0][1]}, exposure time: {series_data[0][2]})")
-                    print("[a] All series")
-                    print("[q] Finish selection")
-                    selection = input("Enter the number(s) of your choice (comma-separated), 'a', or 'q': ")
+                    sample_index = int(selection) - 1
+                    selected_sample = sample_names[sample_index]
+
+                # Show the user a choice between single image or image series and get their selection
+                print("\nWould you like to choose a single image or an image series? (or 'q' to exit)")
+                print("[1] Single Image")
+                print("[2] Image Series")
+                print("[q] Exit")
+                choice = input("Enter the number of your choice: ")
+                if choice.lower() == 'q':
+                    print("Exiting selection.")
+                    return self.selected_series
+                choice = int(choice)
+
+                # Get the selected sample's scan list and series list
+                scan_list = self.sample_dict[selected_sample]['scanlist']
+                series_list = self.sample_dict[selected_sample]['serieslist']
+
+                # Identify series scan IDs and single image scan IDs
+                series_scan_ids = set(series_list.keys())
+                single_image_scan_ids = [scan_id for scan_id in scan_list if scan_id not in series_scan_ids]
+
+                if choice == 1:
+                    # The user has chosen to select a single image
+                    print("\nPlease select a scan ID (or 'q' to exit):")
+                    for i, scan_id in enumerate(single_image_scan_ids, 1):
+                        print(f"[{i}] {scan_id}")
+                    print("[q] Exit")
+                    selection = input("Enter the number of your choice: ")
                     if selection.lower() == 'q':
-                        if selected_series: 
+                        print("Exiting selection.")
+                        return self.selected_series
+                    else:
+                        scan_id_index = int(selection) - 1
+                        selected_scan = single_image_scan_ids[scan_id_index]
+                        self.selected_series.append((selected_sample, selected_scan))
+                else:
+                    # The user has chosen to select an image series
+                    print("\nPlease select one or more series (Enter 'a' to select all series, 'q' to finish selection):")
+                    selected_series = []
+                    while True:
+                        for i, series_scan_id in enumerate(series_scan_ids, 1):
+                            series_data = series_list[series_scan_id]
+                            print(f"[{i}] Series {series_scan_id} (start time: {series_data[0][1]}, exposure time: {series_data[0][2]})")
+                        print("[a] All series")
+                        print("[q] Finish selection")
+                        selection = input("Enter the number(s) of your choice (comma-separated), 'a', or 'q': ")
+                        if selection.lower() == 'q':
+                            if selected_series:
+                                break
+                            else:
+                                print("Exiting selection.")
+                                return self.selected_series
+                        elif selection.lower() == 'a':
+                            selected_series = list(series_scan_ids)
                             break
                         else:
-                            print("Exiting selection.")
-                            return
-                    elif selection.lower() == 'a':
-                        selected_series = list(series_scan_ids)
-                        break
-                    else:
-                        # Get the series indices from the user's input
-                        series_indices = list(map(int, selection.split(',')))
-                        selected_series += [list(series_scan_ids)[i-1] for i in series_indices]
-                self.selected_series = [(selected_sample, series) for series in selected_series]
-            
-            print("\nSelection completed.")
-            return
+                            # Get the series indices from the user's input
+                            series_indices = list(map(int, selection.split(',')))
+                            selected_series += [list(series_scan_ids)[i-1] for i in series_indices]
+                    self.selected_series.extend([(selected_sample, series) for series in selected_series])
+
+                print("\nSelection completed.")
+            return self.selected_series
 
 # -- originally pushed createSampleDictionary() method: (07/18/2023)
 """    def createSampleDictionary(self, root_folder):
