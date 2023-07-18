@@ -10,6 +10,8 @@ import xarray as xr
 import numpy as np
 import pygix  # type: ignore
 import fabio # fabio package for .edf imports
+import pathlib
+from typing import Union, Tuple
 from PyHyperScattering.IntegrationUtils import DrawMask
 from tqdm.auto import tqdm 
 
@@ -121,7 +123,46 @@ class Transform:
         
         return recip_da_series, caked_da_series
 
+    # - This needs to be updated appropriately so that it can be called inline. Process(Transform) should be able
+    # to import the attribute name of a newly generated .zarr by an active Transform() object instance.
+    def save_as_zarr(self, da: xr.DataArray, base_path: Union[str, pathlib.Path], prefix: str, suffix: str, mode: str = 'w'):
+        """
+        Save the DataArray as a .zarr file in a specific path, with a file name constructed from a prefix and suffix.
 
+        Parameters:
+            da (xr.DataArray): The DataArray to be saved.
+            base_path (Union[str, pathlib.Path]): The base path to save the .zarr file.
+            prefix (str): The prefix to use for the file name.
+            suffix (str): The suffix to use for the file name.
+            mode (str): The mode to use when saving the file. Default is 'w'.
+        """
+        ds = da.to_dataset(name='DA')
+        file_path = pathlib.Path(base_path).joinpath(f"{prefix}_{suffix}.zarr")
+        ds.to_zarr(file_path, mode=mode)
+
+class Process(Transform):
+    """
+    Class for processing GIWAXS data.
+    
+    It inherits from Transform class and can apply integrations on the DataArrays.
+    """
+    def __init__(self, poniPath, maskPath, inplane_config='q_xy'):
+        super().__init__(poniPath, maskPath, inplane_config)
+        
+    def azimuthal_integration(self, recip_da_series: xr.DataArray, caked_da_series: xr.DataArray, dim: Union[str, Tuple[str]]):
+        """
+        Perform 1D azimuthal integration using boxcuts.
+
+        Parameters:
+            caked_da_series (xr.DataArray): The caked DataArray series.
+            dim (Union[str, Tuple[str]]): The dimension(s) over which to integrate.
+
+        Returns:
+            Tuple[xr.DataArray, xr.DataArray]: The integrated reciprocated and caked DataArray series.
+        """
+        caked_integrated = caked_da_series.integrate(dim)
+
+        return caked_integrated
 
 # -- old Tranform class, refactored: (07/17/23)
 '''
