@@ -196,7 +196,7 @@ class CMSGIWAXSLoader(FileLoader):
         # Check if sample_dict has been generated
         if not self.sample_dict:
             print("Error: Sample dictionary has not been generated. Please run createSampleDictionary() first.")
-        return
+            return
     
         while True:
             # Show the user a list of sample names and get their selection
