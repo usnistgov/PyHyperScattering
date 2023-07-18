@@ -1,10 +1,9 @@
 """
 File that will contain functions to:
-    1. Use pygix to apply the missing wedge Ewald's sphere correciton & convert to q-space
+    1. Use pygix to apply the missing wedge Ewald's sphere correction & convert to q-space
     2. Generate 2D plots of Qz vs Qxy corrected detector images
     3. Generate 2d plots of Q vs Chi images, with the option to apply the sin(chi) correction
     4. etc.
-    
 """
 
 import xarray as xr
@@ -14,6 +13,118 @@ import fabio # fabio package for .edf imports
 from PyHyperScattering.IntegrationUtils import DrawMask
 from tqdm.auto import tqdm 
 
+class Transform:
+    """
+    Class for transforming GIWAXS data into different formats.
+    
+    Attributes:
+        poniPath (str): Path to .poni file for converting to q-space & applying missing wedge correction
+        maskPath (str): Path to the mask file to use for the conversion
+        inplane_config (str): The configuration of the inplane. Default is 'q_xy'.
+    """
+
+    def __init__(self, poniPath, maskPath, inplane_config='q_xy'):
+        self.poniPath = poniPath
+        self.maskPath = maskPath
+        self.inplane_config = inplane_config
+
+    def load_mask(self, da):
+        """Load the mask file based on its file type."""
+        try:
+            if self.maskPath.suffix == '.json':
+                draw = DrawMask(da)  
+                draw.load(self.maskPath)
+                return draw.mask
+            elif self.maskPath.suffix == '.edf':
+                return fabio.open(self.maskPath).data
+            else:
+                raise ValueError(f"Unsupported file type: {self.maskPath.suffix}")
+        except Exception as e:
+            print(f"An error occurred while loading the mask file: {e}")
+
+    def add_time_coord(self, da):
+        """Add the 'time' coordinate if it exists in the original data array."""
+        if 'time' in da.coords:
+            da = da.assign_coords({'time': float(da.time)})
+            da = da.expand_dims(dim={'time': 1})
+        return da
+
+    def pg_convert(self, da):
+        """
+        Converts raw GIWAXS detector image to q-space data. Returns two DataArrays, Qz vs Qxy & Q vs Chi
+        
+        Inputs: Raw GIWAXS DataArray
+        Outputs: Cartesian & Polar DataArrays
+        """
+
+        # Initialize pygix transform object
+        pg = pygix.Transform()
+        pg.load(str(self.poniPath))
+        pg.sample_orientation = 3
+        pg.incident_angle = float(da.incident_angle[2:])
+
+        # load mask
+        mask = self.load_mask(da)
+
+        recip_data, qxy, qz = pg.transform_reciprocal(da.data,
+                                                      method='bbox',
+                                                      unit='A',
+                                                      mask=mask,
+                                                      correctSolidAngle=True)
+        
+        recip_da = xr.DataArray(data=recip_data,
+                                dims=['q_z', self.inplane_config],
+                                coords={
+                                    'q_z': ('q_z', qz, {'units': '1/Å'}),
+                                    self.inplane_config: (self.inplane_config, qxy, {'units': '1/Å'})
+                                },
+                                attrs=da.attrs)
+
+        caked_data, qr, chi = pg.transform_image(da.data, 
+                                                 process='polar',
+                                                 method = 'bbox',
+                                                 unit='q_A^-1',
+                                                 mask=mask,
+                                                 correctSolidAngle=True)
+
+        caked_da = xr.DataArray(data=caked_data,
+                            dims=['chi', 'qr'],
+                            coords={
+                                'chi': ('chi', chi, {'units': '°'}),
+                                'qr': ('qr', qr, {'units': '1/Å'})
+                            },
+                            attrs=da.attrs)
+        caked_da.attrs['inplane_config'] = self.inplane_config
+
+        recip_da = self.add_time_coord(recip_da)
+        caked_da = self.add_time_coord(caked_da)
+
+        return recip_da, caked_da
+
+    def pg_convert_series(self, da):
+        """
+        Converts raw GIWAXS DataArray to q-space and returns Cartesian & Polar DataArrays
+
+        Inputs: Raw GIWAXS DataArray with a time dimension
+        Outputs: 2 DataArrays in q-space with dimensions (q_z, inplane_config (default is q_xy), time) and (chi, qr, time)
+        """
+        recip_das = []
+        caked_das = []
+        for time in tqdm(da.time):
+            da_slice = da.sel(time=float(time))
+            recip_da_slice, caked_da_slice = self.pg_convert(da=da_slice)
+            recip_das.append(recip_da_slice)
+            caked_das.append(caked_da_slice)
+            
+        recip_da_series = xr.concat(recip_das, 'time')
+        caked_da_series = xr.concat(caked_das, 'time')
+        
+        return recip_da_series, caked_da_series
+
+
+
+# -- old Tranform class, refactored: (07/17/23)
+'''
 class Transform:
 
     def __init__(self, poniPath, maskPath, inplane_config='q_xy'):
@@ -48,11 +159,6 @@ class Transform:
             mask = fabio.open(self.maskPath).data # load mask file
         else:
             print(f"Unsupported file type: {self.maskPath.suffix}")
-
-        # # Load PyHyper-drawn mask
-        # draw = DrawMask(da)
-        # draw.load(self.maskPath)
-        # mask = draw.mask
 
         recip_data, qxy, qz = pg.transform_reciprocal(da.data,
                                                       method='bbox',
@@ -111,8 +217,10 @@ class Transform:
         caked_da_series = xr.concat(caked_das, 'time')
         
         return recip_da_series, caked_da_series
+'''
 
-
+# -- old pg_convert script (07/17/23)
+'''
 # def pg_convert(da, poniPath, maskPath, inplane_config='q_xy'):
 #     """
 #     Converts raw GIWAXS detector image to q-space data. Returns two DataArrays, Qz vs Qxy & Q vs Chi
@@ -193,3 +301,4 @@ class Transform:
 #     caked_da_series = xr.concat(caked_das, 'time')
     
 #     return recip_da_series, caked_da_series
+'''
