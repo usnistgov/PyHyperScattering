@@ -108,7 +108,7 @@ class Transform:
         """
         recip_das = []
         caked_das = []
-        for time in tqdm(da.time):
+        for time in tqdm(da.time, desc='Transforming raw GIWAXS time slices'):
             da_slice = da.sel(time=float(time))
             recip_da_slice, caked_da_slice = self.pg_convert(da=da_slice)
             recip_das.append(recip_da_slice)

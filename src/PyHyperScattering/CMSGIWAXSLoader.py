@@ -83,14 +83,14 @@ class CMSGIWAXSLoader(FileLoader):
 
         data_rows = []
         if issubclass(type(files), pathlib.Path):
-            for filepath in tqdm(files.glob(f'*{filter}*')):
+            for filepath in tqdm(files.glob(f'*{filter}*'), desc='Loading raw GIWAXS time slices'):
                 image_da = self.loadSingleImage(filepath)
                 image_da = image_da.assign_coords({'series_number': int(image_da.series_number)})
                 image_da = image_da.expand_dims(dim={'series_number': 1})
                 data_rows.append(image_da)
         else:
             try:
-                for filepath in tqdm(files):
+                for filepath in tqdm(files, desc='Loading raw GIWAXS time slices'):
                     image_da = self.loadSingleImage(filepath)
                     image_da = image_da.assign_coords({'series_number': int(image_da.series_number)})
                     image_da = image_da.expand_dims(dim={'series_number': 1})
