@@ -120,8 +120,137 @@ class CMSGIWAXSLoader(FileLoader):
         """
         Loads and creates a sample dictionary from a root folder path.
         The dictionary will contain: sample name, scanID list, series scanID list, 
-        and a pathlib object variable for each sample's data folder (which contains the /maxs/raw/ subfolders).
+        a pathlib object variable for each sample's data folder (which contains the /maxs/raw/ subfolders),
+        and time_start and exposure_time for each series of scans.
         """
+
+        # Ensure the root_folder is a pathlib.Path object
+        self.root_folder = pathlib.Path(root_folder)
+        if not self.root_folder.is_dir():
+            raise ValueError(f"Directory {self.root_folder} does not exist.")
+        
+        # Initialize the sample dictionary
+        sample_dict = {}
+        
+        # Alias mappings for scan_id, series_number, time_start, and exposure_time
+        scan_id_aliases = ['scanid', 'id', 'scannum', 'scan', 'scan_id', 'scan_ID']
+        series_number_aliases = ['seriesnum', 'seriesid', 'series_id', 'series_ID', 'series', 'series_number', 'series_num']
+        time_start_aliases = ['start_time', 'starttime', 'start', 'clocktime', 'clock', 'clockpos', 'clock_time', 'time', 'time_start']
+        exposure_time_aliases = ['exptime', 'exp_time', 'exposuretime', 'etime', 'exp', 'expt', 'exposure_time']
+
+        # Identify the indices of the required metadata in the naming scheme
+        for idx, alias in enumerate(self.md_naming_scheme):
+            if alias.lower() in [alias.lower() for alias in scan_id_aliases]:
+                self.scan_id_index = idx
+            if alias.lower() in [alias.lower() for alias in series_number_aliases]:
+                self.series_number_index = idx
+
+        if self.scan_id_index is None or self.series_number_index is None:
+            raise ValueError('md_naming_scheme does not contain keys for scan_id or series_number.')
+
+        # Update sample_dict with new information
+        for sample_folder in self.root_folder.iterdir():
+            if sample_folder.is_dir():
+                # Confirm that this is a sample folder by checking for /maxs/raw/ subfolder
+                maxs_raw_dir = sample_folder / 'maxs' / 'raw'
+                if maxs_raw_dir.is_dir():
+                    # Sample folder checks out, extract scan_id, series_number, time_start, and exposure_time
+                    sample_name = sample_folder.name
+                    scan_list = []
+                    series_list = collections.defaultdict(list)
+                    
+                    for image_file in maxs_raw_dir.glob('*'):
+                        # Load metadata from image
+                        metadata = self.loadMd(image_file)
+                        
+                        # Lowercase all metadata keys for case insensitivity
+                        metadata_lower = {k.lower(): v for k, v in metadata.items()}
+                        
+                        # Find and store scan_id, series_number, time_start, and exposure_time
+                        scan_id = metadata_lower.get(self.md_naming_scheme[self.scan_id_index].lower())
+                        series_number = metadata_lower.get(self.md_naming_scheme[self.series_number_index].lower())
+                        time_start = next((metadata_lower[key] for key in metadata_lower if key in time_start_aliases), None)
+                        exposure_time = next((metadata_lower[key] for key in metadata_lower if key in exposure_time_aliases), None)
+
+                        # Add them to our lists
+                        scan_list.append(scan_id)
+                        series_list[scan_id].append((series_number, time_start, exposure_time))
+                    
+                    # Store data in dictionary
+                    sample_dict[sample_name] = {
+                        'scanlist': scan_list,
+                        'serieslist': series_list,
+                        'path': sample_folder
+                    }
+
+        self.sample_dict = sample_dict
+        return sample_dict
+
+    def selectSampleAndSeries(self):
+        """
+        Prompts the user to select a sample and one or more series of scans from that sample.
+        The user can choose to select all series of scans.
+        The selections will be stored as the 'selected_series' attribute.
+        """
+        # Show the user a list of sample names and get their selection
+        print("Please select a sample:")
+        sample_names = list(self.sample_dict.keys())
+        for i, sample_name in enumerate(sample_names, 1):
+            print(f"[{i}] {sample_name}")
+        sample_index = int(input("Enter the number of your choice: ")) - 1
+        selected_sample = sample_names[sample_index]
+
+        # Show the user a choice between single image or image series and get their selection
+        print("\nWould you like to choose a single image or an image series?")
+        print("[1] Single Image")
+        print("[2] Image Series")
+        choice = int(input("Enter the number of your choice: "))
+        
+        # Get the selected sample's scan list and series list
+        scan_list = self.sample_dict[selected_sample]['scanlist']
+        series_list = self.sample_dict[selected_sample]['serieslist']
+
+        # Identify series scan IDs and single image scan IDs
+        series_scan_ids = {series[1] for series in series_list}
+        single_image_scan_ids = [scan_id for scan_id in scan_list if scan_id not in series_scan_ids]
+
+        if choice == 1:
+            # The user has chosen to select a single image
+            print("\nPlease select a scan ID:")
+            for i, scan_id in enumerate(single_image_scan_ids, 1):
+                print(f"[{i}] {scan_id}")
+            scan_id_index = int(input("Enter the number of your choice: ")) - 1
+            self.selected_series = [(selected_sample, single_image_scan_ids[scan_id_index])]
+        else:
+            # The user has chosen to select an image series
+            print("\nPlease select one or more series (Enter 'a' to select all series, 'q' to finish selection):")
+            selected_series = []
+            while True:
+                for i, series in enumerate(series_list, 1):
+                    print(f"[{i}] Series {series[1]} (start time: {series[2]}, exposure time: {series[3]})")
+                print("[a] All series")
+                print("[q] Finish selection")
+                selection = input("Enter the number(s) of your choice (comma-separated), 'a', or 'q': ")
+                if selection.lower() == 'q':
+                    break
+                elif selection.lower() == 'a':
+                    selected_series = series_list
+                    break
+                else:
+                    # Get the series indices from the user's input
+                    series_indices = list(map(int, selection.split(',')))
+                    selected_series += [series_list[i-1] for i in series_indices]
+            self.selected_series = [(selected_sample, series[1]) for series in selected_series]
+        
+        print("\nSelection completed.")
+
+# -- originally pushed createSampleDictionary() method: (07/18/2023)
+"""    def createSampleDictionary(self, root_folder):
+        
+        # Loads and creates a sample dictionary from a root folder path.
+        # The dictionary will contain: sample name, scanID list, series scanID list, 
+        # and a pathlib object variable for each sample's data folder (which contains the /maxs/raw/ subfolders).
+        
 
         # Ensure the root_folder is a pathlib.Path object
         self.root_folder = pathlib.Path(self.root_folder)
@@ -178,3 +307,4 @@ class CMSGIWAXSLoader(FileLoader):
 
         self.sample_dict = sample_dict
         return sample_dict
+"""
