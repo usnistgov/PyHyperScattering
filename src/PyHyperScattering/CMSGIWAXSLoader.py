@@ -14,7 +14,8 @@ from tqdm.auto import tqdm
 
 class CMSGIWAXSLoader(FileLoader):
     """
-    Loader for TIFF files from NSLS-II 11-BM CMS
+    GIXS Data Loader Class | NSLS-II 11-BM (CMS)
+    Used to load single TIFF time-series TIFF GIWAXS images.
     """
     def __init__(self, md_naming_scheme=[]):
         self.md_naming_scheme = md_naming_scheme
@@ -23,25 +24,51 @@ class CMSGIWAXSLoader(FileLoader):
         """
         Loads a single xarray DataArray from a filepath to a raw TIFF
         """
+
+        # Check that the path exists before continuing.
+        if not pathlib.Path(filepath).is_file():
+            raise ValueError(f"File {filepath} does not exist.")
+        
+        # Open the image from the filepath
         image = Image.open(filepath)
+
+        # Create a numpy array from the image
         image_data = np.array(image)
+
+        # Run the loadMetaData method to construct the attribute dictionary for the filePath.
         attr_dict = self.loadMd(filepath)
+
+        # Convert the image numpy array into an xarray DataArray object.
         image_da = xr.DataArray(data = image_data, 
                                 dims=['pix_y', 'pix_x'],
                                 attrs=attr_dict)
+        
         image_da = image_da.assign_coords({
             'pix_x': image_da.pix_x.data,
             'pix_y': image_da.pix_y.data
         })
         return image_da
     
-    def loadMd(self, filepath):
+    def loadMd(self, filepath, delim = '_'):
         """
-        Uses md_naming_scheme to generate dictionary of metadata based on filename
+        Description: Uses metadata_keylist to generate attribute dictionary of metadata based on filename.
+        Handle Variables
+            filepath : string
+                Filepath passed to the loadMetaData method that is used to extract metadata relevant to the TIFF image.
+            delim : string
+                String used as a delimiter in the filename. Defaults to an underscore '_' if no other delimiter is passed.
+        
+        Method Variables
+            attr_dict : dictionary
+                Attributes ictionary of metadata attributes created using the filename and metadata list passed during initialization.
+            md_list : list
+                Metadata list - list of metadata keys used to segment the filename into a dictionary corresponding to said keys.
         """
-        attr_dict = {}
-        name = filepath.name
-        md_list = name.split('_')
+
+        attr_dict = {} # Initialize the dictionary.
+        name = filepath.name # # strip the filename from the filePath
+        md_list = name.split(delim) # splits the filename based on the delimter passed to the loadMetaData method.
+
         for i, md_item in enumerate(self.md_naming_scheme):
             attr_dict[md_item] = md_list[i]
         return attr_dict
