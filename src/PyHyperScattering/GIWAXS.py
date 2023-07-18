@@ -44,13 +44,6 @@ class Transform:
         except Exception as e:
             print(f"An error occurred while loading the mask file: {e}")
 
-    def add_time_coord(self, da):
-        """Add the 'time' coordinate if it exists in the original data array."""
-        if 'time' in da.coords:
-            da = da.assign_coords({'time': float(da.time)})
-            da = da.expand_dims(dim={'time': 1})
-        return da
-
     def pg_convert(self, da):
         """
         Converts raw GIWAXS detector image to q-space data. Returns two DataArrays, Qz vs Qxy & Q vs Chi
@@ -98,8 +91,11 @@ class Transform:
                             attrs=da.attrs)
         caked_da.attrs['inplane_config'] = self.inplane_config
 
-        recip_da = self.add_time_coord(recip_da)
-        caked_da = self.add_time_coord(caked_da)
+        if 'time' in da.coords:
+            recip_da = recip_da.assign_coords({'time': float(da.time)})
+            recip_da = recip_da.expand_dims(dim={'time': 1})
+            caked_da = caked_da.assign_coords({'time': float(da.time)})
+            caked_da = caked_da.expand_dims(dim={'time': 1})
 
         return recip_da, caked_da
 
