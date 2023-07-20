@@ -787,6 +787,10 @@ class SST1RSoXSDB:
         # At this stage monitors has dimension time and all streams as data variables
         # the time dimension inherited all time values from all streams
         # the data variables (Mesh current, sample current etc.) are all sparse, with lots of nans
+        
+        # if there are no monitors, return an empty xarray Dataset
+        if monitors is None:
+            return xr.Dataset()
 
         # For each nan value, replace with the closest value ahead of it in time
         # For remaining nans, replace with closest value behind it in time
