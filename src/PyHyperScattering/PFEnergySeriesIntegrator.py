@@ -4,7 +4,6 @@ import h5py
 import warnings
 import xarray as xr
 import numpy as np
-import pandas as pd
 import math
 import pandas as pd
 from tqdm.auto import tqdm
@@ -40,10 +39,26 @@ class PFEnergySeriesIntegrator(PFGeneralIntegrator):
         #    get the energy and locate the matching integrator
         #    use that integrator to reduce
         #    return single reduced frame
-        if type(img.energy) != float:
+        #print(f'    img.energy is a {type(img.energy)}, len = {len(img.energy)} and is {img.energy}') 
+        #print(f'    img.system is a {type(img.system)}, len = {len(img.energy)} and is {img.system}')
+        #print(f'    img.system.levels: {img.indexes["system"].names}')
+        #print(f'    img.indexes: {img.indexes}')
+        #print(f'    type of system value: {type(getattr(img,"system").values)}')
+        #print(f'    shape of system value: {getattr(img,"system").values.shape}')
+        if 'energy' not in img.indexes:
+            for idx in img.indexes:
+                if type(img.indexes[idx]) == pd.core.indexes.multi.MultiIndex:
+                    multiindex_name = idx
+                    break
+            if 'energy' in img.indexes[multiindex_name].names:
+                for i,n in enumerate(img.indexes[multiindex_name].names):
+                    if n == 'energy':
+                        idx_of_energy = i
+                en = float(getattr(img,multiindex_name).values[idx_of_energy][0])
+        elif type(img.energy) != float:
             try:
                 en = img.energy.values[0]
-                if len(img.energy)>1:
+                if len(img.energy.values)>1:
                     warnings.warn(f'Using the first energy value of {img.energy.values}, check that this is correct.',stacklevel=2)
             except IndexError:
                 en = float(img.energy)
@@ -163,7 +178,7 @@ It would cosmically be better (for things like resolution calculation) to have t
 
         # the following section attempts to shape the array that we have so that it meets the requirements for the xarray GroupBy/map
         # paradigm; specifically, it needs one index that's not pixel x/y.  We either identify if that is the case, or we make it the
-        # case.  however, there are probably edge cases not handled here.
+        # case.  however, there are probably edge cases not handled here
         
         if len(indexes) == 1:
             if img_stack.__getattr__(indexes[0]).to_pandas().drop_duplicates().shape[0] != img_stack.__getattr__(indexes[0]).shape[0]:
