@@ -25,10 +25,16 @@ class Transform:
         inplane_config (str): The configuration of the inplane. Default is 'q_xy'.
     """
 
-    def __init__(self, poniPath, maskPath, inplane_config='q_xy'):
+    def __init__(self, poniPath, maskPath, inplane_config='q_xy', energy=None):
         self.poniPath = poniPath
         self.maskPath = maskPath
         self.inplane_config = inplane_config
+        if energy:
+            self.energy = energy
+            self.wavelength = np.round((4.1357e-15*2.99792458e8)/(energy*1000), 13)
+        else:
+            self.energy = None
+            self.wavelength = None
 
     def load_mask(self, da):
         """Load the mask file based on its file type."""
@@ -57,6 +63,8 @@ class Transform:
         pg.load(str(self.poniPath))
         pg.sample_orientation = 3
         pg.incident_angle = float(da.incident_angle[2:])
+        if self.wavelength:
+            pg.wavelength = self.wavelength
 
         # load mask
         mask = self.load_mask(da)
