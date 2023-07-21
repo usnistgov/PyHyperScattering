@@ -45,17 +45,26 @@ class PFEnergySeriesIntegrator(PFGeneralIntegrator):
         #print(f'    img.indexes: {img.indexes}')
         #print(f'    type of system value: {type(getattr(img,"system").values)}')
         #print(f'    shape of system value: {getattr(img,"system").values.shape}')
-        if 'energy' not in img.indexes:
-            for idx in img.indexes:
-                if type(img.indexes[idx]) == pd.core.indexes.multi.MultiIndex:
-                    multiindex_name = idx
-                    break
-            if 'energy' in img.indexes[multiindex_name].names:
-                for i,n in enumerate(img.indexes[multiindex_name].names):
-                    if n == 'energy':
-                        idx_of_energy = i
-                en = float(getattr(img,multiindex_name).values[idx_of_energy][0])
-        elif type(img.energy) != float:
+        en = None
+        if 'energy' not in img.indexes and type(img.energy) != float:
+            try: 
+                multiindex_name = None
+                for idx in img.indexes:
+                    if type(img.indexes[idx]) == pd.core.indexes.multi.MultiIndex:
+                        multiindex_name = idx
+                        break
+                if 'energy' in img.indexes[multiindex_name].names:
+                    for i,n in enumerate(img.indexes[multiindex_name].names):
+                        if n == 'energy':
+                            idx_of_energy = i
+                    en = float(getattr(img,multiindex_name).values[idx_of_energy][0])
+            except KeyError:
+                pass
+        if en is not None:
+            pass
+        elif type(img.energy) == float:
+            en = img.energy
+        else:
             try:
                 en = img.energy.values[0]
                 if len(img.energy.values)>1:
@@ -65,8 +74,8 @@ class PFEnergySeriesIntegrator(PFGeneralIntegrator):
             except AttributeError:
                 en = img.energy[0]
                 warnings.warn(f'Using the first energy value of {img.energy}, check that this is correct.',stacklevel=2)
-        else:
-            en = img.energy
+            
+        
         try:
             self.integrator = self.integrator_stack[en]
         except KeyError:
