@@ -8,7 +8,7 @@ import pandas as pd
 import numpy as np
 from tqdm.auto import tqdm 
 
-class CMSGIWAXSLoader(FileLoader):
+class CMSGIWAXSLoader:
     """
     GIXS Data Loader Class | NSLS-II 11-BM (CMS)
     Used to load single TIFF time-series TIFF GIWAXS images.
