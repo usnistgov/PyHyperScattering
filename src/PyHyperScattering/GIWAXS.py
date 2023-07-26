@@ -136,7 +136,7 @@ class Transform:
         
         return recip_da_series, caked_da_series
 
-def single_images_to_dataset(files, loader, transformer, save_zarrs=False, savePath=None):
+def single_images_to_dataset(files, loader, transformer, save_zarrs=False, savePath=None, savename=None):
     """
     Function that takes an iterable object of filepaths corresponding to raw GIWAXS
     beamline data, loads the raw data into an xarray DataArray, generates pygix-transformed 
@@ -148,8 +148,11 @@ def single_images_to_dataset(files, loader, transformer, save_zarrs=False, saveP
             transformer: instance of Transform object defined above, takes raw 
                          dataarray and returns two processed dataarrays
             save_zarrs: default is False, option to save datasets as zarr stores
-            savePath: required if save_zarrs is True, sets filepath & name for zarr 
-                      store (filename must end in '.zarr')
+            savePath: required if save_zarrs is True, choose savePath for zarr store
+                      pathlib.Path or absolute path as a string
+            savename: required if save_zarrs is True, string for name of zarr store 
+                      to be saved inside savePath, add 'raw_', 'recip_', or 'caked_' 
+                      file prefix and '.zarr' suffix
 
     Outputs: 3 Datasets: raw, recip (cartesian), and caked (polar)
              optionally also saved zarr stores
@@ -183,10 +186,13 @@ def single_images_to_dataset(files, loader, transformer, save_zarrs=False, saveP
     if save_zarrs:
         if savePath == None:
             print('No filepath specified for zarr store, skipping saving...')
+        elif savename == None:
+            print('No filename specified for zarr store, skipping saving...')
         else:
-            raw_DS.to_zarr(savePath, mode='w')
-            recip_DS.to_zarr(savePath, mode='w')
-            caked_DS.to_zarr(savePath, mode='w')
+            savePath = pathlib.Path(savePath)
+            raw_DS.to_zarr(savePath.joinpath(f'raw_{savename}.zarr'), mode='w')
+            recip_DS.to_zarr(savePath.joinpath(f'recip_{savename}.zarr'), mode='w')
+            caked_DS.to_zarr(savePath.joinpath(f'caked_{savename}.zarr'), mode='w')
 
     return raw_DS, recip_DS, caked_DS
 
