@@ -158,6 +158,10 @@ def single_images_to_dataset(files, loader, transformer, save_zarrs=False, saveP
     DA = loader.loadSingleImage(files[0])
     recip_DA, caked_DA = transformer.pg_convert(DA)
 
+    # Save coordinates for interpolating other dataarrays 
+    recip_coords = recip_DA.coords
+    caked_coords = caked_DA.coords
+
     # Create a DataSet, each DataArray will be named according to it's scan id
     raw_DS = DA.to_dataset(name=DA.scan_id)
     recip_DS = recip_DA.to_dataset(name=DA.scan_id)
@@ -168,6 +172,9 @@ def single_images_to_dataset(files, loader, transformer, save_zarrs=False, saveP
         DA = loader.loadSingleImage(filepath)
         recip_DA, caked_DA = transformer.pg_convert(DA)
         
+        recip_DA = recip_DA.interp(recip_coords)
+        caked_DA = caked_DA.interp(caked_coords)    
+
         raw_DS[f'{DA.scan_id}'] = DA
         recip_DS[f'{DA.scan_id}'] = recip_DA    
         caked_DS[f'{DA.scan_id}'] = caked_DA
