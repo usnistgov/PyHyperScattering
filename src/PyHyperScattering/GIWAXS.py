@@ -183,12 +183,14 @@ def single_images_to_dataset(files, loader, transformer, savePath=None, savename
 
     # Save zarr stores if selected
     if savePath and savename:
+        print('Saving zarrs...')
         savePath = pathlib.Path(savePath)
         raw_DS.to_zarr(savePath.joinpath(f'raw_{savename}.zarr'), mode='w')
         recip_DS.to_zarr(savePath.joinpath(f'recip_{savename}.zarr'), mode='w')
         caked_DS.to_zarr(savePath.joinpath(f'caked_{savename}.zarr'), mode='w')
+        print('Saved!')
     else:
-        print('No save path or no filename specififed, not saving zarrs... ')
+        print('No save path or no filename specified, not saving zarrs... ')
 
     return raw_DS, recip_DS, caked_DS
 
