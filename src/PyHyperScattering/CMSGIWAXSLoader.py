@@ -39,8 +39,8 @@ class CMSGIWAXSLoader:
 
         # Convert the image numpy array into an xarray DataArray object.
         image_da = xr.DataArray(data = image_data, 
-                                dims=['pix_y', 'pix_x'],
-                                attrs=attr_dict)
+                                dims = ['pix_y', 'pix_x'],
+                                attrs = attr_dict)
         
         image_da = image_da.assign_coords({
             'pix_x': image_da.pix_x.data,

@@ -1,11 +1,12 @@
 """
-File that will contain functions to:
+File to:
     1. Use pygix to apply the missing wedge Ewald's sphere correction & convert to q-space
     2. Generate 2D plots of Qz vs Qxy corrected detector images
     3. Generate 2d plots of Q vs Chi images, with the option to apply the sin(chi) correction
     4. etc.
 """
 
+# Imports
 import xarray as xr
 import numpy as np
 import pygix  # type: ignore
@@ -16,18 +17,23 @@ from PyHyperScattering.IntegrationUtils import DrawMask
 from tqdm.auto import tqdm 
 
 class Transform:
-    """
-    Class for transforming GIWAXS data into different formats.
-    
-    Attributes:
-        poniPath (str): Path to .poni file for converting to q-space & applying missing wedge correction
-        maskPath (str): Path to the mask file to use for the conversion
+    """ Class for transforming GIWAXS data into different formats. """
+    def __init__(self, 
+                 poniPath: Union[str, pathlib.Path], 
+                 maskPath: Union[str, pathlib.Path], 
+                 inplane_config: str = 'q_xy', 
+                 energy: float = None):
+        """
+        Attributes:
+        poniPath (pathlib Path or str): Path to .poni file for converting to q-space 
+                                        & applying missing wedge correction
+        maskPath (pathlib Path or str): Path to the mask file to use for the conversion
         inplane_config (str): The configuration of the inplane. Default is 'q_xy'.
-    """
+        energy (optional, float): Set energy if default energy in poni file is invalid
+        """
 
-    def __init__(self, poniPath, maskPath, inplane_config='q_xy', energy=None):
-        self.poniPath = poniPath
-        self.maskPath = maskPath
+        self.poniPath = pathlib.Path(poniPath)
+        self.maskPath = pathlib.Path(maskPath)
         self.inplane_config = inplane_config
         if energy:
             self.energy = energy
@@ -66,9 +72,10 @@ class Transform:
         if self.wavelength:
             pg.wavelength = self.wavelength
 
-        # load mask
+        # Load mask
         mask = self.load_mask(da)
 
+        # Cartesian 2D plot transformation
         recip_data, qxy, qz = pg.transform_reciprocal(da.data,
                                                       method='bbox',
                                                       unit='A',
@@ -83,6 +90,7 @@ class Transform:
                                 },
                                 attrs=da.attrs)
 
+        # Polar 2D plot transformation
         caked_data, qr, chi = pg.transform_image(da.data, 
                                                  process='polar',
                                                  method = 'bbox',
@@ -99,6 +107,7 @@ class Transform:
                             attrs=da.attrs)
         caked_da.attrs['inplane_config'] = self.inplane_config
 
+        # Preseve time dimension if it is in the dataarray, for stacking purposes
         if 'time' in da.coords:
             recip_da = recip_da.assign_coords({'time': float(da.time)})
             recip_da = recip_da.expand_dims(dim={'time': 1})
@@ -127,25 +136,80 @@ class Transform:
         
         return recip_da_series, caked_da_series
 
-    # - This needs to be updated appropriately so that it can be called inline. Process(Transform) should be able
-    # to import the attribute name of a newly generated .zarr by an active Transform() object instance.
-    def save_as_zarr(self, da: xr.DataArray, base_path: Union[str, pathlib.Path], prefix: str, suffix: str, mode: str = 'w'):
-        """
-        Save the DataArray as a .zarr file in a specific path, with a file name constructed from a prefix and suffix.
+def single_images_to_dataset(files, loader, transformer, save_zarrs=False, savePath=None):
+    """
+    Function that takes an iterable object of filepaths corresponding to raw GIWAXS
+    beamline data, loads the raw data into an xarray DataArray, generates pygix-transformed 
+    cartesian and polar DataArrays, and creates 3 corresponding xarray Datasets 
+    containing a DataArray per sample. The raw dataarrays must contain the attribute 'scan_id'
 
-        Parameters:
-            da (xr.DataArray): The DataArray to be saved.
-            base_path (Union[str, pathlib.Path]): The base path to save the .zarr file.
-            prefix (str): The prefix to use for the file name.
-            suffix (str): The suffix to use for the file name.
-            mode (str): The mode to use when saving the file. Default is 'w'.
-        """
-        ds = da.to_dataset(name='DA')
-        file_path = pathlib.Path(base_path).joinpath(f"{prefix}_{suffix}.zarr")
-        ds.to_zarr(file_path, mode=mode)
+    Inputs: files: indexable object containing pathlib.Path filepaths to raw GIWAXS data
+            loader: custom PyHyperScattering GIWAXSLoader object, must return DataArray
+            transformer: instance of Transform object defined above, takes raw 
+                         dataarray and returns two processed dataarrays
+            save_zarrs: default is False, option to save datasets as zarr stores
+            savePath: required if save_zarrs is True, sets filepath & name for zarr 
+                      store (filename must end in '.zarr')
 
+    Outputs: 3 Datasets: raw, recip (cartesian), and caked (polar)
+             optionally also saved zarr stores
+    """
+    # Select the first element of the sorted set outside of the for loop to initialize the xr.DataSet
+    DA = loader.loadSingleImage(files[0])
+    recip_DA, caked_DA = transformer.pg_convert(DA)
+
+    # Create a DataSet, each DataArray will be named according to it's scan id
+    raw_DS = DA.to_dataset(name=DA.scan_id)
+    recip_DS = recip_DA.to_dataset(name=DA.scan_id)
+    caked_DS = caked_DA.to_dataset(name=DA.scan_id)
+
+    # Populate the DataSet with 
+    for filepath in tqdm(files[1:], desc=f'Transforming Raw Data'):
+        DA = loader.loadSingleImage(filepath)
+        recip_DA, caked_DA = transformer.pg_convert(DA)
+        
+        raw_DS[f'{DA.scan_id}'] = DA
+        recip_DS[f'{DA.scan_id}'] = recip_DA    
+        caked_DS[f'{DA.scan_id}'] = caked_DA
+
+    # Save zarr stores if selected
+    if save_zarrs:
+        if savePath == None:
+            print('No filepath specified for zarr store, skipping saving...')
+        else:
+            raw_DS.to_zarr(savePath, mode='w')
+            recip_DS.to_zarr(savePath, mode='w')
+            caked_DS.to_zarr(savePath, mode='w')
+
+    return raw_DS, recip_DS, caked_DS
+
+
+# save_as_zarr method from the Transform class, commented (07/25/23)
+'''
+    # # - This needs to be updated appropriately so that it can be called inline. Process(Transform) should be able
+    # # to import the attribute name of a newly generated .zarr by an active Transform() object instance.
+    # def save_as_zarr(self, da: xr.DataArray, base_path: Union[str, pathlib.Path], prefix: str, suffix: str, mode: str = 'w'):
+    #     """
+    #     Save the DataArray as a .zarr file in a specific path, with a file name constructed from a prefix and suffix.
+
+    #     Parameters:
+    #         da (xr.DataArray): The DataArray to be saved.
+    #         base_path (Union[str, pathlib.Path]): The base path to save the .zarr file.
+    #         prefix (str): The prefix to use for the file name.
+    #         suffix (str): The suffix to use for the file name.
+    #         mode (str): The mode to use when saving the file. Default is 'w'.
+    #     """
+    #     ds = da.to_dataset(name='DA')
+    #     file_path = pathlib.Path(base_path).joinpath(f"{prefix}_{suffix}.zarr")
+    #     ds.to_zarr(file_path, mode=mode)
+'''
+
+# Keith's ProcessData class, commented out temporarily (07/25/23)
+'''
 class ProcessData:
-    def __init__(self, raw_zarr_file_path: Union[str, pathlib.Path], pg_transformer: Transform):
+    def __init__(self, 
+                 raw_zarr_file_path: Union[str, pathlib.Path],
+            pg_transformer: Transform):
         """
         Constructor of the ProcessData class.
 
@@ -205,6 +269,7 @@ class ProcessData:
         caked_integrated = caked_da_series.integrate(dim)
 
         return caked_integrated
+'''
 
 # -- old Tranform class, refactored: (07/17/23)
 '''
