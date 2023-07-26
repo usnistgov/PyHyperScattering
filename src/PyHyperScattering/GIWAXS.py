@@ -136,7 +136,7 @@ class Transform:
         
         return recip_da_series, caked_da_series
 
-def single_images_to_dataset(files, loader, transformer, save_zarrs=False, savePath=None, savename=None):
+def single_images_to_dataset(files, loader, transformer, savePath=None, savename=None):
     """
     Function that takes an iterable object of filepaths corresponding to raw GIWAXS
     beamline data, loads the raw data into an xarray DataArray, generates pygix-transformed 
@@ -147,10 +147,9 @@ def single_images_to_dataset(files, loader, transformer, save_zarrs=False, saveP
             loader: custom PyHyperScattering GIWAXSLoader object, must return DataArray
             transformer: instance of Transform object defined above, takes raw 
                          dataarray and returns two processed dataarrays
-            save_zarrs: default is False, option to save datasets as zarr stores
-            savePath: required if save_zarrs is True, choose savePath for zarr store
+            savePath: optional, required to save zarrs, choose savePath for zarr store
                       pathlib.Path or absolute path as a string
-            savename: required if save_zarrs is True, string for name of zarr store 
+            savename: optional, required to save zarrs, string for name of zarr store 
                       to be saved inside savePath, add 'raw_', 'recip_', or 'caked_' 
                       file prefix and '.zarr' suffix
 
@@ -183,16 +182,13 @@ def single_images_to_dataset(files, loader, transformer, save_zarrs=False, saveP
         caked_DS[f'{DA.scan_id}'] = caked_DA
 
     # Save zarr stores if selected
-    if save_zarrs:
-        if savePath == None:
-            print('No filepath specified for zarr store, skipping saving...')
-        elif savename == None:
-            print('No filename specified for zarr store, skipping saving...')
-        else:
-            savePath = pathlib.Path(savePath)
-            raw_DS.to_zarr(savePath.joinpath(f'raw_{savename}.zarr'), mode='w')
-            recip_DS.to_zarr(savePath.joinpath(f'recip_{savename}.zarr'), mode='w')
-            caked_DS.to_zarr(savePath.joinpath(f'caked_{savename}.zarr'), mode='w')
+    if savePath and savename:
+        savePath = pathlib.Path(savePath)
+        raw_DS.to_zarr(savePath.joinpath(f'raw_{savename}.zarr'), mode='w')
+        recip_DS.to_zarr(savePath.joinpath(f'recip_{savename}.zarr'), mode='w')
+        caked_DS.to_zarr(savePath.joinpath(f'caked_{savename}.zarr'), mode='w')
+    else:
+        print('No save path or no filename specififed, not saving zarrs... ')
 
     return raw_DS, recip_DS, caked_DS
 
