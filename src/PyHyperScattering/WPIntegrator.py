@@ -112,9 +112,9 @@ class WPIntegrator():
             pass
         
         if self.MACHINE_HAS_CUDA:
-            TwoD = self.warp_polar_gpu(img_to_integ,center=(center_x,center_y), radius = np.nanmax(img_to_integ.shape))
+            TwoD = self.warp_polar_gpu(img_to_integ,center=(center_x,center_y), radius = np.sqrt((img_to_integ.shape[0] - center_x)**2 + (img_to_integ.shape[1] - center_y)**2))
         else:
-            TwoD = skimage.transform.warp_polar(img_to_integ,center=(center_x,center_y), radius = np.nanmax(img_to_integ.shape))
+            TwoD = skimage.transform.warp_polar(img_to_integ,center=(center_x,center_y), radius = np.sqrt((img_to_integ.shape[0] - center_x)**2 + (img_to_integ.shape[1] - center_y)**2))
 
         
         qx = img.qx
