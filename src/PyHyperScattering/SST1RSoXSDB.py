@@ -476,7 +476,13 @@ class SST1RSoXSDB:
                 pass
             axes.append(axis)
             scans.append(loaded)
-            label_vals.append(loaded.__getattr__(meta_dim))
+            label_val = loaded.__getattr__(meta_dim)
+            try:
+                if len(label_val)>1 and type(label_val) != str:
+                    label_val = label_val.mean()
+            except TypeError:
+                pass # assume if there is no len, then this is a single value and everything is fine
+            label_vals.append(label_val)
         assert len(axes) == axes.count(
             axes[0]
         ), f"Error: not all loaded data have the same axes.  This is not supported yet.\n {axes}"
@@ -552,6 +558,12 @@ class SST1RSoXSDB:
                 axis_list = [x for x in axis_list if 'stats' not in x]
                 axis_list = [x for x in axis_list if 'saturated' not in x]
                 axis_list = [x for x in axis_list if 'under_exposed' not in x]
+                # knock out any known names of scalar counters
+                axis_list = [x for x in axis_list if 'Beamstop' not in x]
+                axis_list = [x for x in axis_list if 'Current' not in x]
+                
+                
+                
                 # now, clean up duplicates.
                 axis_list = [x for x in axis_list if 'setpoint' not in x]
                 # now, figure out what's actually moving.  we use a relative standard deviation to do this.
@@ -690,12 +702,12 @@ class SST1RSoXSDB:
                 .assign_coords(system=index)
             )
 
-            if "system_" in monitors.indexes.keys:
+            if "system_" in monitors.indexes.keys():
                 monitors = monitors.drop("system_")
 
-        except Exception:
+        except Exception as e:
             warnings.warn(
-                "Error assigning monitor readings to system.  Problem with monitors.  Please check.",
+                "Monitor streams loaded successfully, but could not be correlated to images.  Check monitor stream for issues, probable metadata change.",
                 stacklevel=2,
             )
         retxr.attrs.update(md)
