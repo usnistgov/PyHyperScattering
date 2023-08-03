@@ -19,9 +19,8 @@ try:
     from httpx import HTTPStatusError
     import tiled
     import dask
-    from databroker.queries import RawMongo, Key, FullText, Contains, Regex, ScanIDRange
-    from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
-except:
+    from databroker.queries import RawMongo, Key, FullText, Contains, Regex
+except Exception:
     print(
         "Imports failed.  Are you running on a machine with proper libraries for databroker, tiled, etc.?"
     )
