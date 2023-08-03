@@ -75,7 +75,7 @@ class PFEnergySeriesIntegrator(PFGeneralIntegrator):
             except AttributeError:
                 try:
                     en = img.energy[0]
-                    warnings.warn(f'Using the first energy value of {img.energy}, check that this is correct.',stacklevel=2)
+                    warnings.warn(f'Using the first energy value of {img.energy}, if this contains more than one energy, your data are likely wrong.',stacklevel=2)
                 except IndexError:
                     en = float(img.energy)
             
