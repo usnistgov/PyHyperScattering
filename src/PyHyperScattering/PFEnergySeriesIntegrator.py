@@ -78,9 +78,6 @@ class PFEnergySeriesIntegrator(PFGeneralIntegrator):
                     warnings.warn(f'Using the first energy value of {img.energy}, check that this is correct.',stacklevel=2)
                 except IndexError:
                     en = float(img.energy)
-                    
-        else:
-            en = img.energy
             
         try:
             self.integrator = self.integrator_stack[en]
