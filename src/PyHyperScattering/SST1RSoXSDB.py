@@ -656,7 +656,7 @@ class SST1RSoXSDB:
                     dims_to_join.append(md[dim])
                 dim_names_to_join.append(dim)
             except TypeError:
-                dims_to_join.append(np.ones(run.start["num_points"]) * md[dim])
+                dims_to_join.append([md[dim]] * run.start["num_points"])
                 dim_names_to_join.append(dim)
 
         for key, val in coords.items():
