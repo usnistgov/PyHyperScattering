@@ -1,5 +1,5 @@
-from PyHyperScattering.load import load
-from PyHyperScattering.integrate import integrate
+from PyHyperScattering import load
+from PyHyperScattering import integrate
 from PyHyperScattering import util
 
 from . import _version
