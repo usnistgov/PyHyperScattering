@@ -117,6 +117,7 @@ class RSoXS:
             calc2d (bool): calculate the AR using both polarizations
             two_AR (bool): return both polarizations if calc2d = True.  If two_AR = False, return the average AR between the two polarizations.
             calc2d_norm_energy (numeric): if set, normalizes each polarization's AR at a given energy.  THIS EFFECTIVELY FORCES THE AR TO 0 AT THIS ENERGY.
+            chi_width (int, default 5): the width of chi slices used in calculating AR.  
         '''
         if(not calc2d):
             para = self.slice_chi(0,chi_width=chi_width)
@@ -126,11 +127,11 @@ class RSoXS:
             para_pol = self.select_pol(0)
             perp_pol = self.select_pol(90)
 
-            para_para = para_pol.slice_chi(0,chi_width=chi_width)
-            para_perp = para_pol.slice_chi(-90,chi_width=chi_width)
+            para_para = para_pol.rsoxs.slice_chi(0,chi_width=chi_width)
+            para_perp = para_pol.rsoxs.slice_chi(-90,chi_width=chi_width)
 
-            perp_perp = perp_pol.slice_chi(-90,chi_width=chi_width)
-            perp_para = perp_pol.slice_chi(0,chi_width=chi_width)
+            perp_perp = perp_pol.rsoxs.slice_chi(-90,chi_width=chi_width)
+            perp_para = perp_pol.rsoxs.slice_chi(0,chi_width=chi_width)
 
             AR_para = ((para_para - para_perp)/(para_para+para_perp))
             AR_perp = ((perp_perp - perp_para)/(perp_perp+perp_para))
@@ -139,7 +140,7 @@ class RSoXS:
                 AR_para = AR_para / AR_para.sel(energy=calc2d_norm_energy)
                 AR_perp = AR_perp / AR_perp.sel(energy=calc2d_norm_energy)
 
-            if AR_para < AR_perp or AR_perp < AR_para:
+            if (AR_para < AR_perp).all() or (AR_perp < AR_para).all():
                 warnings.warn('One polarization has a systematically higher/lower AR than the other.  Typically this indicates bad intensity values.',stacklevel=2)
 
             if two_AR:
