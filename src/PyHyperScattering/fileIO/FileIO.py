@@ -12,7 +12,7 @@ import pandas
 import json
 
 from collections import defaultdict
-from . import _version
+from .. import _version
 phs_version = _version.get_versions()['version']
 
 

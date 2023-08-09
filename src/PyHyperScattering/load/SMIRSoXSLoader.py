@@ -1,4 +1,4 @@
-from PyHyperScattering.FileLoader import FileLoader
+from PyHyperScattering.load.FileLoader import FileLoader
 from scipy.interpolate import RectBivariateSpline
 import os
 import xarray as xr

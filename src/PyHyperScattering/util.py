@@ -1,7 +1,7 @@
-from PyHyperScattering import Fitting
-from PyHyperScattering import HDR
-from PyHyperScattering import RSoXS
-from PyHyperScattering import IntegrationUtils
+from PyHyperScattering.analysis import Fitting
+from PyHyperScattering.analysis import HDR
+from PyHyperScattering.analysis import RSoXS
+from PyHyperScattering.geometry import IntegrationUtils
 #from PyHyperScattering import Nexus empty module as of 0.0.6-dev69
-from PyHyperScattering import FileIO
-from PyHyperScattering import PlotTools
+from PyHyperScattering.fileIO import FileIO
+from PyHyperScattering.plot import PlotTools

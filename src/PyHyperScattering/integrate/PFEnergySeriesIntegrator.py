@@ -1,5 +1,5 @@
 from pyFAI import azimuthalIntegrator
-from PyHyperScattering.PFGeneralIntegrator import PFGeneralIntegrator
+from PyHyperScattering.integrate.PFGeneralIntegrator import PFGeneralIntegrator
 import h5py
 import warnings
 import xarray as xr

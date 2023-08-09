@@ -1,5 +1,5 @@
 MACHINE_HAS_CUDA = True
-from PyHyperScattering.FileLoader import FileLoader
+from PyHyperScattering.load.FileLoader import FileLoader
 import os
 import xarray as xr
 import pandas as pd

@@ -1,5 +1,5 @@
 from PIL import Image
-from PyHyperScattering.FileLoader import FileLoader
+from PyHyperScattering.load.FileLoader import FileLoader
 import os
 import pathlib
 import xarray as xr
