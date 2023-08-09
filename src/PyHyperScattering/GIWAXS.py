@@ -138,7 +138,7 @@ class Transform:
 
 def single_images_to_dataset(files, loader, transformer, savePath=None, savename=None):
     """
-    Function that takes an iterable object of filepaths corresponding to raw GIWAXS
+    Function that takes a subscriptable object of filepaths corresponding to raw GIWAXS
     beamline data, loads the raw data into an xarray DataArray, generates pygix-transformed 
     cartesian and polar DataArrays, and creates 3 corresponding xarray Datasets 
     containing a DataArray per sample. The raw dataarrays must contain the attribute 'scan_id'
