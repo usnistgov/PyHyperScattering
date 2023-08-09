@@ -36,6 +36,22 @@ DatasetGroupBy.progress_apply_ufunc = inner_generator(df_function='apply_ufunc')
 class PFEnergySeriesIntegrator(PFGeneralIntegrator):
 
     def integrateSingleImage(self,img):
+        '''
+        Integrate a single image, using the energy value to select the correct integrator
+        This is a worker function called mainly inside other tools, 
+        but is also functional on its own.
+
+        Parameters
+        ----------
+        img : xarray.DataArray
+            The image to integrate, with 'pix_x' and 'pix_y' coordinates
+
+        Returns
+        -------
+        xarray.DataArray
+            The integrated data.
+            The shape of the returned array is (chi,q,other_dims)
+        '''
         # for each image: 
         #    get the energy and locate the matching integrator
         #    use that integrator to reduce
@@ -74,6 +90,24 @@ class PFEnergySeriesIntegrator(PFGeneralIntegrator):
                                                    method=self.integration_method).radial
 
     def integrateImageStack_dask(self,img_stack,chunksize=5):
+        '''
+        Integrate a stack of images, using the energy value to select the correct integrator
+
+        Parameters
+        ----------
+        img_stack : xarray.DataArray
+            A stack of images to integrate
+            Must have an 'energy' coordinate
+        chunksize : int, optional
+            The number of images to integrate at once, by default 5
+
+        Returns
+        -------
+        xarray.DataArray
+            The integrated data.
+            The shape of the returned array is (chi,q,energy,other_dims)
+        '''
+
         self.setupIntegrators(img_stack.energy.data)
         self.setupDestQ(img_stack.energy.data)
         indexes = list(img_stack.dims)
@@ -120,6 +154,23 @@ class PFEnergySeriesIntegrator(PFGeneralIntegrator):
         return integ_fly 
 
     def integrateImageStack_legacy(self,img_stack):
+        '''
+        Integrate a stack of images, using the energy value to select the correct integrator
+
+        Parameters
+        ----------
+        img_stack : xarray.DataArray
+            A stack of images to integrate
+            Must have an 'energy' coordinate
+
+        Returns
+        -------
+        xarray.DataArray
+            The integrated data.
+            Will have a 'q' coordinate and a 'chi' coordinate in place of the 'pix_x' and 
+            'pix_y' coordinates.
+
+        '''
         # get just the energies of the image stack
        # if type(img_stack.energy)== np.ndarray:
        
@@ -165,7 +216,28 @@ class PFEnergySeriesIntegrator(PFGeneralIntegrator):
     
     def integrateImageStack(self,img_stack,method=None,chunksize=None):
         '''
-        
+        Integrate a stack of images.  If the stack is multi-dimensional,
+        it will be transiently reduced to a single dimension before integration.
+
+        Parameters
+        ----------
+        img_stack : xarray.DataArray
+            The stack of images to integrate.  Must have dimensions of
+            'pix_x','pix_y', and optionally 'energy' or another dimension.
+        method : str, optional
+            The integration method to use.  If None, will use the default
+            method set in the constructor.  If 'legacy', will use the
+            legacy integration method.  If 'dask', will use the dask
+            integration method.  The default is None.
+        chunksize : int, optional
+            The chunksize to use for dask integration.  If None, will use
+            the default chunksize set in the constructor.  The default is None.
+
+        Returns
+        -------
+        xarray.DataArray
+            The integrated data.
+
         '''
 
         if (self.use_chunked_processing and method is None) or method=='dask':
@@ -181,6 +253,20 @@ class PFEnergySeriesIntegrator(PFGeneralIntegrator):
 
 
     def createIntegrator(self,en,recreate=False):
+        '''
+        Create an integrator for a given energy.  If an integrator for that
+        energy already exists, it will not be recreated unless recreate is
+        set to True.
+
+        Parameters
+        ----------
+        en : float
+            The energy to create the integrator for.
+        recreate : bool, optional
+            If True, will recreate the integrator even if it already exists.
+            The default is False.
+
+        '''
         if en not in self.integrator_stack.keys() or recreate:
             self.integrator_stack[en] = azimuthalIntegrator.AzimuthalIntegrator(
             self.dist, self.poni1, self.poni2, self.rot1, self.rot2, self.rot3 ,pixel1=self.pixel1,pixel2=self.pixel2, wavelength = 1.239842e-6/en)

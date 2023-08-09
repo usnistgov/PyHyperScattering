@@ -43,6 +43,9 @@ DatasetGroupBy.progress_map_blocks = inner_generator(df_function='map_blocks')
 class PFGeneralIntegrator():
 
     def integrateSingleImage(self, img):
+        '''
+        Integrate a single image, return the result as a 1D or 2D array
+        '''
         if type(img) == xr.Dataset:
             for key in img.keys():
                 target_key=key
@@ -146,6 +149,16 @@ class PFGeneralIntegrator():
     '''
     
     def integrateImageStack_legacy(self,data):
+        '''
+        Integrate a stack of images, returning a DataArray with the integrated intensity as a function of q.
+
+        Parameters
+        ----------
+        data : xarray.DataArray
+            A 3D xarray.DataArray with dimensions (pix_x, pix_y, other_dims) where other_dims are the dimensions to be stacked over.
+            
+       
+        '''
         indexes = list(data.dims)
         indexes.remove('pix_x')
         indexes.remove('pix_y')
