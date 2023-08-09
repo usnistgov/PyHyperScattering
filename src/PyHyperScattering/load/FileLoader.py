@@ -138,12 +138,12 @@ class FileLoader():
         #prepare the index...
         dest_coords_sorted = sorted(dest_coords.items())
         
-        vals = []
-        keys = []
+        meta_values = []
+        meta_names = []
         
         for key,val in dest_coords_sorted:
-            vals.append(val)
-            keys.append(key)
+            meta_values.append(val)
+            meta_names.append(key)
 
         #index = pd.MultiIndex.from_arrays(
         #        list(dest_coords.values()
@@ -153,7 +153,7 @@ class FileLoader():
         #    )
         #)
         try:
-            index = pd.MultiIndex.from_arrays(vals,names=keys)
+            index = pd.MultiIndex.from_arrays(meta_values,names=meta_names)
         except ValueError as e:
             raise ValueError('This load found files, but none were deemed loadable.\nThis usually means that you set a file_filter or md_filter that was too restrictive, or your directory is wrong.\nCheck and rerun') from e
         index.name = 'system'
@@ -177,9 +177,16 @@ class FileLoader():
                     row.interp(coords={'qx':dest_qx,'qy':dest_qy}))
             data_rows = data_rows_transformed
         #this doesn't work post-xarray 2022.3  out = xr.concat(data_rows,dim=index)
-        out = xr.concat(data_rows,dim='system').assign_coords({'system':('system',index)})
+        out = xr.Dataset()
+
+        out['raw_intensity'] = xr.concat(data_rows,dim='img_num')
+        #.assign_coords({'system':('system',index)})
+        
         out.attrs.update({'dims_unpacked':dims})
+        for i,name in enumerate(meta_names):
+            out[name] = xr.DataArray(meta_values[i],dims=['img_num'])
         if not output_qxy and not output_raw:
-            out = out.assign_coords(pix_x=('pix_x',np.arange(0,len(out.pix_x))),pix_y=('pix_y',np.arange(0,len(out.pix_y))))
+            out['raw_intensity'] = out['raw_intensity'].assign_coords(pix_x=('pix_x',np.arange(0,len(out.pix_x))),pix_y=('pix_y',np.arange(0,len(out.pix_y))))
+
         print(f'Loaded {nloaded}/{nprocessed} files')
         return out
