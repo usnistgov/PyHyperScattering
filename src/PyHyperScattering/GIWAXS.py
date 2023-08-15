@@ -20,14 +20,15 @@ class Transform:
     """ Class for transforming GIWAXS data into different formats. """
     def __init__(self, 
                  poniPath: Union[str, pathlib.Path], 
-                 maskPath: Union[str, pathlib.Path], 
+                 maskPath: Union[str, pathlib.Path, np.ndarray], 
                  inplane_config: str = 'q_xy', 
                  energy: float = None):
         """
         Attributes:
         poniPath (pathlib Path or str): Path to .poni file for converting to q-space 
                                         & applying missing wedge correction
-        maskPath (pathlib Path or str): Path to the mask file to use for the conversion
+        maskPath (pathlib Path or str or np.array): Path to the mask file to use 
+                                for the conversion, or a numpy array
         inplane_config (str): The configuration of the inplane. Default is 'q_xy'.
         energy (optional, float): Set energy if default energy in poni file is invalid
         """
@@ -44,6 +45,10 @@ class Transform:
 
     def load_mask(self, da):
         """Load the mask file based on its file type."""
+        
+        if isinstance(self.maskPath, np.ndarray):
+            return self.maskPath
+
         try:
             if self.maskPath.suffix == '.json':
                 draw = DrawMask(da)  
