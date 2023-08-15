@@ -34,7 +34,11 @@ class Transform:
         """
 
         self.poniPath = pathlib.Path(poniPath)
-        self.maskPath = pathlib.Path(maskPath)
+        try:
+            self.maskPath = pathlib.Path(maskPath)
+        except TypeError:
+            self.maskPath = maskPath
+            
         self.inplane_config = inplane_config
         if energy:
             self.energy = energy
@@ -45,7 +49,7 @@ class Transform:
 
     def load_mask(self, da):
         """Load the mask file based on its file type."""
-        
+
         if isinstance(self.maskPath, np.ndarray):
             return self.maskPath
 
