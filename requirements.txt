@@ -11,4 +11,4 @@ scipy
 pillow
 xarray
 tqdm
-sphinx-rtd-theme
+piccolo-theme
