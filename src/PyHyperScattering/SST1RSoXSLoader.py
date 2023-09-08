@@ -126,8 +126,12 @@ class SST1RSoXSLoader(FileLoader):
     def read_json(self,jsonfile):
         json_dict = {}
         with open(jsonfile) as f:
-            data = json.load(f)
-            meas_time =datetime.datetime.fromtimestamp(data[1]['time'])
+            try:
+                data = json.load(f)
+                meas_time = datetime.datetime.fromtimestamp(data[1]['time'])
+            except KeyError:  # Expected for cycle 2 2023 metadata update
+                data = [0, json.load(f)]  # Quick fix to just load as the second element of a list
+                meas_time = datetime.datetime.fromtimestamp(data[1]['time'])
             json_dict['sample_name'] = data[1]['sample_name']
         if data[1]['RSoXS_Main_DET'] == 'SAXS':
             json_dict['rsoxs_config'] = 'saxs'
@@ -247,9 +251,14 @@ class SST1RSoXSLoader(FileLoader):
         else:
             cwd = pathlib.Path(dirPath)
 
-        json_fname = list(cwd.glob('*.jsonl'))
-        json_dict = self.read_json(json_fname[0])
-
+        try:
+            json_fname = list(cwd.glob('*.jsonl'))
+            json_dict = self.read_json(json_fname[0])
+        except IndexError:  # For cycle 2 2023 +
+            # Changed '*.jsonl' to '*.json' 
+            json_fname = list(cwd.glob('*.json'))
+            json_dict = self.read_json(json_fname[0])        
+        
         baseline_fname = list(cwd.glob('*baseline.csv'))
         baseline_dict = self.read_baseline(baseline_fname[0])
 
