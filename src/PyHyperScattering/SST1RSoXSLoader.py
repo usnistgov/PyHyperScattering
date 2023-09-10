@@ -9,7 +9,6 @@ import warnings
 import json
 #from pyFAI import azimuthalIntegrator
 import numpy as np
-# from json.decoder import JSONDecodeError
 
 
 class SST1RSoXSLoader(FileLoader):
@@ -126,13 +125,16 @@ class SST1RSoXSLoader(FileLoader):
 
     def read_json(self,jsonfile):
         json_dict = {}
-        try:
+
+        # Try / except statment to be compatible with local rsoxs data before 
+        # and after SST1 cycle 2 2023 
+        try:  # For earlier cyles
             with open(jsonfile) as f:
                 data = json.load(f)
                 meas_time = datetime.datetime.fromtimestamp(data[1]['time'])
-        except KeyError:  # Expected for cycle 2 2023 metadata update
+        except KeyError:  # For later cycles (confirmed working for cycle 2 2023) 
             with open(jsonfile) as f:
-                data = [0, json.load(f)]  # quick fix to put the data in a list as the second element
+                data = [0, json.load(f)]  # Quick fix to load the json in a list 
                 meas_time = datetime.datetime.fromtimestamp(data[1]['time'])
             
         json_dict['sample_name'] = data[1]['sample_name']
@@ -254,12 +256,13 @@ class SST1RSoXSLoader(FileLoader):
         else:
             cwd = pathlib.Path(dirPath)
 
-        try:
+        # Another try/except statement to be compatible with local data pre and 
+        # post SST1 cycle 2 2023 
+        try:  # For earlier data
             json_fname = list(cwd.glob('*.jsonl'))
             json_dict = self.read_json(json_fname[0])
-        except IndexError:  # For cycle 2 2023 +
-            # Changed '*.jsonl' to '*.json' 
-            json_fname = list(cwd.glob('*.json'))
+        except IndexError:  # For later data (works for cycle 2 2023)
+            json_fname = list(cwd.glob('*.json')) # Changed '*.jsonl' to '*.json' 
             json_dict = self.read_json(json_fname[0]) 
         
         baseline_fname = list(cwd.glob('*baseline.csv'))
