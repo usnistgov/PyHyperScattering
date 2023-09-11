@@ -6,6 +6,16 @@
 Welcome to PyHyperScattering's documentation!
 =============================================
 
+.. image:: /source/_static/Logo_PyHyperO10_Dark.svg
+    :width: 600
+    :class: only-dark
+    :alt: PyHyperScattering Logo
+
+.. image:: /source/_static/Logo_PyHyperO9_Light.svg
+    :width: 600
+    :class: only-light
+    :alt: PyHyperScattering Logo
+
 To play with PyHyperScattering's tutorial notebooks interactively, use Binder:
 .. image:: mybinder.org/badge_logo.svg
    :target: mybinder.org/v2/gh/usnistgov/PyHyperScattering/HEAD
