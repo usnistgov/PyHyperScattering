@@ -1,10 +1,12 @@
-# PyHyperScattering
+![# PyHyperScattering](https://user-images.githubusercontent.com/875623/234083915-e62ee2d4-ad7f-4d91-a847-18fa54652ffc.png)
+
 Python utilities for loading, reducing, slicing, and plotting hyperspectral scattering datasets.
 
 This is a package approaching scope-completeness, but still under extremely active development and notably without any guarantee of API stability (we do try to not change things without reason, though). An increasing number of parts of it are unit-tested for functionality, stability, and/or scientific correctness, but large swaths are not. Its documentation is certainly lacking and we are actively seeking help in generating good documentation (see the Issues page on github for areas).  Use at your own risk.  If you're interested in contributing, please contact Peter Beaucage (peter.beaucage@nist.gov).
 
+The (quite incomplete) documentation is located at https://pages.nist.gov/PyHyperScattering, and the tutorials in the repository are occasionally helpful.  Several core developers are active on the NIST RSoXS slack, Nikea, and NSLS2 slacks and welcome DMs with questions, or email Peter Beaucage.
+
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/usnistgov/PyHyperScattering/HEAD)
-[![Documentation Status](https://readthedocs.org/projects/pyhyperscattering/badge/?version=latest)](https://pyhyperscattering.readthedocs.io/en/latest/?badge=latest)
 ![Unit Tests](https://github.com/usnistgov/PyHyperScattering/actions/workflows/main.yml/badge.svg)
 ![CodeQL](https://github.com/usnistgov/PyHyperScattering/actions/workflows/codeql-analysis.yml/badge.svg)
 
