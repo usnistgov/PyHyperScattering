@@ -79,12 +79,12 @@
 
 /* add menu styling for active variant */
 
-/* note: li.ntd2d_96_merge doesn't reliably work with dotted names */
+/* note: li.ntd2d_104-restructure-docs-along-diataxis-framework doesn't reliably work with dotted names */
 
-li[class~="ntd2d_96_merge"] {
+li[class~="ntd2d_104-restructure-docs-along-diataxis-framework"] {
   font-weight: bold;
 }
 
-li[class~="ntd2d_96_merge"] a:hover {
+li[class~="ntd2d_104-restructure-docs-along-diataxis-framework"] a:hover {
   text-decoration: none;
 }
