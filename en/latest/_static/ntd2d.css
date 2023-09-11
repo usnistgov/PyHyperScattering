@@ -79,12 +79,12 @@
 
 /* add menu styling for active variant */
 
-/* note: li.ntd2d_update-readme doesn't reliably work with dotted names */
+/* note: li.ntd2d_latest doesn't reliably work with dotted names */
 
-li[class~="ntd2d_update-readme"] {
+li[class~="ntd2d_latest"] {
   font-weight: bold;
 }
 
-li[class~="ntd2d_update-readme"] a:hover {
+li[class~="ntd2d_latest"] a:hover {
   text-decoration: none;
 }
