@@ -3,12 +3,12 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-.. image:: /source/_static/Logo_PyHyperO10_Dark.svg
+.. image:: /source/_static/Logo_PyHyperO10_Dark.*
     :class: only-dark
     :alt: PyHyperScattering Logo
     :width: 600
 
-.. image:: /source/_static/Logo_PyHyperO9_Light.svg
+.. image:: /source/_static/Logo_PyHyperO9_Light.*
     :class: only-light
     :alt: PyHyperScattering Logo
     :width: 600
