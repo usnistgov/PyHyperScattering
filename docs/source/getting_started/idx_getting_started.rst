@@ -1,3 +1,5 @@
+.. _Getting_Started:
+
 Getting Started
 =================
 
@@ -9,22 +11,25 @@ It grew out of the NIST RSoXS program, but aims to be broadly applicable.  If it
 The tools PyHyper provides are basically divided into three categories:
 
 
-loading
-----------------
-get your data from a source - files on disk or a network connection to a DataBroker or whatever -  into a standardized structure we call a raw xarray.
+:ref:`Loading Data <loading>`
+-------------------------------
+Get your data from a source - files on disk or a network connection to a DataBroker or whatever -  into a standardized structure we call a raw xarray.
 The metadata should be loaded and converted to a standardized set of terms, intensity corrections applied, and the frames stacked along whatever dimensions you want.
 
 
 
-integration
-----------------
-convert your data from pixel space or qx/qy space to chi-q space - perfect for slicing.  generally tools here are built on pyFAI, though some variants also use warp_polar from numpy.
+:ref:`Integration <integration>`
+-----------------------------------
+Convert your data from pixel space or qx/qy space to chi-q space - perfect for slicing.  generally tools here are built on pyFAI, though some variants also use warp_polar from numpy.
 
 
-utility modules
-------------------
-these are pre-canned routines for common analyses, such as RSoXS anisotropic ratio or peak/background fitting.  the intent here is that the barrier to building your own code is low, and contributions in module space are especially welcomed and encouraged.
+:ref:`Custom Analysis <analysis>`
+------------------------------------
+Slice your data along specified dimensions and visualize the results.
 
 
+:ref:`Utilities <utilities>`
+--------------------------------
+These are pre-canned routines for common analyses, such as RSoXS anisotropic ratio or peak/background fitting.  the intent here is that the barrier to building your own code is low, and contributions in module space are especially welcomed and encouraged.
 
 Have fun!

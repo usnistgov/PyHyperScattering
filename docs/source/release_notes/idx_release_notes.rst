@@ -1,3 +1,5 @@
+.. _Release_Notes:
+
 Release Notes
 =================
 
