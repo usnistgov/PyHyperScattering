@@ -6,34 +6,38 @@
 Welcome to PyHyperScattering's documentation!
 =============================================
 
+.. toctree::
+   :maxdepth: 1
+   :hidden:
+   
+   Getting Started <source/getting_started/index>
+   User Guide <source/user_guide/index>
+   API reference <source/reference_API/index>
+   Development <source/development/index>
+   Release notes <source/release_notes/index>
+
 .. image:: /source/_static/Logo_PyHyperO10_Dark.svg
     :class: only-dark
     :alt: PyHyperScattering Logo
+    :width: 600
 
 .. image:: /source/_static/Logo_PyHyperO9_Light.svg
     :class: only-light
     :alt: PyHyperScattering Logo
+    :width: 600
 
-.. To play with PyHyperScattering's tutorial notebooks interactively, use Binder:
-.. .. image:: mybinder.org/badge_logo.svg
-.. :target: mybinder.org/v2/gh/usnistgov/PyHyperScattering/HEAD
+**TEXT TODO**
+
+Tutorials
+---------
+
+To play with PyHyperScattering's tutorial notebooks interactively, use |Binder|_
+
+.. |Binder| image:: https://static.mybinder.org/badge_logo.svg
+.. _Binder: https://mybinder.org/v2/gh/usnistgov/PyHyperScattering/HEAD
 
 At this stage, the tutorials may be a better overview than this (incomplete, but growing) documentation.
-
  
-.. .. toctree::
-..    :maxdepth: 4
-..    :caption: Contents:
-
-..    source/intro
-..    source/loading
-..    source/integration
-..    source/learning-to-fly
-..    source/utilities
-..    source/modules
-
-
-
 Indices and tables
 ==================
 
