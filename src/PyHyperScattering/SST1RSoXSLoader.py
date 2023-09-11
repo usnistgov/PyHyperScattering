@@ -176,7 +176,7 @@ class SST1RSoXSLoader(FileLoader):
                 json_dict['sdd'] = data[1]['RSoXS_WAXS_SDD']
 
         else:
-            json_dict['rsoxs_config'] == 'unknown'
+            json_dict['rsoxs_config'] = 'unknown'
             warnings.warn('RSoXS_Config is neither SAXS or WAXS. Check json file',stacklevel=2)
 
         if json_dict['sdd'] == None:
