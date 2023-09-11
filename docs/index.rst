@@ -20,6 +20,7 @@ To play with PyHyperScattering's tutorial notebooks interactively, use Binder:
    source/intro
    source/loading
    source/integration
+   source/rsoxs
    source/learning-to-fly
    source/utilities
    source/modules
