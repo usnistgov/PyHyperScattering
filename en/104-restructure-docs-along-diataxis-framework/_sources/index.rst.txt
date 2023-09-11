@@ -7,10 +7,9 @@ Welcome to PyHyperScattering's documentation!
 =============================================
 
 To play with PyHyperScattering's tutorial notebooks interactively, use Binder:
-.. image:: https://mybinder.org/badge_logo.svg
- :target: https://mybinder.org/v2/gh/usnistgov/PyHyperScattering/HEAD
-
- At this stage, the tutorials may be a better overview than this (incomplete, but growing) documentation.
+.. image:: mybinder.org/badge_logo.svg
+   :target: mybinder.org/v2/gh/usnistgov/PyHyperScattering/HEAD
+At this stage, the tutorials may be a better overview than this (incomplete, but growing) documentation.
 
  
 .. toctree::
