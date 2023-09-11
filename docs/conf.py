@@ -41,6 +41,9 @@ extensions = [
     "sphinx.ext.napoleon",
 ]
 
+# Ignore annoying type exception warnings which often come from newlines
+nitpick_ignore = [("py:class", "type")]
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
 
