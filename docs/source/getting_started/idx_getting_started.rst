@@ -3,6 +3,15 @@
 Getting Started
 =================
 
+.. toctree::
+   :maxdepth: 1
+   :hidden:
+   
+   Loading Data <loading>
+   Integration <integration>
+   Custom Analysis <learning-to-fly>
+   Utilities <utilities>
+
 PyHyperScattering aims to make working with hyperspectral x-ray and neutron scattering data easy, to make programs that work with such data a combination of simple, logical commands with minimal 'cruft'.  In the era of modern computing, there is no reason you should have to think about for loops and how you're storing different intermediate data products - you should be able to go immediately from raw data to an analysis with clear commands, punch down to the data you need for your science quickly.  The goal is for these tools to make the mechanics of hyperspectral scattering easier and in so doing, more reproducible, explainable, and robust.
 
 It grew out of the NIST RSoXS program, but aims to be broadly applicable.  If it's scattering data, you should be able to load it, reduce it, and slice it.
