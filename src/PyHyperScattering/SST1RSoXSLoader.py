@@ -125,10 +125,19 @@ class SST1RSoXSLoader(FileLoader):
 
     def read_json(self,jsonfile):
         json_dict = {}
-        with open(jsonfile) as f:
-            data = json.load(f)
-            meas_time =datetime.datetime.fromtimestamp(data[1]['time'])
-            json_dict['sample_name'] = data[1]['sample_name']
+
+        # Try / except statment to be compatible with local rsoxs data before 
+        # and after SST1 cycle 2 2023 
+        try:  # For earlier cyles
+            with open(jsonfile) as f:
+                data = json.load(f)
+                meas_time = datetime.datetime.fromtimestamp(data[1]['time'])
+        except KeyError:  # For later cycles (confirmed working for cycle 2 2023) 
+            with open(jsonfile) as f:
+                data = [0, json.load(f)]  # Quick fix to load the json in a list 
+                meas_time = datetime.datetime.fromtimestamp(data[1]['time'])
+            
+        json_dict['sample_name'] = data[1]['sample_name']
         if data[1]['RSoXS_Main_DET'] == 'SAXS':
             json_dict['rsoxs_config'] = 'saxs'
             # discrepency between what is in .json and actual
@@ -150,7 +159,7 @@ class SST1RSoXSLoader(FileLoader):
                 json_dict['beamcenter_y'] = data[1]['RSoXS_SAXS_BCY']
                 json_dict['sdd'] = data[1]['RSoXS_SAXS_SDD']
 
-        elif data[1]['RSoXS_Main_DET'] == 'WAXS':
+        elif (data[1]['RSoXS_Main_DET'] == 'WAXS') | (data[1]['RSoXS_Main_DET'] == 'waxs_det'):  # additional name for for cycle 2 2023
             json_dict['rsoxs_config'] = 'waxs'
             if (meas_time > datetime.datetime(2020,11,16)) and (meas_time < datetime.datetime(2021,1,15)):
                 json_dict['beamcenter_x'] = 400.46
@@ -167,7 +176,7 @@ class SST1RSoXSLoader(FileLoader):
                 json_dict['sdd'] = data[1]['RSoXS_WAXS_SDD']
 
         else:
-            json_dict['rsoxs_config'] == 'unknown'
+            json_dict['rsoxs_config'] = 'unknown'
             warnings.warn('RSoXS_Config is neither SAXS or WAXS. Check json file',stacklevel=2)
 
         if json_dict['sdd'] == None:
@@ -247,9 +256,15 @@ class SST1RSoXSLoader(FileLoader):
         else:
             cwd = pathlib.Path(dirPath)
 
-        json_fname = list(cwd.glob('*.jsonl'))
-        json_dict = self.read_json(json_fname[0])
-
+        # Another try/except statement to be compatible with local data pre and 
+        # post SST1 cycle 2 2023 
+        try:  # For earlier data
+            json_fname = list(cwd.glob('*.jsonl'))
+            json_dict = self.read_json(json_fname[0])
+        except IndexError:  # For later data (works for cycle 2 2023)
+            json_fname = list(cwd.glob('*.json')) # Changed '*.jsonl' to '*.json' 
+            json_dict = self.read_json(json_fname[0]) 
+        
         baseline_fname = list(cwd.glob('*baseline.csv'))
         baseline_dict = self.read_baseline(baseline_fname[0])
 
