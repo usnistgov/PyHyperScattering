@@ -14,6 +14,10 @@ Scope and Package Outline
 -------------------------
 TODO
 
+Contributing
+------------
+Contributions are welcome! Please view our `Contributer Guidelines <https://github.com/usnistgov/PyHyperScattering/blob/main/CONTRIBUTING.md>`_ on github.
+
 License
 -------
 This software was developed by employees of the National Institute of Standards and Technology (NIST), an agency of the Federal Government and is being made available as a public service. Pursuant to title 17 United States Code Section 105, works of NIST employees are not subject to copyright protection in the United States. This software may be subject to foreign copyright. Permission in the United States and in foreign countries, to the extent that NIST may hold copyright, to use, copy, modify, create derivative works, and distribute this software and its documentation without fee is hereby granted on a non-exclusive basis, provided that this notice and disclaimer of warranty appears in all copies.
@@ -24,6 +28,3 @@ To the extent that NIST may hold copyright in countries other than the United St
 You may improve, modify, and create derivative works of the data or any portion of the data, and you may copy and distribute such modifications or works. Modified works should carry a notice stating that you changed the data and should note the date and nature of any such change. Please explicitly acknowledge the National Institute of Standards and Technology as the source of the data:  Data citation recommendations are provided at https://www.nist.gov/open/license.
 Permission to use this data is contingent upon your acceptance of the terms of this agreement and upon your providing appropriate acknowledgments of NIST’s creation of the data/work.
 
-Contributing
-------------
-Contributions are welcome! Please view our `Contributer Guidelines <https://github.com/usnistgov/PyHyperScattering/blob/main/CONTRIBUTING.md>`_ on github.
