@@ -1,3 +1,5 @@
+.. _analysis:
+
 Learning to Fly 
 =================
 
