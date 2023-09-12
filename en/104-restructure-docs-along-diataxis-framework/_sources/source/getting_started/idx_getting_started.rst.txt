@@ -16,6 +16,8 @@ PyHyperScattering aims to make working with hyperspectral x-ray and neutron scat
 
 It grew out of the NIST RSoXS program, but aims to be broadly applicable.  If it's scattering data, you should be able to load it, reduce it, and slice it.
 
+Run tutorials using `Binder: <https://mybinder.org/v2/gh/usnistgov/PyHyperScattering/HEAD>`_
+
 
 The tools PyHyper provides are basically divided into three categories:
 
