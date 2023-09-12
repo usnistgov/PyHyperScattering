@@ -11,3 +11,4 @@ scipy
 pillow
 xarray
 tqdm
+numexpr<2.8.5
