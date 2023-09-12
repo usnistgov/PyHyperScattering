@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>About &#8212; PyHyperScattering 0+unknown documentation</title>
+    <title>Integration: raw intensity to I(q) &#8212; PyHyperScattering 0+unknown documentation</title>
   
   
   
@@ -18,30 +18,31 @@
   </script>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="_static/styles/theme.css?digest=e353d410970836974a52" rel="stylesheet" />
-<link href="_static/styles/bootstrap.css?digest=e353d410970836974a52" rel="stylesheet" />
-<link href="_static/styles/pydata-sphinx-theme.css?digest=e353d410970836974a52" rel="stylesheet" />
+  <link href="../../_static/styles/theme.css?digest=e353d410970836974a52" rel="stylesheet" />
+<link href="../../_static/styles/bootstrap.css?digest=e353d410970836974a52" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=e353d410970836974a52" rel="stylesheet" />
 
   
-  <link href="_static/vendor/fontawesome/6.1.2/css/all.min.css?digest=e353d410970836974a52" rel="stylesheet" />
-  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-solid-900.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-brands-400.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2" />
+  <link href="../../_static/vendor/fontawesome/6.1.2/css/all.min.css?digest=e353d410970836974a52" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.1.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.1.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=a746c00c" />
-    <link rel="stylesheet" type="text/css" href="_static/ntd2d.css?v=b7aaae70" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/ntd2d.css?v=b7aaae70" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=e353d410970836974a52" />
-<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52" />
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=e353d410970836974a52" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52" />
 
-    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=d0e8f6a9"></script>
-    <script src="_static/doctools.js?v=888ff710"></script>
-    <script src="_static/sphinx_highlight.js?v=4825356b"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'index';</script>
-    <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Getting Started" href="source/getting_started/idx_getting_started.html" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js?v=d0e8f6a9"></script>
+    <script src="../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'source/getting_started/integration';</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Learning to Fly" href="learning-to-fly.html" />
+    <link rel="prev" title="Loading: getting your data into PyHyperScattering" href="loading.html" />
   
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -75,7 +76,7 @@
     <div class="search-button__overlay"></div>
     <div class="search-button__search-container">
 <form class="bd-search d-flex align-items-center"
-      action="search.html"
+      action="../../search.html"
       method="get">
   <i class="fa-solid fa-magnifying-glass"></i>
   <input type="search"
@@ -103,7 +104,7 @@
       <div class="navbar-item">
   
 
-<a class="navbar-brand logo" href="#">
+<a class="navbar-brand logo" href="../../index.html">
   
   
   
@@ -113,8 +114,8 @@
       
     
     
-    <img src="_static/Logo_PyHyperO9_Light.svg" class="logo__image only-light" alt="Logo image"/>
-    <script>document.write(`<img src="_static/Logo_PyHyperO10_Dark.svg" class="logo__image only-dark" alt="Logo image"/>`);</script>
+    <img src="../../_static/Logo_PyHyperO9_Light.svg" class="logo__image only-light" alt="Logo image"/>
+    <script>document.write(`<img src="../../_static/Logo_PyHyperO10_Dark.svg" class="logo__image only-dark" alt="Logo image"/>`);</script>
   
   
 </a></div>
@@ -135,36 +136,36 @@
   </p>
   <ul class="bd-navbar-elements navbar-nav">
     
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="source/getting_started/idx_getting_started.html">
+                    <li class="nav-item current active">
+                      <a class="nav-link nav-internal" href="idx_getting_started.html">
                         Getting Started
                       </a>
                     </li>
                 
 
                     <li class="nav-item">
-                      <a class="nav-link nav-internal" href="source/user_guide/idx_user_guide.html">
+                      <a class="nav-link nav-internal" href="../user_guide/idx_user_guide.html">
                         User Guide
                       </a>
                     </li>
                 
 
                     <li class="nav-item">
-                      <a class="nav-link nav-internal" href="source/reference_API/idx_reference_API.html">
+                      <a class="nav-link nav-internal" href="../reference_API/idx_reference_API.html">
                         API Reference
                       </a>
                     </li>
                 
 
                     <li class="nav-item">
-                      <a class="nav-link nav-internal" href="source/development/idx_development.html">
+                      <a class="nav-link nav-internal" href="../development/idx_development.html">
                         Development
                       </a>
                     </li>
                 
 
                     <li class="nav-item">
-                      <a class="nav-link nav-internal" href="source/release_notes/idx_release_notes.html">
+                      <a class="nav-link nav-internal" href="../release_notes/idx_release_notes.html">
                         Release notes
                       </a>
                     </li>
@@ -244,7 +245,7 @@ document.write(`
   <div class="bd-container">
     <div class="bd-container__inner bd-page-width">
       
-      <div class="bd-sidebar-primary bd-sidebar hide-on-wide">
+      <div class="bd-sidebar-primary bd-sidebar">
         
 
   
@@ -262,36 +263,36 @@ document.write(`
   </p>
   <ul class="bd-navbar-elements navbar-nav">
     
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="source/getting_started/idx_getting_started.html">
+                    <li class="nav-item current active">
+                      <a class="nav-link nav-internal" href="idx_getting_started.html">
                         Getting Started
                       </a>
                     </li>
                 
 
                     <li class="nav-item">
-                      <a class="nav-link nav-internal" href="source/user_guide/idx_user_guide.html">
+                      <a class="nav-link nav-internal" href="../user_guide/idx_user_guide.html">
                         User Guide
                       </a>
                     </li>
                 
 
                     <li class="nav-item">
-                      <a class="nav-link nav-internal" href="source/reference_API/idx_reference_API.html">
+                      <a class="nav-link nav-internal" href="../reference_API/idx_reference_API.html">
                         API Reference
                       </a>
                     </li>
                 
 
                     <li class="nav-item">
-                      <a class="nav-link nav-internal" href="source/development/idx_development.html">
+                      <a class="nav-link nav-internal" href="../development/idx_development.html">
                         Development
                       </a>
                     </li>
                 
 
                     <li class="nav-item">
-                      <a class="nav-link nav-internal" href="source/release_notes/idx_release_notes.html">
+                      <a class="nav-link nav-internal" href="../release_notes/idx_release_notes.html">
                         Release notes
                       </a>
                     </li>
@@ -336,6 +337,20 @@ document.write(`
     
   </div>
   
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item"><nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="loading.html">Loading Data</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="learning-to-fly.html">Custom Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utilities.html">Utilities</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
   
   <div class="sidebar-primary-items__end sidebar-primary__section">
   </div>
@@ -351,7 +366,36 @@ document.write(`
           <div class="bd-content">
             <div class="bd-article-container">
               
-              <div class="bd-header-article"></div>
+              <div class="bd-header-article">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumbs">
+  <ul class="bd-breadcrumbs" role="navigation" aria-label="Breadcrumb">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="idx_getting_started.html" class="nav-link">Getting Started</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">Integration: raw intensity to I(q)</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
               
               
               
@@ -359,46 +403,8 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article" role="main">
                   
-  <div class="toctree-wrapper compound">
-</div>
-<section id="about">
-<h1>About<a class="headerlink" href="#about" title="Permalink to this heading">#</a></h1>
-<p>PyHyperScattering aims to make working with hyperspectral x-ray and neutron scattering data easy”
-to make programs that work with such data a combination of simple, logical commands with minimal
-‘cruft’. In the era of modern computing, there is no reason you should have to think about for loops
-and how you’re storing different intermediate data products - you should be able to go immediately
-from raw data to an analysis with clear commands, punch down to the data you need for your science
-quickly. The goal is for these tools to make the mechanics of hyperspectral scattering easier and
-in so doing, more reproducible, explainable, and robust.</p>
-<p>PyHyperScattering is a product of the <a class="reference external" href="https://www.nist.gov/">National Institute of Standards and Technology (NIST)</a>. This package is under active development, and the team welcome DMs
-with questions on the NIST RSoXS slack, Nikea, and NSLS2 slack channels, or by email to
-<a class="reference external" href="mailto:peter&#46;beaucage&#37;&#52;&#48;nist&#46;gov">Dr<span>&#46;</span> Peter Beaucage</a>. For more information about contributing,
-development philosophy, and licensing, see <a class="reference internal" href="source/development/idx_development.html#development"><span class="std std-ref">the Development page</span></a>.</p>
-</section>
-<section id="documentation">
-<h1>Documentation<a class="headerlink" href="#documentation" title="Permalink to this heading">#</a></h1>
-<table class="table">
-<colgroup>
-<col style="width: 50.0%" />
-<col style="width: 50.0%" />
-</colgroup>
-<tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="source/getting_started/idx_getting_started.html#getting-started"><span class="std std-ref">Getting Started</span></a> Tutorials to help you get your analysis up and running. Beginners should start here.</p></td>
-<td><p><a class="reference internal" href="source/user_guide/idx_user_guide.html#user-guide"><span class="std std-ref">User Guide</span></a> A collection of How-To guides (recipes) for specific data reduction, analysis, and visualization tasks.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="source/reference_API/idx_reference_API.html#reference-api"><span class="std std-ref">API Reference</span></a> Detailed technical reference; presents documentation at the function, class, and module level.</p></td>
-<td><p><a class="reference internal" href="source/development/idx_development.html#development"><span class="std std-ref">Development</span></a> Information and resources regarding the scope and development philosophy of this project, along with information on contributing and licensing.</p></td>
-</tr>
-</tbody>
-</table>
-</section>
-<section id="sitemap">
-<h1>Sitemap<a class="headerlink" href="#sitemap" title="Permalink to this heading">#</a></h1>
-<ul class="simple">
-<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
-<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
-<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
-</ul>
+  <section id="integration-raw-intensity-to-i-q">
+<span id="integration"></span><h1>Integration: raw intensity to I(q)<a class="headerlink" href="#integration-raw-intensity-to-i-q" title="Permalink to this heading">#</a></h1>
 </section>
 
 
@@ -412,12 +418,21 @@ development philosophy, and licensing, see <a class="reference internal" href="s
   
     <div class="footer-article-item"><!-- Previous / next buttons -->
 <div class="prev-next-area">
+    <a class="left-prev"
+       href="loading.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Loading: getting your data into PyHyperScattering</p>
+      </div>
+    </a>
     <a class="right-next"
-       href="source/getting_started/idx_getting_started.html"
+       href="learning-to-fly.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Getting Started</p>
+        <p class="prev-next-title">Learning to Fly</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -434,21 +449,8 @@ development philosophy, and licensing, see <a class="reference internal" href="s
                 <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
   <div class="sidebar-secondary-item">
-  <div class="page-toc tocsection onthispage">
-    <i class="fa-solid fa-list"></i> On this page
-  </div>
-  <nav class="bd-toc-nav page-toc">
-    <ul class="visible nav section-nav flex-column">
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">About</a></li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#documentation">Documentation</a></li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#sitemap">Sitemap</a></li>
-</ul>
-
-  </nav></div>
-
-  <div class="sidebar-secondary-item">
   <div class="tocsection sourcelink">
-    <a href="_sources/index.rst.txt">
+    <a href="../../_sources/source/getting_started/integration.rst.txt">
       <i class="fa-solid fa-file-lines"></i> Show Source
     </a>
   </div>
@@ -467,8 +469,8 @@ development philosophy, and licensing, see <a class="reference internal" href="s
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="_static/scripts/bootstrap.js?digest=e353d410970836974a52"></script>
-<script src="_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52"></script>
+  <script src="../../_static/scripts/bootstrap.js?digest=e353d410970836974a52"></script>
+<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52"></script>
 
 
   
@@ -509,6 +511,6 @@ development philosophy, and licensing, see <a class="reference internal" href="s
   </footer>
 
   <!-- Taken from https://www.filamentgroup.com/lab/html-includes/#another-demo%3A-including-another-html-file -->
-  <iframe src="_static/ntd2d_menu.html" onload="this.before((this.contentDocument.body||this.contentDocument).children[0]);this.remove()"></iframe>
+  <iframe src="../../_static/ntd2d_menu.html" onload="this.before((this.contentDocument.body||this.contentDocument).children[0]);this.remove()"></iframe>
   </body>
 </html>
