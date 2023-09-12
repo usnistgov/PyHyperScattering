@@ -3,6 +3,19 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
+
+.. only:: html 
+
+    .. image:: /source/_static/Logo_PyHyperO10_Dark.svg
+        :class: only-dark
+        :alt: PyHyperScattering Logo
+        :width: 800
+
+    .. image:: /source/_static/Logo_PyHyperO9_Light.svg
+        :class: only-light
+        :alt: PyHyperScattering Logo
+        :width: 800
+
 .. toctree::
    :maxdepth: 1
    :hidden:
