@@ -36,11 +36,12 @@ from raw data to an analysis with clear commands, punch down to the data you nee
 quickly. The goal is for these tools to make the mechanics of hyperspectral scattering easier and 
 in so doing, more reproducible, explainable, and robust.
 
-PyHyperScattering is a product of the `National Institute of Standards and Technology (NIST) 
-<https://www.nist.gov/>`_. This package is under active development, and the team welcome DMs 
-with questions on the NIST RSoXS slack, Nikea, and NSLS2 slack channels, or by email to 
-`Dr. Peter Beaucage <mailto:peter.beaucage@nist.gov>`_. For more information about contributing, 
-development philosophy, and licensing, see :ref:`the Development page <Development>`.
+PyHyperScattering is an open-source collaboration maintained by the `National Institute of 
+Standards and Technology (NIST) <https://www.nist.gov/>`_. This package is under active 
+development, and the team welcome DMs with questions on the NIST RSoXS slack, Nikea, and NSLS2 slack 
+channels, or by email to `Dr. Peter Beaucage <mailto:peter.beaucage@nist.gov>`_. 
+For more information about contributing, development philosophy, and licensing, 
+see :ref:`the Development page <Development>`.
 
 Documentation
 -------------
