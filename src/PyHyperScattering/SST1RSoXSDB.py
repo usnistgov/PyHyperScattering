@@ -140,7 +140,11 @@ class SST1RSoXSDB:
         q = RawMongo(**kwargs)
         return self.c.search(q)
 
-    def summarize_run(*args, **kwargs):
+    def summarize_run(self, *args, **kwargs):
+        """Deprecated function for searching the bluesky catalog for a run. Replaced by searchCatalog()
+
+        To be removed in PyHyperScattering 1.0.0+.
+        """
         warnings.warn(
             (
                 "summarize_run has been renamed to searchCatalog.  This will stop working in"
