@@ -38,7 +38,7 @@ release = __version__
 extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.coverage",
-    "sphinx.ext.napoleon",
+    "sphinx.ext.napoleon",  # numpydoc and google docstrings
 ]
 
 # Ignore annoying type exception warnings which often come from newlines
@@ -59,6 +59,7 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 # a list of builtin themes.
 #
 # html_theme = 'alabaster'
+
 html_theme = "pydata_sphinx_theme"
 html_logo = "source/_static/Logo_PyHyperO9_Light.svg"
 html_theme_options = {
@@ -75,8 +76,8 @@ html_theme_options = {
     "header_links_before_dropdown": 6,
     # Add light/dark mode and documentation version switcher:
     "navbar_end": ["theme-switcher", "navbar-icon-links"],
-}
 
+}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
