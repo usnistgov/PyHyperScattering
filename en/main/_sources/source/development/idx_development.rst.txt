@@ -3,11 +3,11 @@
 Development and Contributing Info: TODO
 ==============================================================
 
-PyHyperScattering is a product of the `National Institute of Standards and Technology (NIST) 
-<https://www.nist.gov/>`_. This package is under active development, and the team welcome DMs 
-with questions on the NIST RSoXS slack, Nikea, and NSLS2 slack channels, or by email to 
-`Dr. Peter Beaucage <mailto:peter.beaucage@nist.gov>`_. For more information about contributing, 
-development philosophy, and licensing, see :ref:`the Development page <Development>`.
+PyHyperScattering is an open-source collaboration maintained by the `National Institute of 
+Standards and Technology (NIST) <https://www.nist.gov/>`_. This package is under active 
+development, and the team welcome DMs with questions on the NIST RSoXS slack, Nikea, and NSLS2 slack 
+channels, or by email to `Dr. Peter Beaucage <mailto:peter.beaucage@nist.gov>`_. For more information 
+about contributing, development philosophy, and licensing, see :ref:`the Development page <Development>`.
 
 
 Scope and Package Outline
@@ -16,7 +16,7 @@ TODO
 
 Contributing
 ------------
-Contributions are welcome! Please view our `Contributer Guidelines <https://github.com/usnistgov/PyHyperScattering/blob/main/CONTRIBUTING.md>`_ on github.
+Contributions are welcome! Please view our `Contributor Guidelines <https://github.com/usnistgov/PyHyperScattering/blob/main/CONTRIBUTING.md>`_ on github.
 
 License
 -------
