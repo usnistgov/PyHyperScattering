@@ -16,12 +16,23 @@ import pandas as pd
 
 import json
 
-class Check:
+@xr.register_dataarray_accessor('geocheck')
+class GeoCheck:
     '''
     Quick Utility to display a mask next to an image, to sanity check the orientation of e.g. an imported mask
     
     '''
-    def checkMask(integrator,img,img_min=1,img_max=10000,img_scaling='log',alpha=1):
+    def __init__(self, xr_obj):
+        self._obj = xr_obj
+        self._pyhyper_type = 'reduced'
+        try:
+            self._chi_min = np.min(xr_obj.chi)
+            self._chi_max = np.max(xr_obj.chi)
+            self._chi_range = [self._chi_min, self._chi_max]
+        except AttributeError:
+            self._pyhyper_type = 'raw'
+            
+    def checkMask(self,integrator,energy=None,img_min=1,img_max=10000,img_scaling='log',alpha=1):
         '''
             draw an overlay of the mask and an image
 
@@ -32,6 +43,15 @@ class Check:
                 img_max: max value to display
                 img_scaling: 'lin' or 'log'
         '''
+        if energy == None:
+            if len(self._obj.shape) > 2:
+                try:
+                    img = self._obj.isel(system=0)
+                except KeyError as e:
+                    raise KeyError('This tool needs a single frame, not a stack!  .sel down to a single frame before starting!') from e
+        else:
+            img = self._obj.sel(energy=energy)
+            
         if len(img.shape) > 2:
                 warnings.warn('This tool needs a single frame, not a stack!  .sel down to a single frame before starting!',stacklevel=2)
 
@@ -43,7 +63,7 @@ class Check:
         img.plot(norm=norm,ax=ax)
         ax.set_aspect(1)
         ax.imshow(integrator.mask,origin='lower',alpha=alpha)
-    def checkCenter(integrator,img,img_min=1,img_max=10000,img_scaling='log'):
+    def checkCenter(self,integrator,energy=None,img_min=1,img_max=10000,img_scaling='log'):
         '''
             draw the beamcenter on an image
 
@@ -54,6 +74,15 @@ class Check:
                 img_max: max value to display
                 img_scaling: 'lin' or 'log'
         '''
+        if energy == None:
+            if len(self._obj.shape) > 2:
+                try:
+                    img = self._obj.isel(system=0)
+                except KeyError as e:
+                    raise KeyError('This tool needs a single frame, not a stack!  .sel down to a single frame before starting!') from e
+        else:
+            img = self._obj.sel(energy=energy)
+            
         if len(img.shape) > 2:
                 warnings.warn('This tool needs a single frame, not a stack!  .sel down to a single frame before starting!',stacklevel=2)
 
@@ -70,7 +99,7 @@ class Check:
         ax.add_patch(beamcenter)
         ax.add_patch(guide1)
         ax.add_patch(guide2)
-    def checkAll(integrator,img,img_min=1,img_max=10000,img_scaling='log',alpha=1,d_inner=50,d_outer=150):
+    def checkAll(self,integrator,energy=None,img_min=1,img_max=10000,img_scaling='log',alpha=1,d_inner=50,d_outer=150):
         '''
             draw the beamcenter and overlay mask on an image
 
@@ -81,6 +110,15 @@ class Check:
                 img_max: max value to display
                 img_scaling: 'lin' or 'log'
         '''
+        if energy == None:
+            if len(self._obj.shape) > 2:
+                try:
+                    img = self._obj.isel(system=0)
+                except KeyError as e:
+                    raise KeyError('This tool needs a single frame, not a stack!  .sel down to a single frame before starting!') from e
+        else:
+            img = self._obj.sel(energy=energy)
+            
         if len(img.shape) > 2:
                 warnings.warn('This tool needs a single frame, not a stack!  .sel down to a single frame before starting!',stacklevel=2)
 
@@ -98,6 +136,8 @@ class Check:
         ax.add_patch(guide1)
         ax.add_patch(guide2)
         ax.imshow(integrator.mask,origin='lower',alpha=alpha)
+        
+@xr.register_dataarray_accessor('drawmask')
 class DrawMask:
     '''
     Utility class for interactively drawing a mask in a Jupyter notebook.
@@ -114,7 +154,7 @@ class DrawMask:
 
     '''
     
-    def __init__(self,frame):
+    def __init__(self,xr_obj):
         '''
         Construct a DrawMask object
 
@@ -123,26 +163,42 @@ class DrawMask:
 
 
         '''
-        if len(frame.shape) > 2:
-            warnings.warn('This tool needs a single frame, not a stack!  .sel down to a single frame before starting!',stacklevel=2)
+        self._obj = xr_obj
+        self._pyhyper_type = 'reduced'
+        try:
+            self._chi_min = np.min(xr_obj.chi)
+            self._chi_max = np.max(xr_obj.chi)
+            self._chi_range = [self._chi_min, self._chi_max]
+        except AttributeError:
+            self._pyhyper_type = 'raw'
             
-        self.frame=frame
         
-        self.fig = frame.hvplot(cmap='terrain',clim=(5,5000),logz=True,data_aspect=1)
 
-        self.poly = hv.Polygons([])
-        self.path_annotator = hv.annotate.instance()
-
-    def ui(self):
+    def ui(self,energy):
         '''
         Draw the DrawMask UI in a Jupyter notebook.
 
 
         Returns: the holoviews object
-
-
-
         '''
+        if energy == None:
+            if len(self._obj.shape) > 2:
+                try:
+                    img = self._obj.isel(system=0)
+                except KeyError as e:
+                    raise KeyError('This tool needs a single frame, not a stack!  .sel down to a single frame before starting!') from e
+        else:
+            img = self._obj.sel(energy=energy)
+            
+        if len(img.shape) > 2:
+                warnings.warn('This tool needs a single frame, not a stack!  .sel down to a single frame before starting!',stacklevel=2)
+
+        self.frame = img
+        
+        self.fig = self.frame.hvplot(cmap='terrain',clim=(5,5000),logz=True,data_aspect=1)
+
+        self.poly = hv.Polygons([])
+        self.path_annotator = hv.annotate.instance()
         print('Usage: click the "PolyAnnotator" tool at top right.  DOUBLE CLICK to start drawing a masked object, SINGLE CLICK to add a vertex, then DOUBLE CLICK to finish.  Click/drag individual vertex to adjust.')
         return self.path_annotator(
                 self.fig * self.poly.opts(
