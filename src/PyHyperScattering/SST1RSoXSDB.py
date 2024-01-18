@@ -678,32 +678,31 @@ class SST1RSoXSDB:
 
         data = run["primary"]["data"][md["detector"] + "_image"]
         if (
-            type(data) == tiled.client.array.ArrayClient
+            type(data) == tiled.client.array.ArrayClient # this is what's executing for 42337
             or type(data) == tiled.client.array.DaskArrayClient
         ):
-            data = run["primary"]["data"].read()[md["detector"] + "_image"]
+            data = run["primary"]["data"].read()[md["detector"] + "_image"] # this then results in an Xarray with 128 time points, and a 2D detector image for each
         elif type(data) == tiled.client.array.DaskArrayClient:
             data = xr.DataArray(
                 data.read(), dims=data.dims
             )  # xxx hack!  Really should use tiled structure_clients xarraydaskclient here.
         data = data.astype(int)  # convert from uint to handle dark subtraction
-
         if self.dark_subtract:
             dark = run["dark"]["data"][md["detector"] + "_image"]
             if (
-                type(dark) == tiled.client.array.ArrayClient
+                type(dark) == tiled.client.array.ArrayClient # this is the one that's trrue
                 or type(dark) == tiled.client.array.DaskArrayClient
             ):
-                dark = run["dark"]["data"].read()[md["detector"] + "_image"]
+                dark = run["dark"]["data"].read()[md["detector"] + "_image"] # maybe this is the issue - the dark stream has 6 time points
             darkframe = np.copy(data.time)
             for n, time in enumerate(dark.time):
                 darkframe[(data.time - time) > 0] = int(n)
             data = data.assign_coords(dark_id=("time", darkframe))
 
-            def subtract_dark(img, pedestal=100, darks=None):
+            def subtract_dark(img, pedestal=100, darks=None): # first learn how this function works
                 return img + pedestal - darks[int(img.dark_id.values)]
 
-            data = data.groupby("time").map(subtract_dark, darks=dark, pedestal=self.dark_pedestal)
+            data = data.groupby("time").map(subtract_dark, darks=dark, pedestal=self.dark_pedestal) # Right now, the pedestal it's accessing is equal to 0. That's what's set up in init. Is that the problem?
 
         dims_to_join = []
         dim_names_to_join = []
@@ -743,11 +742,12 @@ class SST1RSoXSDB:
                 "pix_y": np.arange(0, len(retxr.pix_y)),
             }
         )
+        #return monitors, index
         try:
             monitors = (
                 monitors.rename({"time": "system"})
                 .reset_index("system")
-                .assign_coords(system=index)
+                .assign_coords(system=index) # this is where we're running into a problem - index has 128 elements, while system has 20269
             )
 
             if "system_" in monitors.indexes.keys():
@@ -845,14 +845,14 @@ class SST1RSoXSDB:
                     # incantation to extract the dataset from the bluesky stream
                     monitors = entry[stream_name].data.read()
                 else:  # merge into the to existing output xarray
-                    monitors = xr.merge((monitors, entry[stream_name].data.read()))
+                    monitors = xr.merge((monitors, entry[stream_name].data.read())) 
 
         # At this stage monitors has dimension time and all streams as data variables
         # the time dimension inherited all time values from all streams
         # the data variables (Mesh current, sample current etc.) are all sparse, with lots of nans
 
         # if there are no monitors, return an empty xarray Dataset
-        if monitors is None:
+        if monitors is None: 
             return xr.Dataset()
 
         # For each nan value, replace with the closest value ahead of it in time
@@ -901,10 +901,18 @@ class SST1RSoXSDB:
 
                 # Add primary measurement time as a coordinate in monitors that is named 'time'
                 # Remove the coordinate 'time_bins' from the array
-                monitors = (
-                    monitors.assign_coords({"time": primary_time})
-                    .drop_indexes("time_bins")
-                    .reset_coords("time_bins", drop=True)
+                try:
+                    monitors = (
+                        monitors.assign_coords({"time": primary_time})
+                        .drop_indexes("time_bins")
+                        .reset_coords("time_bins", drop=True)
+                    )
+                    
+                except:    
+                    monitors = (
+                        monitors.assign_coords({"time": primary_time})
+                        .drop_vars("time_bins") # this is where we're running into the issue, not letting us drop indexes from a Dataset
+                        #.reset_coords("time_bins", drop=True)
                 )
 
             except Exception as e:
