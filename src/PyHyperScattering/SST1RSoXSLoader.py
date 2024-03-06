@@ -84,7 +84,7 @@ class SST1RSoXSLoader(FileLoader):
         if self.use_chunked_loading:
             img = imread(str(filepath))
             if img.ndim == 3:
-                img = img[:, :, 0]  # Select the first channel if the image is multi-channel
+                img = img[0, :, :]  # Select the first channel if the image is multi-channel
         else:
             img = np.array(Image.open(filepath))
 
