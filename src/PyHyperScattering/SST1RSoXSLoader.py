@@ -9,7 +9,7 @@ import warnings
 import json
 #from pyFAI import azimuthalIntegrator
 import numpy as np
-
+from dask_image.imread import imread
 
 class SST1RSoXSLoader(FileLoader):
     '''
@@ -21,7 +21,7 @@ class SST1RSoXSLoader(FileLoader):
     pix_size_1 = 0.06
     pix_size_2 = 0.06
 
-    def __init__(self,corr_mode=None,user_corr_func=None,dark_pedestal=100,exposure_offset=0,constant_md={},):
+    def __init__(self,corr_mode=None,user_corr_func=None,dark_pedestal=100,exposure_offset=0,constant_md={},use_chunked_loading=False):
         '''
         Args:
             corr_mode (str): origin to use for the intensity correction.  Can be 'expt','i0','expt+i0','user_func','old',or 'none'
@@ -29,6 +29,7 @@ class SST1RSoXSLoader(FileLoader):
             dark_pedestal (numeric): value to subtract(/add, if negative) to the whole image.  this should match the instrument setting for suitcased tiffs, typically 100.
             exposure_offset (numeric): value to add to the exposure time.  Measured at 2ms with the piezo shutter in Dec 2019 by Jacob Thelen, NIST
             constant_md (dict): values to insert into every metadata load. 
+            use_chunked_loading (bool): flag to use chunked loading with dask or not.
         '''
 
         if corr_mode == None:
@@ -38,13 +39,13 @@ class SST1RSoXSLoader(FileLoader):
         else:
             self.corr_mode = corr_mode
 
-
         self.constant_md = constant_md
-
         self.dark_pedestal = dark_pedestal
         self.user_corr_func = user_corr_func
         self.exposure_offset = exposure_offset
+        self.use_chunked_loading = use_chunked_loading
         # self.darks = {}
+        
     # def loadFileSeries(self,basepath):
     #     try:
     #         flist = list(basepath.glob('*primary*.tiff'))
@@ -59,8 +60,6 @@ class SST1RSoXSLoader(FileLoader):
     #         out = xr.concat(out,single_img)
     #
     #     return out
-
-
 
     def loadSingleImage(self,filepath,coords=None, return_q=False,image_slice=None,use_cached_md=False,**kwargs):
         '''
@@ -80,7 +79,14 @@ class SST1RSoXSLoader(FileLoader):
             raise NotImplementedError('Image slicing is not supported for SST1')
         if use_cached_md != False:
             raise NotImplementedError('Caching of metadata is not supported for SST1')
-        img = Image.open(filepath)
+   
+        # Use chunked loading if flag is set
+        if self.use_chunked_loading:
+            img = imread(str(filepath))
+            if img.ndim == 3:
+                img = img[:, :, 0]  # Select the first channel if the image is multi-channel
+        else:
+            img = np.array(Image.open(filepath))
 
         headerdict = self.loadMd(filepath)
         # two steps in this pre-processing stage:
@@ -112,7 +118,8 @@ class SST1RSoXSLoader(FileLoader):
 
         # # step 2: dark subtraction
         # this is already done in the suitcase, but we offer the option to add/subtract a pedestal.
-        image_data = (np.array(img)-self.dark_pedestal)/corr
+        image_data = (img-self.dark_pedestal)/corr
+        image_data = img
         if return_q:
             qpx = 2*np.pi*60e-6/(headerdict['sdd']/1000)/(headerdict['wavelength']*1e10)
             qx = (np.arange(1,img.size[0]+1)-headerdict['beamcenter_y'])*qpx
@@ -125,19 +132,10 @@ class SST1RSoXSLoader(FileLoader):
 
     def read_json(self,jsonfile):
         json_dict = {}
-
-        # Try / except statment to be compatible with local rsoxs data before 
-        # and after SST1 cycle 2 2023 
-        try:  # For earlier cyles
-            with open(jsonfile) as f:
-                data = json.load(f)
-                meas_time = datetime.datetime.fromtimestamp(data[1]['time'])
-        except KeyError:  # For later cycles (confirmed working for cycle 2 2023) 
-            with open(jsonfile) as f:
-                data = [0, json.load(f)]  # Quick fix to load the json in a list 
-                meas_time = datetime.datetime.fromtimestamp(data[1]['time'])
-            
-        json_dict['sample_name'] = data[1]['sample_name']
+        with open(jsonfile) as f:
+            data = json.load(f)
+            meas_time =datetime.datetime.fromtimestamp(data[1]['time'])
+            json_dict['sample_name'] = data[1]['sample_name']
         if data[1]['RSoXS_Main_DET'] == 'SAXS':
             json_dict['rsoxs_config'] = 'saxs'
             # discrepency between what is in .json and actual
@@ -159,7 +157,7 @@ class SST1RSoXSLoader(FileLoader):
                 json_dict['beamcenter_y'] = data[1]['RSoXS_SAXS_BCY']
                 json_dict['sdd'] = data[1]['RSoXS_SAXS_SDD']
 
-        elif (data[1]['RSoXS_Main_DET'] == 'WAXS') | (data[1]['RSoXS_Main_DET'] == 'waxs_det'):  # additional name for for cycle 2 2023
+        elif data[1]['RSoXS_Main_DET'] == 'WAXS':
             json_dict['rsoxs_config'] = 'waxs'
             if (meas_time > datetime.datetime(2020,11,16)) and (meas_time < datetime.datetime(2021,1,15)):
                 json_dict['beamcenter_x'] = 400.46
@@ -176,7 +174,7 @@ class SST1RSoXSLoader(FileLoader):
                 json_dict['sdd'] = data[1]['RSoXS_WAXS_SDD']
 
         else:
-            json_dict['rsoxs_config'] = 'unknown'
+            json_dict['rsoxs_config'] == 'unknown'
             warnings.warn('RSoXS_Config is neither SAXS or WAXS. Check json file',stacklevel=2)
 
         if json_dict['sdd'] == None:
@@ -256,15 +254,9 @@ class SST1RSoXSLoader(FileLoader):
         else:
             cwd = pathlib.Path(dirPath)
 
-        # Another try/except statement to be compatible with local data pre and 
-        # post SST1 cycle 2 2023 
-        try:  # For earlier data
-            json_fname = list(cwd.glob('*.jsonl'))
-            json_dict = self.read_json(json_fname[0])
-        except IndexError:  # For later data (works for cycle 2 2023)
-            json_fname = list(cwd.glob('*.json')) # Changed '*.jsonl' to '*.json' 
-            json_dict = self.read_json(json_fname[0]) 
-        
+        json_fname = list(cwd.glob('*.jsonl'))
+        json_dict = self.read_json(json_fname[0])
+
         baseline_fname = list(cwd.glob('*baseline.csv'))
         baseline_dict = self.read_baseline(baseline_fname[0])
 
