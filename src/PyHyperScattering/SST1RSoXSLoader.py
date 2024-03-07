@@ -9,7 +9,7 @@ import warnings
 import json
 #from pyFAI import azimuthalIntegrator
 import numpy as np
-from dask_image.imread import imread
+import dask.array as da
 
 class SST1RSoXSLoader(FileLoader):
     '''
@@ -80,13 +80,11 @@ class SST1RSoXSLoader(FileLoader):
         if use_cached_md != False:
             raise NotImplementedError('Caching of metadata is not supported for SST1')
    
-        # Use chunked loading if flag is set
+        img = np.array(Image.open(filepath))
+        
         if self.use_chunked_loading:
-            img = imread(str(filepath))
-            if img.ndim == 3:
-                img = img[0, :, :]  # Select the first channel if the image is multi-channel
-        else:
-            img = np.array(Image.open(filepath))
+            img = da.from_array(img, chunks='auto')
+            
 
         headerdict = self.loadMd(filepath)
         # two steps in this pre-processing stage:
