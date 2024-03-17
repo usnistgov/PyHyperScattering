@@ -12,10 +12,10 @@ venv/*
 OrientationRunDec2019/**
 **/*.p
 **/.*
-**/*.ipynb
 *.png
 *.h5
 *.nxs
+.ipynb_checkpoints
 Example/**
 example-data/**
 src/__pycache__
@@ -23,7 +23,7 @@ src/__pycache__
 src/PyHyperScattering/__pycache__
 src/PyHyperScattering/.ipynb_checkpoints/*
 dist
-docs/_build/*
+dcs/_build/*
 docs/_build/html/*
 *.pyc
 example_data/11012/Dark_56367-AI.txt
