@@ -9,6 +9,11 @@ import warnings
 import json
 #from pyFAI import azimuthalIntegrator
 import numpy as np
+try:
+    import dask.array as da
+except ImportError:
+    print('Could not import Dask.  Chunked loading may not work.  Install Dask or pyhyperscattering[performance] if this is desired.')
+
 
 
 class SST1RSoXSLoader(FileLoader):
@@ -21,7 +26,7 @@ class SST1RSoXSLoader(FileLoader):
     pix_size_1 = 0.06
     pix_size_2 = 0.06
 
-    def __init__(self,corr_mode=None,user_corr_func=None,dark_pedestal=100,exposure_offset=0,constant_md={},):
+    def __init__(self,corr_mode=None,user_corr_func=None,dark_pedestal=100,exposure_offset=0,constant_md={},use_chunked_loading=False):
         '''
         Args:
             corr_mode (str): origin to use for the intensity correction.  Can be 'expt','i0','expt+i0','user_func','old',or 'none'
@@ -44,6 +49,7 @@ class SST1RSoXSLoader(FileLoader):
         self.dark_pedestal = dark_pedestal
         self.user_corr_func = user_corr_func
         self.exposure_offset = exposure_offset
+        self.use_chunked_loading = use_chunked_loading
         # self.darks = {}
     # def loadFileSeries(self,basepath):
     #     try:
@@ -80,7 +86,11 @@ class SST1RSoXSLoader(FileLoader):
             raise NotImplementedError('Image slicing is not supported for SST1')
         if use_cached_md != False:
             raise NotImplementedError('Caching of metadata is not supported for SST1')
-        img = Image.open(filepath)
+            
+        img = np.array(Image.open(filepath))
+        
+        if self.use_chunked_loading:
+            img = da.from_array(img, chunks='auto')
 
         headerdict = self.loadMd(filepath)
         # two steps in this pre-processing stage:
@@ -112,11 +122,11 @@ class SST1RSoXSLoader(FileLoader):
 
         # # step 2: dark subtraction
         # this is already done in the suitcase, but we offer the option to add/subtract a pedestal.
-        image_data = (np.array(img)-self.dark_pedestal)/corr
+        image_data = (img-self.dark_pedestal)/corr
         if return_q:
             qpx = 2*np.pi*60e-6/(headerdict['sdd']/1000)/(headerdict['wavelength']*1e10)
-            qx = (np.arange(1,img.size[0]+1)-headerdict['beamcenter_y'])*qpx
-            qy = (np.arange(1,img.size[1]+1)-headerdict['beamcenter_x'])*qpx
+            qx = (np.arange(1,img.shape[1]+1)-headerdict['beamcenter_y'])*qpx
+            qy = (np.arange(1,img.shape[0]+1)-headerdict['beamcenter_x'])*qpx
             # now, match up the dims and coords
             return xr.DataArray(image_data,dims=['qy','qx'],coords={'qy':qy,'qx':qx},attrs=headerdict)
         else:
