@@ -58,7 +58,10 @@ class PFEnergySeriesIntegrator(PFGeneralIntegrator):
                     for i,n in enumerate(img.indexes[multiindex_name].names):
                         if n == 'energy':
                             idx_of_energy = i
-                    en = float(getattr(img,multiindex_name).values[idx_of_energy][0])
+                    try:
+                        en = float(getattr(img,multiindex_name).values[idx_of_energy][0]) # this does not work for 2022-2 data; does it work for other cycles?
+                    except IndexError:
+                        en = float(getattr(img,multiindex_name).values[0][idx_of_energy])
             except KeyError:
                 pass
         if en is not None:
