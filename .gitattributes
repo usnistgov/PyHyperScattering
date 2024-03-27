@@ -1,2 +1,4 @@
-tutorial/* linguist-vendored
+tutorial/* linguist-documentation=true
+*.ipynb linguist-documentation=true
+docs/* linguist-documentation=true
 src/PyHyperScattering/_version.py export-subst
