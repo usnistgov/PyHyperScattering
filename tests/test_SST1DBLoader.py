@@ -24,6 +24,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 import pytest
+from PyHyperScattering.load import SST1RSoXSDB
 
 must_have_tiled = pytest.mark.skipif(SKIP_DB_TESTING,reason='Connection to Tiled server not possible in this environment.')
 
