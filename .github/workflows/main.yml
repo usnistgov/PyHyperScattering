@@ -37,6 +37,7 @@ jobs:
         pip install flake8 pytest coverage
         pip install pybind11 wheel
         pip install -r requirements.txt
+        pip install -r requirements-bluesky.txt
         pip install dask
     - name: Lint with flake8
       run: |
@@ -82,7 +83,7 @@ jobs:
     - name: Upload coverage report
       uses: actions/upload-artifact@v2
       with:
-        name: coverage-${{ matrix.python-version }}
+        name: coverage-${{ matrix.os}}-${{ matrix.python-version }}.html
         path: htmlcov/index.html
       # Use always() to always run this step to publish test results when there are test failures
       if: ${{ always() }}
