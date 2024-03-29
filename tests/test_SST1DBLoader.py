@@ -11,7 +11,7 @@ try:
     except tiled.profiles.ProfileNotFound:
         try:
             client = tiled.client.from_uri('https://tiled-demo.blueskyproject.io')
-            SKIP_DB_TESTING=False
+            SKIP_DB_TESTING=True # waiting on test data to be posted to this server
         except Exception:
             SKIP_DB_TESTING=True
 except ImportError:
