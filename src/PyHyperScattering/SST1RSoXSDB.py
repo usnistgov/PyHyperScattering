@@ -97,7 +97,7 @@ class SST1RSoXSDB:
                 self.c = from_profile("rsoxs", **catalog_kwargs)
             except tiled.profiles.ProfileNotFound:
                 print('could not directly connect to Tiled using a system profile.\n  Making network connection.\n  Enter your BNL credentials now or pass an api key like catalog_kwargs={"api_key":"..."}.')
-                self.c = from_uri('https://tiled.nsls2.bnl.gov',**catalog_kwargs)
+                self.c = from_uri('https://tiled.nsls2.bnl.gov',**catalog_kwargs)['rsoxs']['raw']
         else:
             self.c = catalog
             if use_chunked_loading:
