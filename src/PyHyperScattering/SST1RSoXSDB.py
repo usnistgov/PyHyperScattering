@@ -715,7 +715,7 @@ class SST1RSoXSDB:
             def subtract_dark(img, pedestal=100, darks=None):
                 return img + pedestal - darks[int(img.dark_id.values)]
 
-            data = data.groupby("time").map(subtract_dark, darks=dark, pedestal=self.dark_pedestal)
+            data = data.groupby("time",squeeze=False).map(subtract_dark, darks=dark, pedestal=self.dark_pedestal)
 
         dims_to_join = []
         dim_names_to_join = []
