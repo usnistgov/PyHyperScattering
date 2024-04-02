@@ -9,7 +9,11 @@ try:
         from PyHyperScattering.load import SST1RSoXSDB
         SKIP_DB_TESTING=False
     except tiled.profiles.ProfileNotFound:
-        SKIP_DB_TESTING=True
+        try:
+            client = tiled.client.from_uri('https://tiled-demo.blueskyproject.io')
+            SKIP_DB_TESTING=True # waiting on test data to be posted to this server
+        except Exception:
+            SKIP_DB_TESTING=True
 except ImportError:
     SKIP_DB_TESTING=True
 
@@ -20,13 +24,18 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 import pytest
+from PyHyperScattering.load import SST1RSoXSDB
 
 must_have_tiled = pytest.mark.skipif(SKIP_DB_TESTING,reason='Connection to Tiled server not possible in this environment.')
 
 
 @pytest.fixture(autouse=True,scope='module')
 def sstdb():
-    sstdb = SST1RSoXSDB(corr_mode='none')
+    try:
+        catalog = tiled.client.from_profile('rsoxs')
+    except tiled.profiles.ProfileNotFound:
+        catalog = tiled.client.from_uri('https://tiled-demo.blueskyproject.io')['rsoxs']['raw']
+    sstdb = SST1RSoXSDB(catalog=catalog,corr_mode='none')
     return sstdb
 
 @must_have_tiled
