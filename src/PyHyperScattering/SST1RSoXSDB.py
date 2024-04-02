@@ -16,7 +16,7 @@ import copy
 
 try:
     os.environ["TILED_SITE_PROFILES"] = "/nsls2/software/etc/tiled/profiles"
-    from tiled.client import from_profile
+    from tiled.client import from_profile,from_uri
     from httpx import HTTPStatusError
     import tiled
     import dask
@@ -95,7 +95,11 @@ class SST1RSoXSDB:
             catalog_kwargs["structure_clients"] = "dask"
         self.use_chunked_loading = use_chunked_loading
         if catalog is None:
-            self.c = from_profile("rsoxs", **catalog_kwargs)
+            try:
+                self.c = from_profile("rsoxs", **catalog_kwargs)
+            except tiled.profiles.ProfileNotFound:
+                print('could not directly connect to Tiled using a system profile.\n  Making network connection.\n  Enter your BNL credentials now or pass an api key like catalog_kwargs={"api_key":"..."}.')
+                self.c = from_uri('https://tiled.nsls2.bnl.gov',**catalog_kwargs)['rsoxs']['raw']
         else:
             self.c = catalog
             if use_chunked_loading:
@@ -288,7 +292,7 @@ class SST1RSoXSDB:
                 # For numeric entries, do Key equality
                 if "numeric" in str(searchSeries[2]):
                     reducedCatalog = reducedCatalog.search(
-                        Key(searchSeries[0]) == float(searchSeries[1])
+                        Key(searchSeries.iloc[0]) == float(searchSeries.iloc[1])
                     )
 
                 else:  # Build regex search string
@@ -298,16 +302,16 @@ class SST1RSoXSDB:
                     # Regex cheatsheet:
                     # (?i) is case insensitive
                     # ^_$ forces exact match to _, ^ anchors the start, $ anchors the end
-                    if "case-insensitive" in str(searchSeries[2]):
+                    if "case-insensitive" in str(searchSeries.iloc[2]):
                         reg_prefix += "(?i)"
-                    if "exact" in searchSeries[2]:
+                    if "exact" in searchSeries.iloc[2]:
                         reg_prefix += "^"
                         reg_postfix += "$"
 
-                    regexString = reg_prefix + str(searchSeries[1]) + reg_postfix
+                    regexString = reg_prefix + str(searchSeries.iloc[1]) + reg_postfix
 
                     # Search/reduce the catalog
-                    reducedCatalog = reducedCatalog.search(Regex(searchSeries[0], regexString))
+                    reducedCatalog = reducedCatalog.search(Regex(searchSeries.iloc[0], regexString))
 
                 # If a match fails, notify the user which search parameter yielded 0 results
                 if len(reducedCatalog) == 0:
