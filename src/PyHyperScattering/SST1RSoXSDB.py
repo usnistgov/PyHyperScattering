@@ -66,6 +66,7 @@ class SST1RSoXSDB:
         catalog_kwargs={},
         use_precise_positions=False,
         use_chunked_loading=False,
+        suppress_time_dimension=True,
     ):
         """
         Args:
@@ -77,6 +78,7 @@ class SST1RSoXSDB:
             catalog_kwargs (dict): kwargs to be passed to a from_profile catalog generation script.  For example, you can ask for Dask arrays here.
             use_precise_positions (bool): if False, rounds sam_x and sam_y to 1 digit.  If True, keeps default rounding (4 digits).  Needed for spiral scans to work with readback positions.
             use_chunked_loading (bool): if True, returns Dask backed arrays for further Dask processing.  if false, behaves in conventional Numpy-backed way
+            suppress_time_dimension (bool): if True, time is never a dimension that you want in your data and will be dropped (default).  if False, time will be a dimension in almost every scan.
         """
 
         if corr_mode == None:
@@ -110,6 +112,7 @@ class SST1RSoXSDB:
         self.dark_pedestal = dark_pedestal
         self.exposure_offset = exposure_offset
         self.use_precise_positions = use_precise_positions
+        self.suppress_time_dimension = suppress_time_dimension
 
     # def loadFileSeries(self,basepath):
     #     try:
@@ -602,18 +605,23 @@ class SST1RSoXSDB:
             else:
                 axes_to_include = []
                 rsd_cutoff = 0.005
-
+            
                 # begin with a list of the things that are primary streams
                 axis_list = list(run["primary"]["data"].keys())
+                
                 # next, knock out anything that has 'image', 'fullframe' in it - these aren't axes
                 axis_list = [x for x in axis_list if "image" not in x]
                 axis_list = [x for x in axis_list if "fullframe" not in x]
                 axis_list = [x for x in axis_list if "stats" not in x]
                 axis_list = [x for x in axis_list if "saturated" not in x]
                 axis_list = [x for x in axis_list if "under_exposed" not in x]
+                
                 # knock out any known names of scalar counters
                 axis_list = [x for x in axis_list if "Beamstop" not in x]
                 axis_list = [x for x in axis_list if "Current" not in x]
+
+                if self.suppress_time_dimension:
+                    axis_list = [x for x in axis_list if x != "time"]
 
                 # now, clean up duplicates.
                 axis_list = [x for x in axis_list if "setpoint" not in x]
@@ -621,11 +629,15 @@ class SST1RSoXSDB:
                 # arbitrary cutoff of 0.5% motion = it moved intentionally.
                 for axis in axis_list:
                     std = np.std(run["primary"]["data"][axis])
-                    mean = np.mean(run["primary"]["data"][axis])
-                    rsd = std / mean
-
+                    motion = np.abs(np.max(run["primary"]["data"][axis])-np.min(run["primary"]["data"][axis]))
+                    if motion == 0:
+                        rsd = 0
+                    else:
+                        rsd = std / motion
+                    #print(f'Evaluating {axis} for inclusion as a dimension with rsd {rsd}...')
                     if rsd > rsd_cutoff:
                         axes_to_include.append(axis)
+                        #print(f'    --> it was included')
 
                 # next, construct the reverse lookup table - best mapping we can make of key to pyhyper word
                 # we start with the lookup table used by loadMd()
@@ -729,11 +741,12 @@ class SST1RSoXSDB:
         if len(index) != len(data["time"]):
             index = index[: len(data["time"])]
         actual_exposure = md["exposure"] * len(data.dim_0)
+        mindex_coords = xr.Coordinates.from_pandas_multiindex(index, 'system')
         retxr = (
             data.sum("dim_0")
             .rename({"dim_1": "pix_y", "dim_2": "pix_x"})
             .rename({"time": "system"})
-            .assign_coords(system=index)
+            .assign_coords(mindex_coords)
         )  # ,md['detector']+'_image':'intensity'})
 
         # this is needed for holoviews compatibility, hopefully does not break other features.
@@ -772,7 +785,7 @@ class SST1RSoXSDB:
             retxr = retxr / monitors["RSoXS Au Mesh Current"]
         elif self.corr_mode != "none":
             warnings.warn(
-                "corrections other than none are not supported at the moment",
+                "corrections other than none or i0 are not supported at the moment",
                 stacklevel=2,
             )
 
