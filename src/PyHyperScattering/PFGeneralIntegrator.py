@@ -12,7 +12,7 @@ from skimage import draw
 import json
 import pandas as pd
 
-from .PFEnergySeriesIntegrator import PFEnergySeriesIntegrator
+import PyHyperScattering.integrate.PFEnergySeriesIntegrator
 
 # tqdm.pandas()
 # the following block monkey-patches xarray to add tqdm support.  This will not be needed once tqdm v5 releases.
@@ -477,7 +477,7 @@ class PFGeneralIntegrator():
             self.mask = np.zeros((len(raw_xr.pix_y),len(raw_xr.pix_x)))
             warnings.warn(f'Since mask was none, creating an empty mask with shape {self.mask.shape}',stacklevel=2)
 
-        if not isinstance(self,PFEnergySeriesIntegrator):
+        if not isinstance(self,PyHyperScattering.integrate.PFEnergySeriesIntegrator):
             self.energy = raw_xr.energy
         self.recreateIntegrator()
 
