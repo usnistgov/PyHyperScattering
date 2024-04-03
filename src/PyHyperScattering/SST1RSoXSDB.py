@@ -290,7 +290,7 @@ class SST1RSoXSDB:
             # Skip arguments with value None, and quits if the catalog was reduced to 0 elements
             if (searchSeries[1] is not None) and (len(reducedCatalog) > 0):
                 # For numeric entries, do Key equality
-                if "numeric" in str(searchSeries[2]):
+                if "numeric" in str(searchSeries.iloc[2]):
                     reducedCatalog = reducedCatalog.search(
                         Key(searchSeries.iloc[0]) == float(searchSeries.iloc[1])
                     )
@@ -571,11 +571,11 @@ class SST1RSoXSDB:
             raw (xarray): raw xarray containing your scan in PyHyper-compliant format
 
         """
-        if type(run) is int:
+        if isinstance(run,int):
             run = self.c[run]
-        elif type(run) is pd.DataFrame:
+        elif isinstance(run,pd.DataFrame):
             run = list(run.scan_id)
-        if type(run) is list:
+        if isinstance(run,list):
             return self.loadSeries(
                 run,
                 "sample_name",
@@ -693,15 +693,11 @@ class SST1RSoXSDB:
         """
 
         data = run["primary"]["data"][md["detector"] + "_image"]
-        if (
-            type(data) == tiled.client.array.ArrayClient
-            or type(data) == tiled.client.array.DaskArrayClient
-        ):
+        if isinstance(data,tiled.client.array.ArrayClient):
             data = run["primary"]["data"].read()[md["detector"] + "_image"]
-        elif type(data) == tiled.client.array.DaskArrayClient:
-            data = xr.DataArray(
-                data.read(), dims=data.dims
-            )  # xxx hack!  Really should use tiled structure_clients xarraydaskclient here.
+        elif isinstance(data,tiled.client.array.DaskArrayClient):
+            data = run["primary"]["data"].read()[md["detector"] + "_image"]
+        
         data = data.astype(int)  # convert from uint to handle dark subtraction
 
         if self.dark_subtract:
