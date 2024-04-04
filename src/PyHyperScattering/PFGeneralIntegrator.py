@@ -214,9 +214,9 @@ class PFGeneralIntegrator:
         indexes.remove('pix_y')
 
         if len(indexes) == 1:
-            data_int = data.groupby(indexes[0], squeeze=False).progress_map(
-                self.integrateSingleImage
-            )
+            data_int = data.groupby(indexes[0],squeeze=False).progress_map(self.integrateSingleImage)
+        elif len(indexes) == 0:
+            data_int = self.integrateSingleImage(data).isel(image_num=0)
         else:
             # some kinda logic to check for existing multiindexes and stack into them appropriately maybe
             data = data.stack({'pyhyper_internal_multiindex': indexes})
@@ -545,7 +545,11 @@ class PFGeneralIntegrator:
         self.rot3 = raw_xr.rot3
 
         self.pixel1 = raw_xr.pixel1
-        self.pixel2 = raw_xr.pixel2
+        self.pixel2 = raw_xr.pixel2        
+        try:
+            self.energy = float(raw_xr.energy)
+        except TypeError:
+            pass
 
         if self.mask is None:
             self.mask = np.zeros((len(raw_xr.pix_y), len(raw_xr.pix_x)))
