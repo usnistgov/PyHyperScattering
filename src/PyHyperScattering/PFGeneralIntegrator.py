@@ -357,7 +357,7 @@ class PFGeneralIntegrator:
         elif maskmethod == 'polygon':
             self.loadPolyMask(**kwargs)
         elif maskmethod == 'image':
-            self.loadImageMask(**kwargs)
+            self.loadImageMask(maskpath=maskpath, maskrotate=maskrotate, **kwargs)
         elif maskmethod == 'pyhyper':
             self.loadPyHyperSavedMask(**kwargs)
         elif maskmethod == 'none':
