@@ -474,6 +474,12 @@ class PFGeneralIntegrator():
         if self.mask is None:
             self.mask = np.zeros((len(raw_xr.pix_y),len(raw_xr.pix_x)))
             warnings.warn(f'Since mask was none, creating an empty mask with shape {self.mask.shape}',stacklevel=2)
+
+        if hasattr(raw_xr.energy, '__iter__'): # this is an iterable, not a single number
+            self.energy = raw_xr.energy[0]
+        else:
+            self.energy = raw_xr.energy
+            
         self.recreateIntegrator()
 
     @property
