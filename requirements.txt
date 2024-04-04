@@ -11,3 +11,7 @@ scipy
 pillow
 xarray
 tqdm
+pydata_sphinx_theme
+# the following pin is due to a security update to numexpr: https://github.com/pydata/numexpr/issues/442
+# consider removing once this is resolved
+numexpr<2.8.5

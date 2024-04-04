@@ -1,2 +1,2 @@
-tiled>=0.1.0a74
-databroker>=2.0.0b10
+tiled[client]>=0.1.0a74
+databroker[all]>=2.0.0b10

@@ -1,0 +1,15 @@
+name: "Publish Documentation to NIST Pages"
+
+on: [push, pull_request, delete]
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: usnistgov/Docs4NIST@0.5
+        with:
+          docs-folder: docs/
+          formats: |-
+            epub
+            pdf
+          pip-requirements: 'requirements.txt'

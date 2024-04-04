@@ -1,7 +1,9 @@
-API Documentation
+.. _Reference_API:
+
+API Reference
 =================
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 3
 
    PyHyperScattering
