@@ -1066,19 +1066,12 @@ class SST1RSoXSDB:
                 # print(f'Loading from primary: {phs}, value {primary[rsoxs].values}')
             except (KeyError, HTTPStatusError):
                 try:
-                    blval = baseline[rsoxs]
-                    if (
-                        type(blval) == tiled.client.array.ArrayClient
-                        or type(blval) == tiled.client.array.DaskArrayClient
-                    ):
-                        blval = blval.read()
+                    blval = baseline[rsoxs].__array__()
                     md[phs] = blval.mean().round(4)
-                    if blval.var() > 0:
+                    if blval.var() > 1e-4*abs(blval.mean()):
                         warnings.warn(
                             (
-                                f"While loading {rsoxs} to infill metadata entry for {phs}, found"
-                                f" beginning and end values unequal: {baseline[rsoxs]}.  It is"
-                                " possible something is messed up."
+                                f"{phs} changed during scan: {blval}."
                             ),
                             stacklevel=2,
                         )
@@ -1087,28 +1080,20 @@ class SST1RSoXSDB:
                         md[phs] = primary[md_secondary_lookup[phs]].read()
                     except (KeyError, HTTPStatusError):
                         try:
-                            blval = baseline[md_secondary_lookup[phs]]
-                            if (
-                                type(blval) == tiled.client.array.ArrayClient
-                                or type(blval) == tiled.client.array.DaskArrayClient
-                            ):
-                                blval = blval.read()
+                            blval = baseline[md_secondary_lookup[phs]].__array__()
                             md[phs] = blval.mean().round(4)
-                            if blval.var() > 0:
+                            if blval.var() > 1e-4*abs(blval.mean()):
                                 warnings.warn(
                                     (
-                                        f"While loading {md_secondary_lookup[phs]} to infill"
-                                        f" metadata entry for {phs}, found beginning and end"
-                                        f" values unequal: {baseline[rsoxs]}.  It is possible"
-                                        " something is messed up."
+                                        f"{phs} changed during scan: {blval}."
                                     ),
                                     stacklevel=2,
                                 )
                         except (KeyError, HTTPStatusError):
                             warnings.warn(
                                 (
-                                    f"Could not find {rsoxs} in either baseline or primary. "
-                                    f" Needed to infill value {phs}.  Setting to None."
+                                    f"Could not find {rsoxs} in either baseline or primary while"
+                                    f" looking for {phs}.   Setting to None."
                                 ),
                                 stacklevel=2,
                             )
