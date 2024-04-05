@@ -760,7 +760,7 @@ class SST1RSoXSDB:
             monitors = (
                 monitors.rename({"time": "system"})
                 .reset_index("system")
-                .assign_coords(system=index)
+                .assign_coords(mindex_coords)
             )
 
             if "system_" in monitors.indexes.keys():
