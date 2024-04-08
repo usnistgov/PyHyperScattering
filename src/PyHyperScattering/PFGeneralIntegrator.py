@@ -411,18 +411,28 @@ class PFGeneralIntegrator:
     def __str__(self):
         return f"PyFAI general integrator wrapper SDD = {self.dist} m, poni1 = {self.poni1} m, poni2 = {self.poni2} m, rot1 = {self.rot1} rad, rot2 = {self.rot2} rad"
 
-    def integrateImageStack(self, img_stack, method=None, chunksize=None):
-        ''' '''
-
-        if (self.use_chunked_processing and method is None) or method == 'dask':
+    def integrateImageStack(self,img_stack,method=None,chunksize=None):
+        '''
+        
+        '''
+        full_stack = None
+        if isinstance(img_stack,xr.Dataset):
+            full_stack = img_stack
+            img_stack = img_stack['I_raw']
+        if (self.use_chunked_processing and method is None) or method=='dask':
             func_args = {}
             if chunksize is not None:
                 func_args['chunksize'] = chunksize
-            return self.integrateImageStack_dask(img_stack, **func_args)
+            retval = self.integrateImageStack_dask(img_stack,**func_args)
         elif (method is None) or method == 'legacy':
-            return self.integrateImageStack_legacy(img_stack)
+            retval = self.integrateImageStack_legacy(img_stack)
         else:
             raise NotImplementedError(f'unsupported integration method {method}')
+        if isinstance(full_stack,xr.Dataset):
+            retval.name='I_integ'
+            return xr.merge([full_stack,retval])
+        else:
+            return retval
 
     def loadPolyMask(self, maskpoints=[], **kwargs):
         '''
