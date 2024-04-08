@@ -802,6 +802,7 @@ class SST1RSoXSDB:
             # retxr = (index,monitors,retxr)
             monitors.attrs.update(retxr.attrs)
             retxr = monitors.merge(retxr)
+            retxr = self._normalize_monitor_names(retxr)
 
         if self.use_chunked_loading:
             # dask and multiindexes are like PEO and PPO.  They're kinda the same thing and they don't like each other.
@@ -961,6 +962,27 @@ class SST1RSoXSDB:
                     stacklevel=2,
                 )
         return monitors
+
+    def _normalize_monitor_names(self,run):
+        """
+        Normalize instrument-local monitor names to PyHyper 1.0+ standard names
+
+        """
+        rename_dict = {
+            'RSoXS Au Mesh Current' : 'i0',
+            'NSLS-II Ring Current' : 'src_int'
+        }
+
+        if run.attrs['rsoxs_config'] == 'saxs':
+            rename_dict['SAXS Beamstop'] = 'It'
+            rename_dict['Small Angle CCD Detector_image'] = 'I_raw'
+        elif run.attrs['rsoxs_config'] == 'waxs':
+            rename_dict['WAXS Beamstop'] = 'It'
+            rename_dict['Wide Angle CCD Detector_image'] = 'I_raw'
+        else:
+            pass
+        return run.rename(rename_dict)
+
 
     def loadMd(self, run):
         """
@@ -1125,6 +1147,7 @@ class SST1RSoXSDB:
         md.update(run.metadata)
         return md
 
+    '''
     def loadSingleImage(self, filepath, coords=None, return_q=False, **kwargs):
         """
         DO NOT USE
@@ -1195,3 +1218,4 @@ class SST1RSoXSDB:
             )
         else:
             return xr.DataArray(img, dims=["pix_x", "pix_y"], attrs=headerdict)
+    '''
