@@ -969,8 +969,8 @@ class SST1RSoXSDB:
 
         """
         rename_dict = {
-            'RSoXS Au Mesh Current' : 'i0',
-            'NSLS-II Ring Current' : 'src_int'
+            'RSoXS Au Mesh Current' : 'I0',
+            'NSLS-II Ring Current' : 'Isrc'
         }
 
         if run.attrs['rsoxs_config'] == 'saxs':
