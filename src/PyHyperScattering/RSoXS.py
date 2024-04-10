@@ -3,11 +3,11 @@ import xarray as xr
 import numpy as np
 import math
 
-# @xr.register_dataset_accessor('rsoxs')
-
 
 @xr.register_dataarray_accessor('rsoxs')
 class RSoXS:
+    '''Contains methods for common RSoXS/P-RSoXS data analysis operations'''
+
     def __init__(self, xr_obj):
         self._obj = xr_obj
 
@@ -20,17 +20,25 @@ class RSoXS:
             self._pyhyper_type = 'raw'
 
     def slice_chi(self, chi, chi_width=5):
-        '''
-        slice an xarray in chi
+        '''Slice and average an xarray along the chi coordinate
 
-        Args:
-            img (xarray): xarray to work on
-            chi (numeric): q about which slice should be centered, in deg
-            chi_width (numeric): width of slice in each direction, in deg
-        '''
+        Accounts for wrapping of chi values beyond ends of the range.
 
+        Parameters
+        ----------
+        chi : numeric
+            chi about which slice should be centered, in deg
+        chi_width : numeric, optional
+            width of slice in each direction in deg, by default 5
+
+        Returns
+        -------
+        xr.DataArray
+            datarray averaged along the specified chi slice
+        '''
         slice_begin = chi - chi_width
         slice_end = chi + chi_width
+
         '''
             cases to handle:
             1) wrap-around slice.  begins before we start and ends after we end.  return whole array and warn.
@@ -86,13 +94,19 @@ class RSoXS:
         return self._obj.isel({'chi': selector}).mean('chi')
 
     def slice_q(self, q, q_width=None):
-        '''
-        slice an xarray in q
+        '''Slice and average an xarray along the q coordinate
 
-        Args:
-            img (xarray): xarray to work on
-            q (numeric): q about which slice should be centered
-            q_width (numeric): width of slice in each direction, in q units
+        Parameters
+        ----------
+        q : numeric
+            q value about which slice should be centered
+        q_width :numeric, optional
+            width of slice in each direction, in q units, defaults to 0.1 * q
+
+        Returns
+        -------
+        xr.DataArray
+            datarray averaged along the specified q slice
         '''
         img = self._obj
         if q_width == None:
@@ -100,18 +114,67 @@ class RSoXS:
         return img.sel(q=slice(q - q_width, q + q_width)).mean('q')
 
     def select_chi(self, chi, method='nearest'):
+        '''Enables xarray subsetting by chi values that are out of range
+
+        If chi is outside the dataset, this will adjust it by adding or subtracting multiples of 360 until it falls in the valid range.
+
+        Parameters
+        ----------
+        chi : numeric
+            target chi value to apply xr.DataArray.sel() with
+        method : str, optional
+            search method to pass to xr.DataArray.sel(), by default 'nearest'
+
+        Returns
+        -------
+        xr.DataArray
+            DataArray whose data match the provided chi value (adjusted into range)
+        '''
+        # If chi is less than the minimum chi value in the dataset
         if chi < self._chi_min:
+            # Calculate the number of shifts needed to bring chi within the valid range and adjust
             nshift = math.floor((self._chi_min - chi) / 360) + 1
             chi += 360 * nshift
+        # If chi is greater than the maximum chi value in the dataset
         elif chi > self._chi_max:
+            # Calculate the number of shifts needed to bring chi within the valid range and adjust
             nshift = math.floor((chi - self._chi_max) / 360) + 1
             chi -= 360 * nshift
+        # Select data along the chi dimension using the specified method
         return self._obj.sel(chi=chi, method=method)
 
-    def select_q(self, q, method='interp'):
+    def select_q(self, q, method='nearest'):
+        '''Alias of the xr.DataArray .sel method for selection in q
+
+        Parameters
+        ----------
+        q : numeric
+            Desired q value
+        method : str, optional
+            method for inexact matches, by default 'nearest'
+
+        Returns
+        -------
+        xr.DataArray
+            DataArray whose data match the provided q value
+        '''
         return self._obj.sel(q=q, method=method)
 
     def select_pol(self, pol, method='nearest'):
+        '''Alias of the xr.DataArray .sel method for selection in polarization
+
+        Parameters
+        ----------
+        pol : numeric
+            Desired polarization value
+        method : str, optional
+            method for inexact matches, by default 'nearest'
+
+        Returns
+        -------
+        xr.DataArray
+            DataArray whose data match the provided polarization value
+        '''
         return self._obj.sel(polarization=pol, method=method)
 
     def AR(self, calc2d=False, two_AR=False, chi_width=5, calc2d_norm_energy=None):
