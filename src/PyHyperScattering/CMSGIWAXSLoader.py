@@ -95,8 +95,8 @@ class CMSGIWAXSLoader:
                     image_da = image_da.assign_coords({'series_number': int(image_da.series_number)})
                     image_da = image_da.expand_dims(dim={'series_number': 1})
                     data_rows.append(image_da)  
-            except TypeError:
-                warnings.warn('"files" needs to be a pathlib.Path or iterable')  
+            except TypeError as e:
+                raise TypeError('"files" needs to be a pathlib.Path or iterable')  from e
                 return None      
 
         out = xr.concat(data_rows, 'series_number')
