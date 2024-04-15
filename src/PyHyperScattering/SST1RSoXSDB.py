@@ -817,7 +817,7 @@ class SST1RSoXSDB:
         entry,
         integrate_onto_images: bool = True,
         useShutterThinning: bool = True,
-        n_thinning_iters: int = 5,
+        n_thinning_iters: int = 1,
         directLoadPulsedMonitors: bool = True
     ):
         """Load the monitor streams for entry.
@@ -841,8 +841,9 @@ class SST1RSoXSDB:
             As of 9 Feb 2023 at NSLS2 SST1, using useShutterThinning= True for exposure times of < 0.5s is
             not recommended because the shutter data is unreliable and too many points will be removed
         n_thinning_iters : int, optional
-            how many iterations of thinning to perform, by default 5
-            If the data is becoming too sparse, try fewer iterations
+            how many iterations of thinning to perform, by default 1
+            (former default was 5 before gated monitor loading was added)
+            If you receive errors in assigning image timepoints to counters, try fewer iterations
         directLoadPulsedMonitors : bool, optional
             Whether or not to load the pulsed monitors using direct reading, by default True
             This only applies if integrate_onto_images is True; otherwise you'll get very raw data.
