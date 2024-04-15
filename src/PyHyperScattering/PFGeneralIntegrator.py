@@ -11,6 +11,7 @@ from PIL import Image
 from skimage import draw
 import json
 import pandas as pd
+import fabio
 
 # tqdm.pandas()
 # the following block monkey-patches xarray to add tqdm support.  This will not be needed once tqdm v5 releases.
@@ -106,25 +107,25 @@ class PFGeneralIntegrator():
             radial_to_save = frame.radial
         if self.do_1d_integration:
             try:
-                res = xr.DataArray([frame.intensity],dims=[stacked_axis,'q'],coords={'q':('q',radial_to_save),stacked_axis:(stacked_axis,system_to_integ)},attrs=img.attrs)
-                if self.return_sigma:
-                    sigma = xr.DataArray([frame.sigma],dims=[stacked_axis,'q'],coords={'q':('q',radial_to_save),stacked_axis:(stacked_axis,system_to_integ)},attrs=img.attrs)
+                res = xr.DataArray([frame.intensity],dims=[stacked_axis,'q'],coords={'q':('q', radial_to_save ,{'units': '1/Å'}),stacked_axis:(stacked_axis,system_to_integ)},attrs=img.attrs)
             except AttributeError:
-                res = xr.DataArray(frame.intensity, dims=['q'], coords={'q': radial_to_save}, attrs=img.attrs)
-                if self.return_sigma:
-                    sigma = xr.DataArray(frame.sigma, dims=['q'], coords={'q': radial_to_save}, attrs=img.attrs)
+                res = xr.DataArray(frame.intensity, dims=['q'], coords={'q':('q', radial_to_save ,{'units': '1/Å'})}, attrs=img.attrs)
         else:
             try:
-                res = xr.DataArray([frame.intensity],dims=[stacked_axis,'chi','q'],coords={'q':('q',radial_to_save),'chi':('chi',frame.azimuthal),stacked_axis:(stacked_axis,system_to_integ)},attrs=img.attrs)#.transpose(['chi','q',stacked_axis])
-                if self.return_sigma:
-                    sigma = xr.DataArray([frame.sigma],dims=[stacked_axis,'chi','q'],coords={'q':('q',radial_to_save),'chi':('chi',frame.azimuthal),stacked_axis:(stacked_axis,system_to_integ)},attrs=img.attrs)#.transpose(['chi','q',stacked_axis])
+                res = xr.DataArray([frame.intensity],dims=[stacked_axis,'chi','q'],coords={
+                                        'q': ('q', radial_to_save ,{'units': '1/Å'}),
+                                        'chi': ('chi', frame.azimuthal, {'units': '°'}),
+                                        stacked_axis:(stacked_axis,system_to_integ)
+                                        },attrs=img.attrs)#.transpose(['chi','q',stacked_axis])
             except AttributeError:
                 res = xr.DataArray(frame.intensity, dims=['chi', 'q'],
-                                   coords={'q': radial_to_save, 'chi': frame.azimuthal}, attrs=img.attrs)
-                if self.return_sigma:
-                    sigma = xr.DataArray(frame.sigma, dims=['chi', 'q'],
-                                         coords={'q': radial_to_save, 'chi': frame.azimuthal}, attrs=img.attrs)
+                                    coords={
+                                        'q': ('q', radial_to_save ,{'units': '1/Å'}),
+                                        'chi': ('chi', frame.azimuthal, {'units': '°'})
+                                        }, attrs=img.attrs)
         if self.return_sigma:
+            sigma = xr.ones_like(res)
+            sigma.values = frame.sigma
             res = res.to_dataset(name='I')
             res['dI'] = sigma
         return res
@@ -261,9 +262,10 @@ class PFGeneralIntegrator():
                  maskpath= '',
                  maskrotate = True,
                  geomethod = "none",
-                 NIdistance=0, NIbcx=0, NIbcy=0, NItiltx=0, NItilty=0,
-                 NIpixsizex=0, NIpixsizey=0,
+                 NIdistance = 0, NIbcx = 0, NIbcy = 0, NItiltx = 0, NItilty = 0,
+                 NIpixsizex = 0, NIpixsizey = 0,
                  template_xr=None,
+                 ponifile = None,
                  energy=2000,
                  integration_method='csr_ocl',
                  correctSolidAngle=True,
@@ -283,6 +285,8 @@ class PFGeneralIntegrator():
             self.loadImageMask(**kwargs)
         elif maskmethod == 'pyhyper':
             self.loadPyHyperSavedMask(**kwargs)
+        elif maskmathod == 'edf':
+            self.loadEdfMask(filetoload=maskpath)
         elif maskmethod == 'none':
             self.mask = None
         else:
@@ -321,6 +325,8 @@ class PFGeneralIntegrator():
             self.ni_tilt_y = NItilty
         elif geomethod == 'template_xr':
             self.calibrationFromTemplateXRParams(template_xr)
+        elif geomethod == 'ponifile':
+            self.calibrationFromPoniFile(ponifile)
         elif geomethod == "none":
             warnings.warn('Initializing geometry with default values.  This is probably NOT what you want.',
                           stacklevel=2)
@@ -399,6 +405,16 @@ class PFGeneralIntegrator():
         print(f"Imported mask with dimensions {str(np.shape(boolmask))}")
         self.mask = boolmask
 
+
+    def loadEdfMask(self,filetoload):
+        '''
+        Loads an edf-format mask (probably from pyFAI.calib2?).
+
+        Args:
+            filetoload (pathlib.Path or string): path to edf format mask
+        '''
+        self.mask = fabio.open(filetoload).data
+
     def loadNikaMask(self, filetoload, rotate_image = True,**kwargs):
 
         '''
@@ -475,6 +491,32 @@ class PFGeneralIntegrator():
             self.mask = np.zeros((len(raw_xr.pix_y),len(raw_xr.pix_x)))
             warnings.warn(f'Since mask was none, creating an empty mask with shape {self.mask.shape}',stacklevel=2)
         self.recreateIntegrator()
+
+def calibrationFromPoniFile(self, ponifile):
+
+        '''
+        Sets calibration from a pyFAI poni-file
+
+        Args:
+            ponifile (str or Pathlib.path): a pyFAI poni file containing the geometry
+        '''
+        ponifile = pyFAI.io.PoniFile(data=ponifile)
+        self.dist = ponifile._dist
+        self.poni1 = ponifile._poni1
+        self.poni2 = ponifile._poni2
+        self.rot1 = ponifile._rot1
+        self.rot2 = ponifile._rot2
+        self.rot3 = ponifile._rot3
+        self.wavelength = ponifile._wavelength
+
+        self.pixel1 = ponifile.detector.pixel1
+        self.pixel2 = ponifile.detector.pixel2
+        
+        if self.mask is None:
+            self.mask = np.zeros((len(raw_xr.pix_y),len(raw_xr.pix_x)))
+            warnings.warn(f'Since mask was none, creating an empty mask with shape {self.mask.shape}',stacklevel=2)
+        self.recreateIntegrator()
+
 
     @property
     def wavelength(self):
