@@ -284,6 +284,8 @@ class PFGeneralIntegrator():
             self.loadImageMask(**kwargs)
         elif maskmethod == 'pyhyper':
             self.loadPyHyperSavedMask(**kwargs)
+        elif maskmathod == 'edf':
+            self.loadEdfMask(filetoload=maskpath)
         elif maskmethod == 'none':
             self.mask = None
         else:
@@ -401,6 +403,16 @@ class PFGeneralIntegrator():
         boolmask = np.invert(image.astype(bool))
         print(f"Imported mask with dimensions {str(np.shape(boolmask))}")
         self.mask = boolmask
+
+
+    def loadEdfMask(self,filetoload):
+        '''
+        Loads an edf-format mask (probably from pyFAI.calib2?).
+
+        Args:
+            filetoload (pathlib.Path or string): path to edf format mask
+        '''
+        self.mask = fabio.open(filetoload).data
 
     def loadNikaMask(self, filetoload, rotate_image = True,**kwargs):
 
