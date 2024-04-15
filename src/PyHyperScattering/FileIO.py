@@ -34,7 +34,24 @@ class FileIO:
     def savePickle(self,filename):
         with open(filename, 'wb') as file:
             pickle.dump(self._obj, file)
-            
+     
+
+    # - This was copied from the Toney group contribution for GIWAXS.
+    def saveZarr(self,  filename: Union[str, pathlib.Path], mode: str = 'w'):
+         """
+         Save the DataArray as a .zarr file in a specific path, with a file name constructed from a prefix and suffix.
+
+         Parameters:
+             da (xr.DataArray): The DataArray to be saved.
+             base_path (Union[str, pathlib.Path]): The base path to save the .zarr file.
+             prefix (str): The prefix to use for the file name.
+             suffix (str): The suffix to use for the file name.
+             mode (str): The mode to use when saving the file. Default is 'w'.
+         """
+         ds = da.to_dataset(name='DA')
+         file_path = pathlib.Path(filename)
+         ds.to_zarr(file_path, mode=mode)
+       
     def saveNexus(self,fileName,compression=5):
         data = self._obj
         timestamp = datetime.datetime.now()
