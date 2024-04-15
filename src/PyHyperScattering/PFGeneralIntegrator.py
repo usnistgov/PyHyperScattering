@@ -264,6 +264,7 @@ class PFGeneralIntegrator():
                  NIdistance = 0, NIbcx = 0, NIbcy = 0, NItiltx = 0, NItilty = 0,
                  NIpixsizex = 0, NIpixsizey = 0,
                  template_xr=None,
+                 ponifile = None,
                  energy=2000,
                  integration_method='csr_ocl',
                  correctSolidAngle=True,
@@ -321,6 +322,8 @@ class PFGeneralIntegrator():
             self.ni_tilt_y = NItilty
         elif geomethod == 'template_xr':
             self.calibrationFromTemplateXRParams(template_xr)
+        elif geomethod == 'ponifile':
+            self.calibrationFromPoniFile(ponifile)
         elif geomethod == "none":
             warnings.warn('Initializing geometry with default values.  This is probably NOT what you want.',
                           stacklevel=2)
@@ -475,6 +478,32 @@ class PFGeneralIntegrator():
             self.mask = np.zeros((len(raw_xr.pix_y),len(raw_xr.pix_x)))
             warnings.warn(f'Since mask was none, creating an empty mask with shape {self.mask.shape}',stacklevel=2)
         self.recreateIntegrator()
+
+def calibrationFromPoniFile(self, ponifile):
+
+        '''
+        Sets calibration from a pyFAI poni-file
+
+        Args:
+            ponifile (str or Pathlib.path): a pyFAI poni file containing the geometry
+        '''
+        ponifile = pyFAI.io.PoniFile(data=ponifile)
+        self.dist = ponifile._dist
+        self.poni1 = ponifile._poni1
+        self.poni2 = ponifile._poni2
+        self.rot1 = ponifile._rot1
+        self.rot2 = ponifile._rot2
+        self.rot3 = ponifile._rot3
+        self.wavelength = ponifile._wavelength
+
+        self.pixel1 = ponifile.detector.pixel1
+        self.pixel2 = ponifile.detector.pixel2
+        
+        if self.mask is None:
+            self.mask = np.zeros((len(raw_xr.pix_y),len(raw_xr.pix_x)))
+            warnings.warn(f'Since mask was none, creating an empty mask with shape {self.mask.shape}',stacklevel=2)
+        self.recreateIntegrator()
+
 
     @property
     def wavelength(self):
