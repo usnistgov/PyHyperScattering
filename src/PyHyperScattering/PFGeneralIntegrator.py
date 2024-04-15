@@ -11,6 +11,7 @@ from PIL import Image
 from skimage import draw
 import json
 import pandas as pd
+import fabio
 
 # tqdm.pandas()
 # the following block monkey-patches xarray to add tqdm support.  This will not be needed once tqdm v5 releases.
