@@ -107,22 +107,11 @@ class PFGeneralIntegrator():
         if self.do_1d_integration:
             try:
                 res = xr.DataArray([frame.intensity],dims=[stacked_axis,'q'],coords={'q':('q', radial_to_save ,{'units': '1/Å'}),stacked_axis:(stacked_axis,system_to_integ)},attrs=img.attrs)
-                if self.return_sigma:
-                    sigma = xr.DataArray([frame.sigma],dims=[stacked_axis,'q'],coords={'q':('q', radial_to_save ,{'units': '1/Å'}),stacked_axis:(stacked_axis,system_to_integ)},attrs=img.attrs)
             except AttributeError:
                 res = xr.DataArray(frame.intensity, dims=['q'], coords={'q':('q', radial_to_save ,{'units': '1/Å'})}, attrs=img.attrs)
-                if self.return_sigma:
-                    sigma = xr.DataArray(frame.sigma, dims=['q'], coords={'q':('q', radial_to_save ,{'units': '1/Å'})}, attrs=img.attrs)
         else:
             try:
                 res = xr.DataArray([frame.intensity],dims=[stacked_axis,'chi','q'],coords={
-                                        'q': ('q', radial_to_save ,{'units': '1/Å'}),
-                                        'chi': ('chi', frame.azimuthal, {'units': '°'}),
-                                        stacked_axis:(stacked_axis,system_to_integ)
-                                        },attrs=img.attrs)#.transpose(['chi','q',stacked_axis])
-                if self.return_sigma:
-                    sigma = xr.DataArray([frame.sigma],dims=[stacked_axis,'chi','q'],
-                                    coords={
                                         'q': ('q', radial_to_save ,{'units': '1/Å'}),
                                         'chi': ('chi', frame.azimuthal, {'units': '°'}),
                                         stacked_axis:(stacked_axis,system_to_integ)
@@ -133,13 +122,9 @@ class PFGeneralIntegrator():
                                         'q': ('q', radial_to_save ,{'units': '1/Å'}),
                                         'chi': ('chi', frame.azimuthal, {'units': '°'})
                                         }, attrs=img.attrs)
-                if self.return_sigma:
-                    sigma = xr.DataArray(frame.sigma, dims=['chi', 'q'],
-                                    coords={
-                                        'q': ('q', radial_to_save ,{'units': '1/Å'}),
-                                        'chi': ('chi', frame.azimuthal, {'units': '°'})
-                                        }, attrs=img.attrs)
         if self.return_sigma:
+            sigma = xr.ones_like(res)
+            sigma.values = frame.sigma
             res = res.to_dataset(name='I')
             res['dI'] = sigma
         return res
