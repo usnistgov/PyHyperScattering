@@ -59,7 +59,7 @@ def test_chi_select_outside_negative(data):
         assert(np.allclose(data.rsoxs.select_chi(-270),data.rsoxs.select_chi(90),equal_nan=True))
 
 @pytest.fixture(autouse=True,scope='module')
-def aniso_test_data(OFFSET=0,BACKGROUND=1):
+def aniso_test_data_zero_bkg(OFFSET=0,BACKGROUND=0):
     '''
     Make a sinusoidal set of anisotropic test data, with a q^-4 background that is radially symmetric and a q^-2 powerlaw that is sinusoidally distributed with max at OFFSET deg.
 
@@ -78,7 +78,6 @@ def aniso_test_data(OFFSET=0,BACKGROUND=1):
     aniso = xr.concat([I_para,I_perp],dim = xr.DataArray([0,90],[('polarization',[0,90],{'unit':'deg'})]))
     return aniso
     
-def test_AR_unity():
-    aniso = aniso_test_data(BACKGROUND=0)
-    AR = data.rsoxs.AR(aniso)
+def test_AR_unity(aniso_test_data_zero_bkg):
+    AR = data.rsoxs.AR(aniso_test_data_zero_bkg)
     assert(np.allclose(AR,1,atol=1e-3))
