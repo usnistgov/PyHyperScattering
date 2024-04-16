@@ -176,58 +176,68 @@ class RSoXS:
 
     def AR(
         self,
-        chi_center1: Union[int, float] = None,
-        chi_center2: Union[int, float] = None,
-        chi_width: Union[int, float] = 5,
-        reflectWedges: bool = False,
-        calc2d: bool = False,
-        two_AR: bool = False,
-        calc2d_norm_energy: Union[int, float] = None,
-        infer_ChiFromPol: bool = False,
-        printReport: bool = False,
+        chi_center1_deg: Union[int, float] = None,
+        chi_center2_deg: Union[int, float] = None,
+        chi_width_deg: Union[int, float] = 45,
+        use_reflection: bool = False,
+        infer_chi_from_pol: bool = True,
+        use_paired_scans: bool = False,
+        paired_normalization_energy: Union[int, float] = None,
+        AR_return_method: str = 'average',
+        verbose: bool = False,
     ):
-        '''Returns a DataArray containing the RSoXS Anisotropic Ratio of a single scan or polarized pair of scans
+        '''Returns a DataArray containing the RSoXS Anisotropic Ratio of a single scan or polarized
+        pair of scans
 
         Single Image AR defined as AR1 = (I_chi1 - Ichi2)/ (I_chi1 + I_chi2)
-        Conventionally, chi1 and chi2 are chosen parallel and perpendicular to the polarization
+        I_x represents the integration of a section in q, chi space centered on chi = x
+        Conventionally, chi1 and chi2 are chosen parallel and perpendicular to the beam
+        polarization, respectively
 
         Parameters
         ----------
-        chi_center1 : Union[int, float], optional
-            Center (in degrees chi) of the first chi wedge to integrate, defaults to 0 unless infer_ChiFromPol is True
-        chi_center2 : Union[int, float], optional
-            Center (in degrees chi) of the second chi wedge to integrate, defaults to (chi_center1 - 90) unless two scans are provided and infer_ChiFromPol is True
-        chi_width : Union[int, float], optional
-            width of slice in each direction in deg, by default 5
-        reflectWedges : bool, optional
-            if true, also integrate chi wedges centered 180 degrees from the chi_centers, by default False
-        calc2d : bool, optional
-            if true, calculate the AR using both polarization scans, by default False
-        two_AR : bool, optional
-            if true, return (AR1, AR2) separately, if false return a single value AR = (AR1 + AR2)/2, by default False
-        calc2d_norm_energy : Union[int, float], optional
-            if set, normalizes each polarization's AR at a given energy.  THIS EFFECTIVELY FORCES THE AR TO 0 AT THIS ENERGY., by default None
-        infer_ChiFromPol : bool, optional
-            if true, and if data contains a polarization dim, sets chi1 = pol1, chi2 = pol2, by default False
-        printReport : bool, optional
-            if true, runs the checkAR command, plotting wedges, and prints intermediate values, by default False
+        chi_center1_deg : Union[int, float], optional
+            Center (in degrees chi) of the first chi wedge to integrate, defaults to 0 unless
+            infer_ChiFromPol is True
+        chi_center2_deg : Union[int, float], optional
+            Center (in degrees chi) of the second chi wedge to integrate, defaults to
+            (chi_center1 + 90) unless two scans are provided and infer_ChiFromPol is True
+        chi_width_deg : Union[int, float], optional
+            width of slice in each direction in deg, by default 45
+        use_reflection : bool, optional
+            if true, also integrate chi wedges centered 180 degrees from the chi_centers,
+            by default False
+        infer_chi_from_pol : bool, optional
+            if true, and if data contains a polarization dim, sets chi1 = pol1, chi2 = pol2,
+            by default False
+        use_paired_scans : bool, optional
+            if true, calculate the AR using scans at two polarizations, by default False
+        paired_normalization_energy : Union[int, float], optional
+            if set, normalizes each polarization's AR at a given energy.
+            THIS EFFECTIVELY FORCES THE AR TO 0 AT THIS ENERGY., by default None
+        AR_return_method : str, optional
+            if 'average', return a single value AR = (AR1 + AR2)/2, if 'separate',
+            return a tuple (AR1, AR2), if 'components', return a dict containing the integrated
+            wedge data, by default 'average'
+        verbose : bool, optional
+            if true, runs the checkAR command, plotting wedges, and prints intermediate values,
+            by default False
 
         Returns
         -------
         xr.DataArray
-            DataArray or tuple of DataArrays containing AR values
-
+            DataArray, tuple of DataArrays, opr dict of DataArrays containing AR values or components
         '''
         # Build Report for diagnosing AR quality
-        reportAR = "Anisotropic Ratio Calculation:\n"
+        reportString = "Anisotropic Ratio Calculation:\n"
 
         # Determine wedge centers criteria
 
         # User wants to infer chi centers from beam polarization metadata
-        if infer_ChiFromPol == True:
+        if infer_chi_from_pol == True:
 
             # Make sure the user didnt provide chi1 and chi2 already
-            if chi_center1 is not None:
+            if chi_center1_deg is not None:
                 raise ValueError(
                     "infer_ChiFromPol must be False if you provide chi values manually"
                 )
@@ -235,18 +245,18 @@ class RSoXS:
             # If we have polarization as a data dimensions
             if 'polarization' in self._obj.dims:
                 # get polarization values
-                pol_vals = self._obj.coords['polarization'].values.tolist()
+                num_pol_vals = self._obj.coords['polarization'].values.tolist()
                 # if we have 1, save as as chi1,
-                if len(pol_vals) == 1:
-                    chi_center1 = pol_vals[0]
+                if len(num_pol_vals) == 1:
+                    chi_center1_deg = num_pol_vals[0]
                 # if two save as chi1 and chi2
-                elif len(pol_vals) == 2:
-                    chi_center1 = pol_vals[0]
-                    chi_center2 = pol_vals[1]
+                elif len(num_pol_vals) == 2:
+                    chi_center1_deg = num_pol_vals[0]
+                    chi_center2_deg = num_pol_vals[1]
                 # Else raise error
                 else:
                     raise NotImplementedError(
-                        f'Can only infer if 1 or 2 polarization values are provided, found {len(pol_vals)} values'
+                        f'Can only infer if 1 or 2 polarization values are provided, found {len(num_pol_vals)} values'
                     )
             # Error if we don't have polarization as a data dimensions
             else:
@@ -256,115 +266,202 @@ class RSoXS:
 
         # Hardcode default values/relationships between chi1 and chi2
         # If no info provided, default chi_1 to 0
-        if chi_center1 is None:
-            chi_center1 = 0
+        if chi_center1_deg is None:
+            chi_center1_deg = 0
         # Make sure it fits in the valid range
         else:
-            chi_center1 = self._reRange_chi(chi_center1)
+            chi_center1_deg = self._reRange_chi(chi_center1_deg)
 
         # If no info provided, chi_2 is chi_1 - 90
-        if chi_center2 is None:
-            chi_center2 = self._reRange_chi(chi_center1 - 90)
+        if chi_center2_deg is None:
+            chi_center2_deg = self._reRange_chi(chi_center1_deg + 90)
 
         # Add to report
-        reportAR += f"\tchi_width = {chi_width}\n"
-        reportAR += f"\tchi_center1 = {chi_center1:.3f}, chi_center2 = {chi_center2:.3f}\n"
+        reportString += f"\tchi_width = {chi_width_deg} deg\n"
+        reportString += (
+            f"\tchi_center1 = {chi_center1_deg:.3f} deg, chi_center2 = {chi_center2_deg:.3f} deg\n"
+        )
 
         # If the user wants to use reflected wedges
-        if reflectWedges == True:
-            chi_center1r = self._reRange_chi(chi_center1 + 180)
-            chi_center2r = self._reRange_chi(chi_center2 + 180)
-            reportAR += f"\tchi_center1r = {chi_center1r:.3f}, chi_center2r = {chi_center2r:.3f}\n"
+        if use_reflection == True:
+            chi_center1r_deg = self._reRange_chi(chi_center1_deg + 180)
+            chi_center2r_deg = self._reRange_chi(chi_center2_deg + 180)
+            reportString += f"\tchi_center1r = {chi_center1r_deg:.3f} deg, chi_center2r = {chi_center2r_deg:.3f} deg\n"
 
+        # Warn the user if the wedges are not perpendicular +- 2 deg
         # Calculate the absolute circular difference between chi_center1 and chi_center2
-        abs_diff = min((chi_center1 - chi_center2) % 360, (chi_center2 - chi_center1) % 360)
-        max_delta = 2  # deg
+        chi_center_difference = min(
+            (chi_center1_deg - chi_center2_deg) % 360, (chi_center2_deg - chi_center1_deg) % 360
+        )
+        max_allowed_difference = 2  # deg
         # Check if the absolute circular difference is within the specified range
-        if not ((90 - max_delta) <= abs_diff <= (90 + max_delta)):
+        if not (
+            (90 - max_allowed_difference) <= chi_center_difference <= (90 + max_allowed_difference)
+        ):
             warnings.warn(
                 "The difference between chi_center1 and chi_center2 is not within 90 ± 2 degrees.",
                 stacklevel=2,
             )
 
-        # Calculate for the simple case (single polarization)
-        if not calc2d:
+        # Compute anisotropy component integrals
+        # Note that I1 and I2 corrspond to integrals centered along the chi1 and chi2 directions
+        # (decoupled from para, perp formalism)
 
-            # extract 2 wedges
-            if reflectWedges == False:
-                I_1 = self.slice_chi(chi=chi_center1, chi_width=chi_width, do_avg=False)
-                I_1.name = 'I_chi1'
-                I_2 = self.slice_chi(chi=chi_center2, chi_width=chi_width, do_avg=False)
-                I_2.name = 'I_chi2'
+        # extract 2 wedges to determine I_1, I_2
+        if use_reflection == False:
+            I_1 = self.slice_chi(chi=chi_center1_deg, chi_width=chi_width_deg, do_avg=False)
+            I_1.name = 'I_chi1'
+            I_1.attrs['chi_center'] = chi_center1_deg
+            I_1.attrs['chi_width'] = chi_width_deg
+            I_2 = self.slice_chi(chi=chi_center2_deg, chi_width=chi_width_deg, do_avg=False)
+            I_2.name = 'I_chi2'
+            I_2.attrs['chi_center'] = chi_center2_deg
+            I_2.attrs['chi_width'] = chi_width_deg
+            # check for overlap
+            self._checkChiOverlap([I_1, I_2])
 
-                # check for overlap
-                self._checkChiOverlap([I_1, I_2])
+            # Compute Integrals and AR
+            I_1 = I_1.mean('chi', keep_attrs=True)
+            I_2 = I_2.mean('chi', keep_attrs=True)
 
-                # Compute Integrals and AR
-                I_1 = I_1.mean('chi')
-                I_2 = I_2.mean('chi')
-                AR = (I_1 - I_2) / (I_1 + I_2)
+        # else extract 4 wedges
+        else:
+            I_1 = self.slice_chi(chi=chi_center1_deg, chi_width=chi_width_deg, do_avg=False)
+            I_1.name = 'I_chi1'
+            I_1.attrs['chi_center'] = chi_center1_deg
+            I_1.attrs['chi_width'] = chi_width_deg
+            I_2 = self.slice_chi(chi=chi_center2_deg, chi_width=chi_width_deg, do_avg=False)
+            I_2.name = 'I_chi2'
+            I_2.attrs['chi_center'] = chi_center2_deg
+            I_2.attrs['chi_width'] = chi_width_deg
+            I_1r = self.slice_chi(chi=chi_center1r_deg, chi_width=chi_width_deg, do_avg=False)
+            I_1r.name = 'I_chi1reflected'
+            I_1r.attrs['chi_center'] = chi_center1r_deg
+            I_1r.attrs['chi_width'] = chi_width_deg
+            I_2r = self.slice_chi(chi=chi_center2r_deg, chi_width=chi_width_deg, do_avg=False)
+            I_2r.name = 'I_chi2reflected'
+            I_2r.attrs['chi_center'] = chi_center2r_deg
+            I_2r.attrs['chi_width'] = chi_width_deg
 
-                # add to report
-                reportAR += (
-                    f"\tI_1 Total Mean: {I_1.mean():.3f}\n"
-                    f"\tI_2 Total Mean: {I_2.mean():.3f}\n"
-                    f"\tAR Total Mean: {AR.mean():.3f}\n"
-                )
+            # check for overlap
+            self._checkChiOverlap([I_1, I_2, I_1r, I_2r])
 
-            # else extract 4 wedges
-            else:
-                I_1 = self.slice_chi(chi=chi_center1, chi_width=chi_width, do_avg=False)
-                I_1.name = 'I_chir1'
-                I_2 = self.slice_chi(chi=chi_center2, chi_width=chi_width, do_avg=False)
-                I_2.name = 'I_chir2'
-                I_1r = self.slice_chi(chi=chi_center1r, chi_width=chi_width, do_avg=False)
-                I_1r.name = 'I_chi1reflected'
-                I_2r = self.slice_chi(chi=chi_center2r, chi_width=chi_width, do_avg=False)
-                I_2r.name = 'I_chi2reflected'
+            # Compute Integrals and AR
+            I_1 = I_1.mean('chi', keep_attrs=True)
+            I_2 = I_2.mean('chi', keep_attrs=True)
+            I_1r = I_1r.mean('chi', keep_attrs=True)
+            I_2r = I_2r.mean('chi', keep_attrs=True)
 
-                # check for overlap
-                self._checkChiOverlap([I_1, I_2, I_1r, I_2r])
+        # Calculate AR for the simple case (single polarization)
+        if not use_paired_scans:
 
-                # Compute Integrals and AR
-                I_1 = I_1.mean('chi')
-                I_2 = I_2.mean('chi')
-                I_1r = I_1r.mean('chi')
-                I_2r = I_2r.mean('chi')
+            # add components to report
+            reportString += (
+                f"\tI_1 Total Mean: {I_1.mean():.3f}\n" f"\tI_2 Total Mean: {I_2.mean():.3f}\n"
+            )
 
-                AR = (I_1 + I_1r) - (I_2 + I_2r) / ((I_1 + I_1r) + (I_2 + I_2r))
-
-                # add to report
-                reportAR += (
-                    f"\tI_1 Total Mean: {I_1.mean():.3f}\n"
-                    f"\tI_2 Total Mean: {I_2.mean():.3f}\n"
+            # Simple case, all frames are individually constrainted to chi1, chi2
+            if use_reflection == True:
+                # add reflected components to report
+                reportString += (
                     f"\tI_1r Total Mean: {I_1r.mean():.3f}\n"
                     f"\tI_2r Total Mean: {I_2r.mean():.3f}\n"
-                    f"\tAR Total Mean: {AR.mean():.3f}\n"
                 )
 
+                # Merge reflected components
+                I_1 = I_1 + I_1r
+                I_2 = I_2 + I_2r
+
+            # Compute AR
+            AR = (I_1 - I_2) / (I_1 + I_2)
+
+            # add to report
+            reportString += f"\tAR Total Mean: {AR.mean():.3f}\n"
+
             # if report requested
-            if printReport == True:
+            if verbose == True:
                 self._checkAR()
-                print(reportAR)
+                print(reportString)
 
-            return AR
+            # return AR in appropriate format
+            if AR_return_method.lower() == 'average':
+                return AR
+            elif AR_return_method.lower() == 'separate':
+                return (AR,)
+            elif AR_return_method.lower() == 'components':
+                if use_reflection == False:
+                    return dict(I_1=I_1, I_2=I_2)
+                else:
+                    return dict(I_1=I_1, I_2=I_2, I_1r=I_1r, I_2r=I_2r)
 
-        # elif calc2d:
-        #     para_pol = self.select_pol(0)
-        #     perp_pol = self.select_pol(90)
+        # Calculate AR for the case of two polarizations
+        elif use_paired_scans:
 
-        #     para_para = para_pol.rsoxs.slice_chi(0, chi_width=chi_width)
-        #     para_perp = para_pol.rsoxs.slice_chi(-90, chi_width=chi_width)
+            # add components to report
+            f"\tI_1 Total Mean (pol 1 | pol 2): {I_1.isel(polarization=0).mean():.3f}"
+            f" | {I_1.isel(polarization=1).mean():.3f}\n"
+            f"\tI_2 Total Mean (pol 1 | pol 2): {I_2.isel(polarization=0).mean():.3f}"
+            f" | {I_2.isel(polarization=1).mean():.3f}\n"
 
-        #     perp_perp = perp_pol.rsoxs.slice_chi(-90, chi_width=chi_width)
-        #     perp_para = perp_pol.rsoxs.slice_chi(0, chi_width=chi_width)
+            if use_reflection == True:
+                # add reflected components to report
+                reportString += (
+                    f"\tI_1r Total Mean (pol 1 | pol 2): {I_1r.isel(polarization=0).mean():.3f}"
+                    f" | {I_1r.isel(polarization=1).mean():.3f}\n"
+                    f"\tI_2r Total Mean (pol 1 | pol 2): {I_2r.isel(polarization=0).mean():.3f}"
+                    f" | {I_2r.isel(polarization=1).mean():.3f}\n"
+                )
+
+                # Merge reflected components
+                I_1 = I_1 + I_1r
+                I_2 = I_2 + I_2r
+
+            # Compute Anisotropic Ratio (AR)
+            # As before
+            AR1 = ((I_1 - I_2) / (I_1 + I_2)).isel(polarization=0)
+            # More complicated, need to remember that AR is defined with respect to polarization direction
+            # Here I_1 is actually perpendicular to polarization direction
+            AR2 = ((I_2 - I_1) / (I_2 + I_1)).isel(polarization=1)
+
+            # Normalize if requested
+            if paired_normalization_energy is not None:
+                AR1 = AR1 / AR1.sel(energy=paired_normalization_energy, method='nearest')
+                AR2 = AR2 / AR2.sel(energy=paired_normalization_energy, method='nearest')
+
+            if (AR1 < AR2).all() or (AR2 < AR1).all():
+                warnings.warn(
+                    '''One polarization has a systematically higher/lower AR than the other.  
+                    Typically this indicates bad intensity values, or lack of calibration.''',
+                    stacklevel=2,
+                )
+
+            # add to report
+            reportString += (
+                f"\tAR Total Mean (pol 1 | pol 2): {AR1.mean():.3f}" f" | {AR2.mean():.3f}\n"
+            )
+
+            # if report requested
+            if verbose == True:
+                self._checkAR()
+                print(reportString)
+
+            # return AR in appropriate format
+            if AR_return_method.lower() == 'average':
+                return (AR1 + AR2) / 2
+            elif AR_return_method.lower() == 'separate':
+                return (AR1, AR2)
+            elif AR_return_method.lower() == 'components':
+                if use_reflection == False:
+                    return dict(I_1=I_1, I_2=I_2)
+                else:
+                    return dict(I_1=I_1, I_2=I_2, I_1r=I_1r, I_2r=I_2r)
 
         #     AR_para = (para_para - para_perp) / (para_para + para_perp)
         #     AR_perp = (perp_perp - perp_para) / (perp_perp + perp_para)
 
-        #     if calc2d_norm_energy is not None:
-        #         AR_para = AR_para / AR_para.sel(energy=calc2d_norm_energy)
-        #         AR_perp = AR_perp / AR_perp.sel(energy=calc2d_norm_energy)
+        # if paired_normalization_energy is not None:
+        #     AR_para = AR_para / AR_para.sel(energy=calc2d_norm_energy)
+        #     AR_perp = AR_perp / AR_perp.sel(energy=calc2d_norm_energy)
 
         #     if (AR_para < AR_perp).all() or (AR_perp < AR_para).all():
         #         warnings.warn(
@@ -379,7 +476,7 @@ class RSoXS:
         # else:
         #     raise NotImplementedError('Need either a single DataArray or a list of 2 dataarrays')
 
-        print(reportAR)
+        print(reportString)
 
     def collate_AR_stack(sample, energy):
         raise NotImplementedError(
