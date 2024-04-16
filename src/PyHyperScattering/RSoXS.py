@@ -456,28 +456,6 @@ class RSoXS:
                 else:
                     return dict(I_1=I_1, I_2=I_2, I_1r=I_1r, I_2r=I_2r)
 
-        #     AR_para = (para_para - para_perp) / (para_para + para_perp)
-        #     AR_perp = (perp_perp - perp_para) / (perp_perp + perp_para)
-
-        # if paired_normalization_energy is not None:
-        #     AR_para = AR_para / AR_para.sel(energy=calc2d_norm_energy)
-        #     AR_perp = AR_perp / AR_perp.sel(energy=calc2d_norm_energy)
-
-        #     if (AR_para < AR_perp).all() or (AR_perp < AR_para).all():
-        #         warnings.warn(
-        #             'One polarization has a systematically higher/lower AR than the other.  Typically this indicates bad intensity values.',
-        #             stacklevel=2,
-        #         )
-
-        #     if two_AR:
-        #         return (AR_para, AR_perp)
-        #     else:
-        #         return (AR_para + AR_perp) / 2
-        # else:
-        #     raise NotImplementedError('Need either a single DataArray or a list of 2 dataarrays')
-
-        print(reportString)
-
     def collate_AR_stack(sample, energy):
         raise NotImplementedError(
             'This is a stub function. Should return tuple of the two polarizations, but it does not yet.'
