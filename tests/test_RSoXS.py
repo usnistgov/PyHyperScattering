@@ -79,5 +79,5 @@ def aniso_test_data_zero_bkg(OFFSET=0,BACKGROUND=0):
     return aniso
     
 def test_AR_unity(aniso_test_data_zero_bkg):
-    AR = data.rsoxs.AR(aniso_test_data_zero_bkg)
+    AR = aniso_test_data_zero_bkg.rsoxs.AR()
     assert(np.allclose(AR,1,atol=1e-3))
