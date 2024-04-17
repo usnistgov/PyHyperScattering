@@ -1,5 +1,8 @@
 import itertools
 import warnings
+
+from matplotlib import pyplot as plt
+import matplotlib as mpl
 import xarray as xr
 import numpy as np
 import math
@@ -220,7 +223,7 @@ class RSoXS:
             return a tuple (AR1, AR2), if 'components', return a dict containing the integrated
             wedge data, by default 'average'
         verbose : bool, optional
-            if true, runs the checkAR command, plotting wedges, and prints intermediate values,
+            if true, runs the _plot_AR_selection command, and prints intermediate values,
             by default False
 
         Returns
@@ -303,6 +306,18 @@ class RSoXS:
                 stacklevel=2,
             )
 
+        # Plot target areas visually for further confirmation
+        if verbose:
+            self._plot_AR_selection(
+                chi_center1_deg=chi_center1_deg,
+                chi_center2_deg=chi_center2_deg,
+                chi_width_deg=chi_width_deg,
+                use_reflection=use_reflection,
+                infer_chi_from_pol=False,
+                use_paired_scans=use_paired_scans,
+                verbose=False,
+            )
+
         # Compute anisotropy component integrals
         # Note that I1 and I2 corrspond to integrals centered along the chi1 and chi2 directions
         # (decoupled from para, perp formalism)
@@ -369,18 +384,17 @@ class RSoXS:
                 )
 
                 # Merge reflected components
-                I_1 = I_1 + I_1r
-                I_2 = I_2 + I_2r
+                I_1c = I_1 + I_1r
+                I_2c = I_2 + I_2r
 
             # Compute AR
-            AR = (I_1 - I_2) / (I_1 + I_2)
+            AR = (I_1c - I_2c) / (I_1c + I_2c)
 
             # add to report
             reportString += f"\tAR Total Mean: {AR.mean():.3f}\n"
 
             # if report requested
             if verbose == True:
-                self._checkAR()
                 print(reportString)
 
             # return AR in appropriate format
@@ -398,10 +412,12 @@ class RSoXS:
         elif use_paired_scans:
 
             # add components to report
-            f"\tI_1 Total Mean (pol 1 | pol 2): {I_1.isel(polarization=0).mean():.3f}"
-            f" | {I_1.isel(polarization=1).mean():.3f}\n"
-            f"\tI_2 Total Mean (pol 1 | pol 2): {I_2.isel(polarization=0).mean():.3f}"
-            f" | {I_2.isel(polarization=1).mean():.3f}\n"
+            reportString += (
+                f"\tI_1 Total Mean (pol 1 | pol 2): {I_1.isel(polarization=0).mean():.3f}"
+                f" | {I_1.isel(polarization=1).mean():.3f}\n"
+                f"\tI_2 Total Mean (pol 1 | pol 2): {I_2.isel(polarization=0).mean():.3f}"
+                f" | {I_2.isel(polarization=1).mean():.3f}\n"
+            )
 
             if use_reflection == True:
                 # add reflected components to report
@@ -413,15 +429,15 @@ class RSoXS:
                 )
 
                 # Merge reflected components
-                I_1 = I_1 + I_1r
-                I_2 = I_2 + I_2r
+                I_1c = I_1 + I_1r
+                I_2c = I_2 + I_2r
 
             # Compute Anisotropic Ratio (AR)
             # As before
-            AR1 = ((I_1 - I_2) / (I_1 + I_2)).isel(polarization=0)
+            AR1 = ((I_1c - I_2c) / (I_1c + I_2c)).isel(polarization=0)
             # More complicated, need to remember that AR is defined with respect to polarization direction
             # Here I_1 is actually perpendicular to polarization direction
-            AR2 = ((I_2 - I_1) / (I_2 + I_1)).isel(polarization=1)
+            AR2 = ((I_2c - I_1c) / (I_2c + I_1c)).isel(polarization=1)
 
             # Normalize if requested
             if paired_normalization_energy is not None:
@@ -442,7 +458,6 @@ class RSoXS:
 
             # if report requested
             if verbose == True:
-                self._checkAR()
                 print(reportString)
 
             # return AR in appropriate format
@@ -523,13 +538,378 @@ class RSoXS:
                     (
                         f"Caution: {len(overlapping_values)} "
                         f"overlapping chi values found between {array1.name} and {array2.name}, "
-                        f"you may wish to run checkAr() for more details"
+                        f"you may wish to run _plot_AR_selection() for more details"
                     ),
                     stacklevel=2,
                 )
 
-    def _checkAR(self):
-        pass
+    def _plot_AR_selection(
+        self,
+        chi_center1_deg: Union[int, float],
+        chi_center2_deg: Union[int, float],
+        chi_width_deg: Union[int, float],
+        use_reflection: bool,
+        infer_chi_from_pol: bool,
+        use_paired_scans: bool,
+        energy_to_plot: Union[int, float] = None,
+        colorscale: str = 'viridis',
+        vmin: Union[int, float] = None,
+        vmax: Union[int, float] = None,
+        verbose: bool = True,
+    ):
+        '''Returns a q vs chi plot of the data at the target energy with areas of interest for
+        AR calculation indicated
+
+        See the AR() command for description of internal logic
+
+        Parameters
+        ----------
+        chi_center1_deg : Union[int, float], optional
+            Center (in degrees chi) of the first chi wedge to integrate, defaults to 0 unless
+            infer_ChiFromPol is True
+        chi_center2_deg : Union[int, float], optional
+            Center (in degrees chi) of the second chi wedge to integrate, defaults to
+            (chi_center1 + 90) unless two scans are provided and infer_ChiFromPol is True
+        chi_width_deg : Union[int, float], optional
+            width of slice in each direction in deg, by default 45
+        use_reflection : bool, optional
+            if true, also integrate chi wedges centered 180 degrees from the chi_centers,
+            by default False
+        infer_chi_from_pol : bool, optional
+            if true, and if data contains a polarization dim, sets chi1 = pol1, chi2 = pol2,
+            by default False
+        use_paired_scans : bool, optional
+            if true, calculate the AR using scans at two polarizations, by default False
+        energy_to_plot : Union[int,float], optional
+            energy to plot the data at
+        colorscale : str, optional
+            colorscale for the plot, by default 'viridis'
+        vmin : Union[int,float], optional
+            minimum colorscale value, by default the 1st percentile of the positive data range
+        vmax : Union[int,float], optional
+            maximum colorscale value, by default 10x the 99th percentile value
+        verbose: bool = True,
+            if true, print report text
+        '''
+        # Determine chi values
+        # Build Report for diagnosing AR quality
+        reportString = "Checking AR Calculation Parameters:\n"
+
+        # Determine wedge centers criteria
+
+        # User wants to infer chi centers from beam polarization metadata
+        if infer_chi_from_pol == True:
+
+            # Make sure the user didnt provide chi1 and chi2 already
+            if chi_center1_deg is not None:
+                raise ValueError(
+                    "infer_ChiFromPol must be False if you provide chi values manually"
+                )
+
+            # If we have polarization as a data dimensions
+            if 'polarization' in self._obj.dims:
+                # get polarization values
+                num_pol_vals = self._obj.coords['polarization'].values.tolist()
+                # if we have 1, save as as chi1,
+                if len(num_pol_vals) == 1:
+                    chi_center1_deg = num_pol_vals[0]
+                # if two save as chi1 and chi2
+                elif len(num_pol_vals) == 2:
+                    chi_center1_deg = num_pol_vals[0]
+                    chi_center2_deg = num_pol_vals[1]
+                # Else raise error
+                else:
+                    raise NotImplementedError(
+                        f'Can only infer if 1 or 2 polarization values are provided, found {len(num_pol_vals)} values'
+                    )
+            # Error if we don't have polarization as a data dimensions
+            else:
+                raise NotImplementedError(
+                    'Cannot infer chi unless polarization values are provided as data dimensions'
+                )
+
+        # Hardcode default values/relationships between chi1 and chi2
+        # If no info provided, default chi_1 to 0
+        if chi_center1_deg is None:
+            chi_center1_deg = 0
+        # Make sure it fits in the valid range
+        else:
+            chi_center1_deg = self._reRange_chi(chi_center1_deg)
+
+        # If no info provided, chi_2 is chi_1 - 90
+        if chi_center2_deg is None:
+            chi_center2_deg = self._reRange_chi(chi_center1_deg + 90)
+
+        # Add to report
+        reportString += f"\tchi_width = {chi_width_deg} deg\n"
+        reportString += (
+            f"\tchi_center1 = {chi_center1_deg:.3f} deg, chi_center2 = {chi_center2_deg:.3f} deg\n"
+        )
+
+        # If the user wants to use reflected wedges
+        if use_reflection == True:
+            chi_center1r_deg = self._reRange_chi(chi_center1_deg + 180)
+            chi_center2r_deg = self._reRange_chi(chi_center2_deg + 180)
+            reportString += f"\tchi_center1r = {chi_center1r_deg:.3f} deg, chi_center2r = {chi_center2r_deg:.3f} deg\n"
+
+        # Warn the user if the wedges are not perpendicular +- 2 deg
+        # Calculate the absolute circular difference between chi_center1 and chi_center2
+        chi_center_difference = min(
+            (chi_center1_deg - chi_center2_deg) % 360, (chi_center2_deg - chi_center1_deg) % 360
+        )
+        max_allowed_difference = 2  # deg
+        # Check if the absolute circular difference is within the specified range
+        if not (
+            (90 - max_allowed_difference) <= chi_center_difference <= (90 + max_allowed_difference)
+        ):
+            warnings.warn(
+                "The difference between chi_center1 and chi_center2 is not within 90 ± 2 degrees.",
+                stacklevel=2,
+            )
+
+        # extract 2 wedges to determine I_1, I_2
+        if use_reflection == False:
+            I_1 = self.slice_chi(chi=chi_center1_deg, chi_width=chi_width_deg, do_avg=False)
+            I_1.name = 'I_chi1'
+            I_1.attrs['chi_center'] = chi_center1_deg
+            I_1.attrs['chi_width'] = chi_width_deg
+            I_2 = self.slice_chi(chi=chi_center2_deg, chi_width=chi_width_deg, do_avg=False)
+            I_2.name = 'I_chi2'
+            I_2.attrs['chi_center'] = chi_center2_deg
+            I_2.attrs['chi_width'] = chi_width_deg
+            # check for overlap
+            self._checkChiOverlap([I_1, I_2])
+
+        # else extract 4 wedges
+        else:
+            I_1 = self.slice_chi(chi=chi_center1_deg, chi_width=chi_width_deg, do_avg=False)
+            I_1.name = 'I_chi1'
+            I_1.attrs['chi_center'] = chi_center1_deg
+            I_1.attrs['chi_width'] = chi_width_deg
+            I_2 = self.slice_chi(chi=chi_center2_deg, chi_width=chi_width_deg, do_avg=False)
+            I_2.name = 'I_chi2'
+            I_2.attrs['chi_center'] = chi_center2_deg
+            I_2.attrs['chi_width'] = chi_width_deg
+            I_1r = self.slice_chi(chi=chi_center1r_deg, chi_width=chi_width_deg, do_avg=False)
+            I_1r.name = 'I_chi1reflected'
+            I_1r.attrs['chi_center'] = chi_center1r_deg
+            I_1r.attrs['chi_width'] = chi_width_deg
+            I_2r = self.slice_chi(chi=chi_center2r_deg, chi_width=chi_width_deg, do_avg=False)
+            I_2r.name = 'I_chi2reflected'
+            I_2r.attrs['chi_center'] = chi_center2r_deg
+            I_2r.attrs['chi_width'] = chi_width_deg
+
+            # check for overlap
+            self._checkChiOverlap([I_1, I_2, I_1r, I_2r])
+
+        # Generate plots
+
+        # Single Plot
+        if use_paired_scans == False:
+
+            # Take first polarization, if multiple available
+            if 'polarization' in self._obj.dims:
+                data = self._obj.isel(polarization=0)
+            else:
+                data = self._obj
+
+            # Determine Energy
+            if energy_to_plot is None:
+                # Average the data over all dimensions except 'energy'
+                mean_data = data.mean(dim=[dim for dim in data.dims if dim != 'energy'])
+                # Find the energy value with the highest average data value
+                energy_to_plot = mean_data.idxmax(dim='energy').values
+
+            # Determine colorlims
+            if vmin is None:
+                flatVals = data.values.flatten()
+                vmin = np.nanpercentile(flatVals[flatVals > 0], 1)  # 1st percentile
+            if vmax is None:
+                vmax = np.nanpercentile(data, 99) * 10  # 99th percentile * 10
+
+            # Plot
+            data.sel(energy=energy_to_plot, method='nearest').plot(
+                vmin=vmin,
+                vmax=vmax,
+                cmap=colorscale,
+                norm=mpl.colors.LogNorm(vmin=vmin, vmax=vmax),
+            )
+            # Set the title
+            plt.title(f'{energy_to_plot:.2f} eV')
+
+            # Grab Figure and axes
+            fig = plt.gcf()
+            ax = plt.gca()
+            axs = [ax]
+        # Two Plots
+        else:
+
+            # grab data
+            data = self._obj
+
+            # Determine Energy
+            if energy_to_plot is None:
+                # Average the data over all dimensions except 'energy'
+                mean_data = data.mean(dim=[dim for dim in data.dims if dim != 'energy'])
+                # Find the energy value with the highest average data value
+                energy_to_plot = mean_data.idxmax(dim='energy').values
+
+            # Determine colorlims
+            if vmin is None:
+                flatVals = data.values.flatten()
+                vmin = np.nanpercentile(flatVals[flatVals > 0], 1)  # 1st percentile
+            if vmax is None:
+                vmax = np.nanpercentile(data, 99) * 10  # 99th percentile * 10
+
+            # Plot both plots side by side
+
+            # Create a figure and two subplots side by side
+            fig, axs = plt.subplots(1, 2, figsize=(12, 6))
+
+            # Plot for polarization 0
+            data.isel(polarization=0).sel(energy=energy_to_plot, method='nearest').plot(
+                vmin=vmin,
+                vmax=vmax,
+                cmap=colorscale,
+                norm=mpl.colors.LogNorm(vmin=vmin, vmax=vmax),
+                ax=axs[0],  # Specify the first subplot
+            )
+            pol1 = data['polarization'].values[0]
+            axs[0].set_title(
+                f'{energy_to_plot:.2f} eV | Polarization {pol1:.2f} deg'
+            )  # Set title for the first subplot
+
+            # Plot for polarization 1
+            data.isel(polarization=1).sel(energy=energy_to_plot, method='nearest').plot(
+                vmin=vmin,
+                vmax=vmax,
+                cmap=colorscale,
+                norm=mpl.colors.LogNorm(vmin=vmin, vmax=vmax),
+                ax=axs[1],  # Specify the second subplot
+            )
+            pol2 = data['polarization'].values[1]
+            axs[1].set_title(
+                f'{energy_to_plot:.2f} eV | Polarization {pol2:.2f} deg'
+            )  # Set title for the first subplot
+
+        # Paint Component Annotations
+
+        # Get q limits
+        qMin = 0 + 0.005
+        qMax = float(data['q'].max()) - 0.005
+
+        # Paint Lines indicating integration components
+        # set transparency
+        alpha = 0.5
+
+        # I1, I2
+        for ax in axs:
+            # Add colored lines
+            ax.scatter(
+                [qMax] * len(I_1['chi'].values),
+                I_1['chi'].values,
+                color='red',
+                alpha=alpha,
+                marker='s',
+                label='I1',
+            )
+            ax.scatter(
+                [qMax] * len(I_2['chi'].values),
+                I_2['chi'].values,
+                color='darkviolet',
+                alpha=alpha,
+                marker='s',
+                label='I2',
+            )
+            ax.scatter(
+                [qMin] * len(I_1['chi'].values),
+                I_1['chi'].values,
+                color='red',
+                alpha=alpha,
+                marker='s',
+            )
+            ax.scatter(
+                [qMin] * len(I_2['chi'].values),
+                I_2['chi'].values,
+                color='darkviolet',
+                alpha=alpha,
+                marker='s',
+            )
+
+        # Paint I1r,I2r
+        if use_reflection == True:
+            # I1, I2
+            for ax in axs:
+                # Add colored lines
+                ax.scatter(
+                    [qMax] * len(I_1r['chi'].values),
+                    I_1r['chi'].values,
+                    color='orange',
+                    alpha=alpha,
+                    marker='s',
+                    label='I1r',
+                )
+                ax.scatter(
+                    [qMax] * len(I_2r['chi'].values),
+                    I_2r['chi'].values,
+                    color='orchid',
+                    alpha=alpha,
+                    marker='s',
+                    label='I2r',
+                )
+                ax.scatter(
+                    [qMin] * len(I_1r['chi'].values),
+                    I_1r['chi'].values,
+                    color='orange',
+                    alpha=alpha,
+                    marker='s',
+                )
+                ax.scatter(
+                    [qMin] * len(I_2r['chi'].values),
+                    I_2r['chi'].values,
+                    color='orchid',
+                    alpha=alpha,
+                    marker='s',
+                )
+
+        # Add legend
+        # Get the handles and labels from the first subplot
+        handles, labels = axs[0].get_legend_handles_labels()
+
+        # Adjust legend properties
+        for ax in axs:
+            ax.legend(
+                loc='upper center',
+                bbox_to_anchor=(0.5, -0.1),
+                fontsize='large',
+                ncol=4,
+            )
+        # legend = axs[0].legend(
+        #     loc='upper center',
+        #     bbox_to_anchor=(0.5, -0.1),
+        #     fontsize='large',
+        #     ncol=4,
+        # )
+
+        # legend2 = axs[1].legend(
+        #     loc='upper center',
+        #     bbox_to_anchor=(0.5, -0.1),
+        #     fontsize='large',
+        #     ncol=4,
+        # )
+
+        # Adjust layout
+        plt.tight_layout()
+
+        # Show the plot
+        plt.show()
+        # Print report
+        if verbose:
+            print(reportString)
+
+        # Compute anisotropy component integrals
+        # Note that I1 and I2 corrspond to integrals centered along the chi1 and chi2 directions
+        # (decoupled from para, perp formalism)
 
 
 '''
