@@ -117,6 +117,8 @@ class SST1RSoXSDB:
         self.exposure_offset = exposure_offset
         self.use_precise_positions = use_precise_positions
         self.suppress_time_dimension = suppress_time_dimension
+        self.catalog_df = None
+        self.catalog_df_kwargs = None
 
     # def loadFileSeries(self,basepath):
     #     try:
@@ -161,6 +163,85 @@ class SST1RSoXSDB:
             stacklevel=2,
         )
         return self.searchCatalog(*args, **kwargs)
+
+    def browseCatalog(self,force_refresh = False,**kwargs):
+        """
+        Browse the catalog.
+
+        Args:
+            **kwargs: passed through to searchCatalog, and bounds the set of runs fetched/displayed.
+
+        Returns:
+            result (obj): an ipyaggrid instance to browse the catalog.
+
+        """
+        from ipyaggrid import Grid
+        if self.catalog_df is None or self.catalog_df_kwargs != kwargs or force_refresh:
+            self.catalog_df = self.searchCatalog(**kwargs)
+            self.catalog_df_kwargs = kwargs
+        else:
+            print(f'Not updating stored dataframe with kwargs {kwargs}')
+        column_names = []
+        
+        pretty_names = {
+            "scan_id": "Scan ID",
+            "start_time": "Start Time",
+            "cycle": "Cycle",
+            "institution": "Institution",
+            "project": "Project",
+            "sample_name": "Sample Name",
+            "sample_id": "Sample ID",
+            "plan": "Plan Name",
+            "detector": "Detector",
+            "polarization": "Polarization",
+            "exit_status": "Exit Status",
+            "num_Images": "# Imgs/Pts",
+        }
+        additional_options = {
+            "scan_id": {"width": 150, "sortable": True, "sort": "desc", "lockPosition": "left"},
+            "institution": {"width": 125},
+            "project": {"width": 125},
+            "cycle": {"width": 125},
+            "exit_status": {"width": 125},
+            "num_Images": {"width": 125},
+            "plan": {"filter":"agMultiColumnFilter","filters":['textFilter','setFilter']},
+            "project": {"filter":"agMultiColumnFilter","filters":['textFilter','setFilter']},
+            "sample_name":{"filter":"agMultiColumnFilter","filters":['textFilter','setFilter']},
+                        }
+
+        for field in self.catalog_df.columns:
+            col_config =  {'field': field}
+            if field in pretty_names:
+                col_config['headerName'] = pretty_names[field]
+            if field in additional_options:
+                col_config.update(additional_options[field])
+            column_names.append(col_config)
+
+
+        grid = Grid(
+            grid_data=self.catalog_df,
+            grid_options={
+                "columnDefs": column_names,
+                "enableSorting": True,
+                "enableFilter": True,
+                "enableColResize": True,
+                "enableRangeSelection": True,
+                "rowSelection": "multiple",
+#                "pagination": True,
+#                "paginationPageSize": 100,
+                'defaultColDef':
+                {'sortable':True,
+                'resizable':True,
+                'floatingFilter':True,},
+                'autoSizeStrategy': {'type':'fitCellContents'},
+
+            },
+            quick_filter=True,
+            theme="ag-theme-bootstrap",
+        )
+
+
+        return grid
 
     def searchCatalog(
         self,
@@ -288,7 +369,7 @@ class SST1RSoXSDB:
             df_SearchDet.iterrows(), total=df_SearchDet.shape[0], desc="Running catalog search..."
         ):
             # Skip arguments with value None, and quits if the catalog was reduced to 0 elements
-            if (searchSeries[1] is not None) and (len(reducedCatalog) > 0):
+            if (searchSeries.iloc[1] is not None) and (len(reducedCatalog) > 0):
                 # For numeric entries, do Key equality
                 if "numeric" in str(searchSeries.iloc[2]):
                     reducedCatalog = reducedCatalog.search(
