@@ -551,6 +551,103 @@ class SST1RSoXSDB:
                 )
             return pd.DataFrame(outputList, columns=activeOutputLabels)
 
+
+    def findAppropriateDiodes(self,run_to_find,cat_diodes=None, diode_name='diode', same_cycle=True,time_cutoff_days = 3.0):
+        '''
+        Finds appropriate diode scans for a given run.
+        "Appropriate" scans are somewhat controlled by the kwargs to this function, but in general:
+            - same detector
+            - same cycle
+            - same edge
+            - within 3 days of the run
+
+        Args:
+            run_to_find (pd.DataFrame): a dataframe with a single row of the run you are trying to find a diode for.
+            cat_diodes (pd.DataFrame): a dataframe of diode scans to search through.  If None, will search the catalog for diode scans.
+            diode_name (str): the sample_name of the diode to use in search.  Default is 'diode'.
+            same_cycle (bool): if True, only searches for diodes in the same cycle as the run_to_find.
+            time_cutoff_days (float): the maximum time difference between the run and the diode scan to be considered "relevant".
+        Returns:
+            pd.DataFrame: a dataframe of relevant diode scans, ordered by distance in time from your run.  
+            Will warn if the closest diode is more than 1 day away.
+            To get *a* singular "best diode", just take the first row of the returned dataframe, i.e,:
+                best_diode = findAppropriateDiodes(run_to_find,cat_diodes,diode_name,same_cycle,time_cutoff_days).iloc[0]
+                
+
+
+        '''
+        import pandas as pd
+        import warnings
+        pd.options.mode.copy_on_write = True 
+        time_cutoff = pd.Timedelta(3,'day')
+
+        if cat_diodes is None:
+            kwargs = {'sample':diode_name}
+            if same_cycle:
+                kwargs['cycle'] = run_to_find['cycle'].iloc[0]
+            cat_diodes = self.searchCatalog(**kwargs)
+        
+        def _plan_to_edge_name(cat_diodes):
+            cat_diodes['edge_name'] = cat_diodes['plan'].str.replace('nexafs','')
+            cat_diodes['edge_name'] = cat_diodes['edge_name'].str.replace('rsoxs','')
+            cat_diodes['edge_name'] = cat_diodes['edge_name'].str.replace('full','')
+            cat_diodes['edge_name'] = cat_diodes['edge_name'].str.replace('short','')
+            cat_diodes['edge_name'] = cat_diodes['edge_name'].str.replace('very','')
+            cat_diodes['edge_name'] = cat_diodes['edge_name'].str.replace('scan','')
+            cat_diodes['edge_name'] = cat_diodes['edge_name'].str.replace('nd','')
+            cat_diodes['edge_name'] = cat_diodes['edge_name'].str.replace('_','')
+            
+            # expand short edge abbreviations
+            try:
+                from rsoxs_scans.defaults import edge_names
+            except ImportError:
+                edge_names = {
+                            "c": "carbon",
+                            "carbon": "carbon",
+                            "carbonk": "carbon",
+                            "ck": "carbon",
+                            "n": "nitrogen",
+                            "nitrogen": "nitrogen",
+                            "nitrogenk": "nitrogen",
+                            "nk": "nitrogen",
+                            "f": "fluorine",
+                            "fluorine": "fluorine",
+                            "fluorinek": "fluorine",
+                            "fk": "fluorine",
+                            "o": "oxygen",
+                            "oxygen": "oxygen",
+                            "oxygenk": "oxygen",
+                            "ok": "oxygen",
+                            "ca": "calcium",
+                            "calcium": "calcium",
+                            "calciumk": "calcium",
+                            "cak": "calcium",
+                            'al': 'aluminium',
+                            'aluminum': 'aluminium',
+                        }   
+            for k,v in edge_names.items():
+                cat_diodes['edge_name'] = cat_diodes['edge_name'].replace(k,v) 
+            return cat_diodes
+        
+        run_to_find = _plan_to_edge_name(run_to_find)
+        cat_diodes['time_proximity'] = cat_diodes['start_time'] - run_to_find['start_time'].iloc[0]
+        cat_diodes['abs_time_proximity'] = np.abs(cat_diodes['start_time'] - run_to_find['start_time'].iloc[0])
+        cat_diodes['same_scan'] = cat_diodes['plan'] == run_to_find['plan'].iloc[0]
+        cat_diodes['same_detector'] = cat_diodes['detector'] == run_to_find['detector'].iloc[0]
+        cat_diodes['is_older'] = cat_diodes['time_proximity'] < pd.Timedelta(0)
+        cat_diodes = _plan_to_edge_name(cat_diodes)
+        cat_diodes['same_edge'] = cat_diodes['edge_name'] == run_to_find['edge_name'].iloc[0]
+        
+        relevant_diodes = cat_diodes[cat_diodes.same_edge]
+        relevant_diodes = relevant_diodes[relevant_diodes.same_detector]
+        relevant_diodes = relevant_diodes[relevant_diodes.abs_time_proximity < time_cutoff]
+        relevant_diodes = relevant_diodes.sort_values(by='abs_time_proximity')
+        
+        if (relevant_diodes['abs_time_proximity'].min()) > pd.Timedelta(1,unit='day'):
+            warnings.warn(f"Stale diode!  The closest relevant diode scan to the requested scan is {relevant_diodes['abs_time_proximity'].min()} from the measurement.")
+        return relevant_diodes
+    
+
     def background(f):
         def wrapped(*args, **kwargs):
             return asyncio.get_event_loop().run_in_executor(None, f, *args, **kwargs)
