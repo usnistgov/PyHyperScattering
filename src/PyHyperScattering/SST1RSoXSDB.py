@@ -562,7 +562,8 @@ class SST1RSoXSDB:
             - within 3 days of the run
 
         Args:
-            run_to_find (pd.DataFrame): a dataframe with a single row of the run you are trying to find a diode for.
+            run_to_find (pd.DataFrame or numeric): a dataframe with a single row of the run you are trying to find a diode for, or the scan_id
+                        (if scan_id it will be loaded using searchCatalog)
             cat_diodes (pd.DataFrame): a dataframe of diode scans to search through.  If None, will search the catalog for diode scans.
             diode_name (str): the sample_name of the diode to use in search.  Default is 'diode'.
             same_cycle (bool): if True, only searches for diodes in the same cycle as the run_to_find.
@@ -572,7 +573,7 @@ class SST1RSoXSDB:
             Will warn if the closest diode is more than 1 day away.
             To get *a* singular "best diode", just take the first row of the returned dataframe, i.e,:
                 best_diode = findAppropriateDiodes(run_to_find,cat_diodes,diode_name,same_cycle,time_cutoff_days).iloc[0]
-                
+
 
 
         '''
@@ -580,6 +581,9 @@ class SST1RSoXSDB:
         import warnings
         pd.options.mode.copy_on_write = True 
         time_cutoff = pd.Timedelta(3,'day')
+
+        if not isinstance(run_to_find,pd.DataFrame):
+            run_to_find = self.searchCatalog(scan_id=run_to_find)
 
         if cat_diodes is None:
             kwargs = {'sample':diode_name}
