@@ -255,6 +255,7 @@ class SST1RSoXSDB:
         sample: str = None,
         sampleID: str = None,
         plan: str = None,
+        scan_id: int = None,
         userOutputs: list = [],
         debugWarnings: bool = False,
         **kwargs,
@@ -337,6 +338,7 @@ class SST1RSoXSDB:
             ["sample_name", sample, "case-insensitive"],
             ["sample_id", sampleID, "case-insensitive"],
             ["plan_name", plan, "case-insensitive"],
+            ["scan_id", scan_id, "numeric"],
         ]
 
         # Pull any user-provided search terms
@@ -358,22 +360,20 @@ class SST1RSoXSDB:
         # combine the lists of lists
         fullSearchList = defaultSearchDetails + userSearchList
 
-        df_SearchDet = pd.DataFrame(
-            fullSearchList, columns=["Metadata field:", "User input:", "Search scheme:"]
-        )
+        # df_SearchDet = pd.DataFrame(
+        #     fullSearchList, columns=["Metadata field:", "User input:", "Search scheme:"]
+        # )
 
         # Iterate through search terms sequentially, reducing the size of the catalog based on successful matches
 
         reducedCatalog = bsCatalog
-        for _, searchSeries in tqdm(
-            df_SearchDet.iterrows(), total=df_SearchDet.shape[0], desc="Running catalog search..."
-        ):
+        for searchSeries in fullSearchList:
             # Skip arguments with value None, and quits if the catalog was reduced to 0 elements
-            if (searchSeries.iloc[1] is not None) and (len(reducedCatalog) > 0):
+            if (searchSeries[1] is not None) and (len(reducedCatalog) > 0):
                 # For numeric entries, do Key equality
-                if "numeric" in str(searchSeries.iloc[2]):
+                if "numeric" in str(searchSeries[2]):
                     reducedCatalog = reducedCatalog.search(
-                        Key(searchSeries.iloc[0]) == float(searchSeries.iloc[1])
+                        Key(searchSeries[0]) == float(searchSeries[1])
                     )
 
                 else:  # Build regex search string
@@ -383,16 +383,16 @@ class SST1RSoXSDB:
                     # Regex cheatsheet:
                     # (?i) is case insensitive
                     # ^_$ forces exact match to _, ^ anchors the start, $ anchors the end
-                    if "case-insensitive" in str(searchSeries.iloc[2]):
+                    if "case-insensitive" in str(searchSeries[2]):
                         reg_prefix += "(?i)"
-                    if "exact" in searchSeries.iloc[2]:
+                    if "exact" in searchSeries[2]:
                         reg_prefix += "^"
                         reg_postfix += "$"
 
-                    regexString = reg_prefix + str(searchSeries.iloc[1]) + reg_postfix
+                    regexString = reg_prefix + str(searchSeries[1]) + reg_postfix
 
                     # Search/reduce the catalog
-                    reducedCatalog = reducedCatalog.search(Regex(searchSeries.iloc[0], regexString))
+                    reducedCatalog = reducedCatalog.search(Regex(searchSeries[0], regexString))
 
                 # If a match fails, notify the user which search parameter yielded 0 results
                 if len(reducedCatalog) == 0:
