@@ -682,6 +682,44 @@ come from external data.</p>
 <dd></dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="PyHyperScattering.load.SST1RSoXSDB.findAppropriateDiodes">
+<span class="sig-name descname"><span class="pre">findAppropriateDiodes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">run_to_find</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cat_diodes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">diode_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'diode'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">same_cycle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_cutoff_days</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.load.SST1RSoXSDB.findAppropriateDiodes" title="Permalink to this definition">#</a></dt>
+<dd><p>Finds appropriate diode scans for a given run.
+“Appropriate” scans are somewhat controlled by the kwargs to this function, but in general:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>same detector</p></li>
+<li><p>same cycle</p></li>
+<li><p>same edge</p></li>
+<li><p>within 3 days of the run</p></li>
+</ul>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>run_to_find</strong> (<em>pd.DataFrame</em>) – a dataframe with a single row of the run you are trying to find a diode for.</p></li>
+<li><p><strong>cat_diodes</strong> (<em>pd.DataFrame</em>) – a dataframe of diode scans to search through.  If None, will search the catalog for diode scans.</p></li>
+<li><p><strong>diode_name</strong> (<em>str</em>) – the sample_name of the diode to use in search.  Default is ‘diode’.</p></li>
+<li><p><strong>same_cycle</strong> (<em>bool</em>) – if True, only searches for diodes in the same cycle as the run_to_find.</p></li>
+<li><p><strong>time_cutoff_days</strong> (<em>float</em>) – the maximum time difference between the run and the diode scan to be considered “relevant”.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>a dataframe of relevant diode scans, ordered by distance in time from your run.
+Will warn if the closest diode is more than 1 day away.
+To get <em>a</em> singular “best diode”, just take the first row of the returned dataframe, i.e,:</p>
+<blockquote>
+<div><p>best_diode = findAppropriateDiodes(run_to_find,cat_diodes,diode_name,same_cycle,time_cutoff_days).iloc[0]</p>
+</div></blockquote>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="PyHyperScattering.load.SST1RSoXSDB.loadMd">
 <span class="sig-name descname"><span class="pre">loadMd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">run</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.load.SST1RSoXSDB.loadMd" title="Permalink to this definition">#</a></dt>
 <dd><p>return a dict of metadata entries from the databroker run xarray</p>
@@ -1344,6 +1382,7 @@ pixsizey: pixel size in y, microns</p>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSDB.browseCatalog"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSDB.browseCatalog()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSDB.do_list_append"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSDB.do_list_append()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSDB.file_ext"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSDB.file_ext</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSDB.findAppropriateDiodes"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSDB.findAppropriateDiodes()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSDB.loadMd"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSDB.loadMd()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSDB.loadMonitors"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSDB.loadMonitors()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSDB.loadRun"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSDB.loadRun()</span></code></a></li>
