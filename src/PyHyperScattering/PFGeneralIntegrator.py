@@ -285,7 +285,7 @@ class PFGeneralIntegrator():
         elif maskmethod == 'image':
             self.loadImageMask(**kwargs)
         elif maskmethod == 'pyhyper':
-            self.loadPyHyperSavedMask(**kwargs)
+            self.loadPyHyperMask(**kwargs)
         elif maskmethod == 'edf':
             self.loadEdfMask(filetoload=maskpath)
         elif maskmethod == 'none':
