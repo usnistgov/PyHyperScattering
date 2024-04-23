@@ -505,7 +505,7 @@ class PFGeneralIntegrator():
             raw_xr (raw format xarray): optional, raw xr with correct pixel dimensions 
                                         for creating an empty mask if necessary
         '''
-        ponifile = PoniFile(data=ponifile)
+        ponifile = PoniFile(data=str(ponifile))
         self.dist = ponifile._dist
         self.poni1 = ponifile._poni1
         self.poni2 = ponifile._poni2
