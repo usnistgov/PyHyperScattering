@@ -492,7 +492,7 @@ class PFGeneralIntegrator():
             warnings.warn(f'Since mask was none, creating an empty mask with shape {self.mask.shape}',stacklevel=2)
         self.recreateIntegrator()
 
-def calibrationFromPoniFile(self, ponifile):
+    def calibrationFromPoniFile(self, ponifile):
 
         '''
         Sets calibration from a pyFAI poni-file
