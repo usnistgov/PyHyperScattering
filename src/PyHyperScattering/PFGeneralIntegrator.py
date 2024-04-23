@@ -1,5 +1,6 @@
 from pyFAI import azimuthalIntegrator
 from pyFAI.units import eq_q, formula_q, register_radial_unit
+from pyFAI.io.ponifile import PoniFile
 import h5py
 import warnings
 import xarray as xr
@@ -285,7 +286,7 @@ class PFGeneralIntegrator():
             self.loadImageMask(**kwargs)
         elif maskmethod == 'pyhyper':
             self.loadPyHyperSavedMask(**kwargs)
-        elif maskmathod == 'edf':
+        elif maskmethod == 'edf':
             self.loadEdfMask(filetoload=maskpath)
         elif maskmethod == 'none':
             self.mask = None
@@ -467,6 +468,7 @@ class PFGeneralIntegrator():
                 pyhyper_shape.append([xval,yval])
             pyhyperlist.append(pyhyper_shape)
         self.loadPolyMask(maskpoints=pyhyperlist,**kwargs)
+
     def calibrationFromTemplateXRParams(self, raw_xr):
 
         '''
@@ -492,15 +494,17 @@ class PFGeneralIntegrator():
             warnings.warn(f'Since mask was none, creating an empty mask with shape {self.mask.shape}',stacklevel=2)
         self.recreateIntegrator()
 
-    def calibrationFromPoniFile(self, ponifile):
+    def calibrationFromPoniFile(self, ponifile, raw_xr=None):
 
         '''
         Sets calibration from a pyFAI poni-file
 
         Args:
             ponifile (str or Pathlib.path): a pyFAI poni file containing the geometry
+            raw_xr (raw format xarray): optional, raw xr with correct pixel dimensions 
+                                        for creating an empty mask if necessary
         '''
-        ponifile = pyFAI.io.PoniFile(data=ponifile)
+        ponifile = PoniFile(data=ponifile)
         self.dist = ponifile._dist
         self.poni1 = ponifile._poni1
         self.poni2 = ponifile._poni2
@@ -512,7 +516,7 @@ class PFGeneralIntegrator():
         self.pixel1 = ponifile.detector.pixel1
         self.pixel2 = ponifile.detector.pixel2
         
-        if self.mask is None:
+        if not self.mask and not raw_xr:  # if both are None
             self.mask = np.zeros((len(raw_xr.pix_y),len(raw_xr.pix_x)))
             warnings.warn(f'Since mask was none, creating an empty mask with shape {self.mask.shape}',stacklevel=2)
         self.recreateIntegrator()

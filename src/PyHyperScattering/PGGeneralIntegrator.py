@@ -13,6 +13,8 @@ import pygix  # type: ignore
 import pathlib
 from typing import Union, Tuple
 from tqdm.auto import tqdm 
+import warnings
+from PyHyperScattering.PFGeneralIntegrator import PFGeneralIntegrator
 
 class PGGeneralIntegrator(PFGeneralIntegrator):
     """ 
@@ -27,7 +29,7 @@ class PGGeneralIntegrator(PFGeneralIntegrator):
                 sample_orientation: int = 3,
                 incident_angle = 0.12,
                 tilt_angle = 0.0,
-                output_space = 'recip'
+                output_space = 'recip',
                  **kwargs):
         """
         PyGIX-backed Grazing Incidence Integrator
@@ -47,7 +49,7 @@ class PGGeneralIntegrator(PFGeneralIntegrator):
         self.sample_orientation = sample_orientation
         self.incident_angle = incident_angle
         self.tilt_angle = tilt_angle
-        self.output_space
+        self.output_space = output_space
         super().__init__(**kwargs) # all other setup is done by the recreateIntegrator() function and superclass
 
     # def load_mask(self, da): has been superseded by PFGeneralIntegrator's methods
@@ -83,40 +85,40 @@ class PGGeneralIntegrator(PFGeneralIntegrator):
         # Initialize pygix transform object - moved to recreateIntegrator
         
         # the following index stack/unstack code copied from PFGeneralIntegrator
-        if(img.ndim>2):
+        if(da.ndim>2):
             
-            img_to_integ = np.squeeze(img.values)
+            img_to_integ = np.squeeze(da.values)
         else:
-            img_to_integ = img.values
+            img_to_integ = da.values
         
         if self.mask is None:
             warnings.warn('No mask defined.  Creating an empty mask with dimensions {img.shape}.',stacklevel=2)
-            self.mask = np.zeros_like(img).squeeze()
+            self.mask = np.zeros_like(da).squeeze()
         assert np.shape(self.mask)==np.shape(img_to_integ),f'Error!  Mask has shape {np.shape(self.mask)} but you are attempting to integrate data with shape {np.shape(img_to_integ)}.  Try changing mask orientation or updating mask.'
-        stacked_axis = list(img.dims)
+        stacked_axis = list(da.dims)
         stacked_axis.remove('pix_x')
         stacked_axis.remove('pix_y')
         if len(stacked_axis)>0:
             assert len(stacked_axis)==1, f"More than one dimension left after removing pix_x and pix_y, I see {stacked_axis}, not sure how to handle"
             stacked_axis = stacked_axis[0]
             #print(f'looking for {stacked_axis} in {img[0].indexes} (indexes), it has dims {img[0].dims} and looks like {img[0]}')
-            if(img.__getattr__(stacked_axis).shape[0]>1):
-                system_to_integ = img[0].indexes[stacked_axis]
-                warnings.warn(f'There are two images for {img.__getattr__(stacked_axis)}, I am ONLY INTEGRATING THE FIRST.  This may cause the labels to be dropped and the result to need manual re-tagging in the index.',stacklevel=2)
+            if(da.__getattr__(stacked_axis).shape[0]>1):
+                system_to_integ = da[0].indexes[stacked_axis]
+                warnings.warn(f'There are two images for {da.__getattr__(stacked_axis)}, I am ONLY INTEGRATING THE FIRST.  This may cause the labels to be dropped and the result to need manual re-tagging in the index.',stacklevel=2)
             else:
-                system_to_integ = img.indexes[stacked_axis]
+                system_to_integ = da.indexes[stacked_axis]
                 
         else:
             stacked_axis = 'image_num'
             system_to_integ = [0]
 
         # Cartesian 2D plot transformation
-        if output_space == 'recip':
+        if self.output_space == 'recip':
             recip_data, qxy, qz = self.integrator.transform_reciprocal(img_to_integ,
-                                                      method='bbox',
-                                                      unit='A',
-                                                      mask=self.mask,
-                                                      correctSolidAngle=self.correctSolidAngle)
+                                                                       method='bbox',
+                                                                       unit='A',
+                                                                       mask=self.mask,
+                                                                       correctSolidAngle=self.correctSolidAngle)
         
             out_da = xr.DataArray(data=recip_data,
                                     dims=['q_z', self.inplane_config],
@@ -125,13 +127,13 @@ class PGGeneralIntegrator(PFGeneralIntegrator):
                                         self.inplane_config: (self.inplane_config, qxy, {'units': '1/Å'})
                                     },
                                     attrs=da.attrs)
-        elif output_space == 'caked':
-            caked_data, qr, chi = pg.transform_image(img_to_integ, 
-                                                     process='polar',
-                                                     method = 'bbox',
-                                                     unit='q_A^-1',
-                                                     mask=mask,
-                                                     correctSolidAngle=True)
+        elif self.output_space == 'caked':
+            caked_data, qr, chi = self.integrator.transform_image(img_to_integ, 
+                                                                  process='polar',
+                                                                  method = 'bbox',
+                                                                  unit='q_A^-1',
+                                                                  mask=self.mask,
+                                                                  correctSolidAngle=True)
 
             out_da = xr.DataArray(data=caked_data,
                                 dims=['chi', 'qr'],

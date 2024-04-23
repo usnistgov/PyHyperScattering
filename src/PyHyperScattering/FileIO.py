@@ -48,6 +48,7 @@ class FileIO:
              suffix (str): The suffix to use for the file name.
              mode (str): The mode to use when saving the file. Default is 'w'.
          """
+         da = self._obj
          ds = da.to_dataset(name='DA')
          file_path = pathlib.Path(filename)
          ds.to_zarr(file_path, mode=mode)
