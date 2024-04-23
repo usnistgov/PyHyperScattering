@@ -37,7 +37,7 @@ class FileIO:
      
 
     # - This was copied from the Toney group contribution for GIWAXS.
-    def saveZarr(self,  filename: Union[str, pathlib.Path], mode: str = 'w'):
+    def saveZarr(self,  filename, mode: str = 'w'):
          """
          Save the DataArray as a .zarr file in a specific path, with a file name constructed from a prefix and suffix.
 
