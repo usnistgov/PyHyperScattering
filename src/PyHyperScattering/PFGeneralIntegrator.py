@@ -259,8 +259,7 @@ class PFGeneralIntegrator():
     
     
     def __init__(self,
-                 maskmethod='none', 
-                 maskpath= '',
+                 maskmethod='none',
                  maskrotate = True,
                  geomethod = "none",
                  NIdistance = 0, NIbcx = 0, NIbcy = 0, NItiltx = 0, NItilty = 0,
@@ -279,7 +278,7 @@ class PFGeneralIntegrator():
                  **kwargs):
         # energy units eV
         if maskmethod == 'nika':
-            self.loadNikaMask(filetoload=maskpath,rotate_image =maskrotate,**kwargs) 
+            self.loadNikaMask(rotate_image=maskrotate, **kwargs) 
         elif maskmethod == 'polygon':
             self.loadPolyMask(**kwargs)
         elif maskmethod == 'image':
@@ -287,7 +286,7 @@ class PFGeneralIntegrator():
         elif maskmethod == 'pyhyper':
             self.loadPyHyperMask(**kwargs)
         elif maskmethod == 'edf':
-            self.loadEdfMask(filetoload=maskpath)
+            self.loadEdfMask(**kwargs)
         elif maskmethod == 'none':
             self.mask = None
         else:
@@ -407,13 +406,14 @@ class PFGeneralIntegrator():
         self.mask = boolmask
 
 
-    def loadEdfMask(self,filetoload):
+    def loadEdfMask(self, **kwargs):
         '''
         Loads an edf-format mask (probably from pyFAI.calib2?).
 
         Args:
             filetoload (pathlib.Path or string): path to edf format mask
         '''
+        filetoload = kwargs['maskpath']
         self.mask = fabio.open(filetoload).data
 
     def loadNikaMask(self, filetoload, rotate_image = True,**kwargs):
@@ -426,6 +426,7 @@ class PFGeneralIntegrator():
             rotate_image (bool, default True): rotate image as should work
         '''
         mask = None
+        filetoload = kwargs['maskpath']
 
         if 'h5' in str(filetoload) or 'hdf' in str(filetoload):
             type = 'h5'
