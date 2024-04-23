@@ -326,7 +326,7 @@ class PFGeneralIntegrator():
         elif geomethod == 'template_xr':
             self.calibrationFromTemplateXRParams(template_xr)
         elif geomethod == 'ponifile':
-            self.calibrationFromPoniFile(ponifile)
+            self.calibrationFromPoniFile(ponifile, template_xr)
         elif geomethod == "none":
             warnings.warn('Initializing geometry with default values.  This is probably NOT what you want.',
                           stacklevel=2)
