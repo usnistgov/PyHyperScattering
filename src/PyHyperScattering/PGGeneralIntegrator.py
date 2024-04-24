@@ -155,7 +155,7 @@ class PGGeneralIntegrator(PFGeneralIntegrator):
     def __str__(self):
         return f"PyGIX general integrator wrapper SDD = {self.dist} m, poni1 = {self.poni1} m, poni2 = {self.poni2} m, rot1 = {self.rot1} rad, rot2 = {self.rot2} rad"
 
-def single_images_to_dataset(files, loader, transformer, savePath=None, savename=None):
+def single_images_to_dataset(files, loader, integrator):
     """
     Function that takes a subscriptable object of filepaths corresponding to raw GIWAXS
     beamline data, loads the raw data into an xarray DataArray, generates pygix-transformed 
@@ -163,54 +163,35 @@ def single_images_to_dataset(files, loader, transformer, savePath=None, savename
     containing a DataArray per sample. The raw dataarrays must contain the attribute 'scan_id'
 
     Inputs: files: indexable object containing pathlib.Path filepaths to raw GIWAXS data
-            loader: custom PyHyperScattering GIWAXSLoader object, must return DataArray
-            transformer: instance of Transform object defined above, takes raw 
-                         dataarray and returns two processed dataarrays
-            savePath: optional, required to save zarrs, choose savePath for zarr store
-                      pathlib.Path or absolute path as a string
-            savename: optional, required to save zarrs, string for name of zarr store 
-                      to be saved inside savePath, add 'raw_', 'recip_', or 'caked_' 
-                      file prefix and '.zarr' suffix
+            loader: custom PyHyperScattering CMSGIWAXSLoader object, must return DataArray
+            integrator: instance of PGGeneralIntegrator object defined above, takes raw 
+                         dataarray and returns processed data in reciprocal space (recip or caked)
 
-    Outputs: 3 Datasets: raw, recip (cartesian), and caked (polar)
-             optionally also saved zarr stores
+    Outputs: 2 Datasets: raw & reciprocal space (cartesian or polar based on integrator object)
     """
     # Select the first element of the sorted set outside of the for loop to initialize the xr.DataSet
     DA = loader.loadSingleImage(files[0])
-    recip_DA, caked_DA = transformer.pg_convert(DA)
+    assert 'scan_id' in DA.attrs.keys(), "'scan_id' is a required attribute to use this function"
+
+    integ_DA = integrator.integrateSingleImage(DA)
 
     # Save coordinates for interpolating other dataarrays 
-    recip_coords = recip_DA.coords
-    caked_coords = caked_DA.coords
+    integ_coords = integ_DA.coords
 
     # Create a DataSet, each DataArray will be named according to it's scan id
     raw_DS = DA.to_dataset(name=DA.scan_id)
-    recip_DS = recip_DA.to_dataset(name=DA.scan_id)
-    caked_DS = caked_DA.to_dataset(name=DA.scan_id)
+    integ_DS = integ_DA.to_dataset(name=DA.scan_id)
 
     # Populate the DataSet with 
     for filepath in tqdm(files[1:], desc=f'Transforming Raw Data'):
         DA = loader.loadSingleImage(filepath)
-        recip_DA, caked_DA = transformer.pg_convert(DA)
+        integ_DA = integrator.integrateSingleImage(DA)
         
-        recip_DA = recip_DA.interp(recip_coords)
-        caked_DA = caked_DA.interp(caked_coords)    
+        integ_DA = integ_DA.interp(integ_coords)
 
         raw_DS[f'{DA.scan_id}'] = DA
-        recip_DS[f'{DA.scan_id}'] = recip_DA    
-        caked_DS[f'{DA.scan_id}'] = caked_DA
+        integ_DS[f'{DA.scan_id}'] = integ_DA    
 
-    # Save zarr stores if selected
-    if savePath and savename:
-        print('Saving zarrs...')
-        savePath = pathlib.Path(savePath)
-        raw_DS.to_zarr(savePath.joinpath(f'raw_{savename}.zarr'), mode='w')
-        recip_DS.to_zarr(savePath.joinpath(f'recip_{savename}.zarr'), mode='w')
-        caked_DS.to_zarr(savePath.joinpath(f'caked_{savename}.zarr'), mode='w')
-        print('Saved!')
-    else:
-        print('No save path or no filename specified, not saving zarrs... ')
-
-    return raw_DS, recip_DS, caked_DS
+    return raw_DS, integ_DS
 
 
