@@ -71,7 +71,8 @@ class FileLoader():
             files = sorted(basepath.glob(f'*{file_filter}*'))
         print(f"Found {str(len(files))} files after applying 'file_filter'.")
 
-        for file in tqdm(files):
+        for filepath in tqdm(files):
+            file = str(filepath)
             nprocessed += 1
             
             if re.match(self.file_ext,file) is None:
