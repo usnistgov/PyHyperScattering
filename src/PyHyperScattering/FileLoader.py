@@ -70,6 +70,8 @@ class FileLoader():
         if file_filter is not None:
             filepaths = sorted(basepath.glob(f'*{file_filter}*'))
             files = [f.name for f in filepaths]
+        else:
+            files = sorted(os.listdir(basepath))
         print(f"Found {str(len(files))} files after applying 'file_filter'.")
 
         for file in tqdm(files):
