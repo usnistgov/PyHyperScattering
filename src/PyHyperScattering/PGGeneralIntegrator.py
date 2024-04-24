@@ -160,7 +160,8 @@ def single_images_to_dataset(files, loader, integrator):
     Function that takes a subscriptable object of filepaths corresponding to raw GIWAXS
     beamline data, loads the raw data into an xarray DataArray, generates pygix-transformed 
     cartesian and polar DataArrays, and creates 3 corresponding xarray Datasets 
-    containing a DataArray per sample. The raw dataarrays must contain the attribute 'scan_id'
+    containing a DataArray per sample. 
+    The raw dataarrays must contain the attributes 'scan_id' and 'incident_angle'
 
     Inputs: files: indexable object containing pathlib.Path filepaths to raw GIWAXS data
             loader: custom PyHyperScattering CMSGIWAXSLoader object, must return DataArray
@@ -173,6 +174,11 @@ def single_images_to_dataset(files, loader, integrator):
     DA = loader.loadSingleImage(files[0])
     assert 'scan_id' in DA.attrs.keys(), "'scan_id' is a required attribute to use this function"
 
+    # Update incident angle per sample:
+    assert 'incident_angle' in DA.attrs.keys(), "'incident_angle' is a required attribute to use this function"
+    integrator.incident_angle = float(DA.incident_angle[2:])
+
+    # Integrate single image
     integ_DA = integrator.integrateSingleImage(DA)
 
     # Save coordinates for interpolating other dataarrays 
@@ -190,7 +196,7 @@ def single_images_to_dataset(files, loader, integrator):
         integ_DA = integ_DA.interp(integ_coords)
 
         raw_DS[f'{DA.scan_id}'] = DA
-        integ_DS[f'{DA.scan_id}'] = integ_DA    
+        integ_DS[f'{DA.scan_id}'] = integ_DA
 
     return raw_DS, integ_DS
 
