@@ -287,6 +287,8 @@ class PFGeneralIntegrator():
             self.loadPyHyperMask(**kwargs)
         elif maskmethod == 'edf':
             self.loadEdfMask(**kwargs)
+        elif maskmethod == 'numpy':
+            self.mask = kwargs['mask']
         elif maskmethod == 'none':
             self.mask = None
         else:

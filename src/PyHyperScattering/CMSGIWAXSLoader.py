@@ -16,14 +16,14 @@ class CMSGIWAXSLoader(FileLoader):
     def __init__(self, md_naming_scheme=[], root_folder=None, delim='_'):
         self.md_naming_scheme = md_naming_scheme
         if len(md_naming_scheme) == 0:
-            warnings.warn('Provided an empty md_naming_scheme.  You will not be able to load any metadata in this state.  Set md_naming_scheme to a meaningful value before loading.',stacklevel=2)
+            warnings.warn('Provided an empty md_naming_scheme. This will just load the filename as an attribute.',stacklevel=2)
         self.root_folder = root_folder
         self.delim = delim
         self.sample_dict = None
         self.selected_series = []
         
 
-    def loadSingleImage(self, filepath):
+    def loadSingleImage(self, filepath,coords=None,return_q=False,image_slice=None,use_cached_md=False,**kwargs):
         """
         Loads a single xarray DataArray from a filepath to a raw TIFF
         """
@@ -67,8 +67,11 @@ class CMSGIWAXSLoader(FileLoader):
         md_list = name.split(delim) # splits the filename based on the delimiter passed to the loadMd method.
                                                     # Metadata list - list of metadata keys used to segment the filename into a dictionary corresponding to said keys.
 
-        for i, md_item in enumerate(self.md_naming_scheme):
-            attr_dict[md_item] = md_list[i]
+        if len(self.md_naming_scheme) == 0:
+            attr_dict['filename'] = name
+        elif len(self.md_naming_scheme) >= 1:
+            for i, md_item in enumerate(self.md_naming_scheme):
+                attr_dict[md_item] = md_list[i]
         return attr_dict
     
     def loadSeries(self, files, filter='', time_start=0):
@@ -95,8 +98,7 @@ class CMSGIWAXSLoader(FileLoader):
                     image_da = image_da.expand_dims(dim={'series_number': 1})
                     data_rows.append(image_da)  
             except TypeError as e:
-                raise TypeError('"files" needs to be a pathlib.Path or iterable')  from e
-                return None      
+                raise TypeError('"files" needs to be a pathlib.Path or iterable')  from e   
 
         out = xr.concat(data_rows, 'series_number')
         out = out.sortby('series_number')
