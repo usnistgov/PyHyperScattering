@@ -145,7 +145,7 @@ class PGGeneralIntegrator(PFGeneralIntegrator):
 
         # Preseve any existing dimension if it is in the dataarray, for stacking purposes
         if stacked_axis in da.coords:
-            out_da = out_da.assign_coords({stacked_axis: np.array(system_to_integ)})
+            out_da = out_da.expand_dims(dim={stacked_axis: 1}).assign_coords({stacked_axis: np.array(system_to_integ)})
             # out_da = out_da.expand_dims(dim={stacked_axis: 1})
 
 
