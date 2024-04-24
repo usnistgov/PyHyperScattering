@@ -102,7 +102,7 @@ class FileLoader():
                     if not quiet:
                         print(f'Not loading {file}, expected {key} to be {val} but it was {md[key]}')
             if load_this_image:
-                if img == None:
+                if img is None:
                     if not quiet:
                         print(f'Loading {file}')
                     img = self.loadSingleImage(basepath/file,coords=local_coords, return_q = output_qxy,image_slice=image_slice,use_cached_md=False)
