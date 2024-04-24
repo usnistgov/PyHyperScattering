@@ -61,14 +61,17 @@ class FileLoader():
         nfiles = len(os.listdir(basepath))
         nprocessed = 0
         nloaded = 0
-        print(f'Found {str(nfiles)} files.')
+        print(f'Found {str(nfiles)} total files.')
         data_rows = []
         qnew = None
         dest_coords = defaultdict(list)
         if file_filter_regex is not None:
             file_filter_regex = re.compile(file_filter_regex)
-            
-        for file in tqdm(sorted(os.listdir(basepath))):
+        if file_filter is not None:
+            files = sorted(basepath.glob(f'*{file_filter}*'))
+        print(f"Found {str(len(files))} files after applying 'file_filter'.")
+
+        for file in tqdm(files):
             nprocessed += 1
             
             if re.match(self.file_ext,file) is None:
