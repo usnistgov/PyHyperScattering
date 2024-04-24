@@ -68,11 +68,11 @@ class FileLoader():
         if file_filter_regex is not None:
             file_filter_regex = re.compile(file_filter_regex)
         if file_filter is not None:
-            files = sorted(basepath.glob(f'*{file_filter}*'))
+            filepaths = sorted(basepath.glob(f'*{file_filter}*'))
+            files = [f.name for f in filepaths]
         print(f"Found {str(len(files))} files after applying 'file_filter'.")
 
-        for filepath in tqdm(files):
-            file = str(filepath)
+        for file in tqdm(files):
             nprocessed += 1
             
             if re.match(self.file_ext,file) is None:
