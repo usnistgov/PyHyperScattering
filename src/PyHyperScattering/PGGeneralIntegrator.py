@@ -86,7 +86,6 @@ class PGGeneralIntegrator(PFGeneralIntegrator):
         
         # the following index stack/unstack code copied from PFGeneralIntegrator
         if(da.ndim>2):
-            
             img_to_integ = np.squeeze(da.values)
         else:
             img_to_integ = da.values
@@ -146,11 +145,12 @@ class PGGeneralIntegrator(PFGeneralIntegrator):
 
         # Preseve any existing dimension if it is in the dataarray, for stacking purposes
         if stacked_axis in da.coords:
-            out_da = out_da.assign_coords({stacked_axis:system_to_integ})
-            out_da = out_da.expand_dims(dim={stacked_axis: 1})
+            out_da = out_da.assign_coords({stacked_axis: np.array(system_to_integ)})
+            # out_da = out_da.expand_dims(dim={stacked_axis: 1})
 
 
         return out_da
+
 
     def __str__(self):
         return f"PyGIX general integrator wrapper SDD = {self.dist} m, poni1 = {self.poni1} m, poni2 = {self.poni2} m, rot1 = {self.rot1} rad, rot2 = {self.rot2} rad"
