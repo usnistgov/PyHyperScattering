@@ -77,7 +77,7 @@ PyHyperScattering.integrate module
       :undoc-members:
       :show-inheritance:
 
-      PyHyperScattering.integrate.WPIntegrator module
+   PyHyperScattering.integrate.WPIntegrator module
    --------------------------------------------------------------------------------
 
    .. automodule:: PyHyperScattering.integrate.WPIntegrator

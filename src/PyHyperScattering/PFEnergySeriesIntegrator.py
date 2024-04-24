@@ -39,6 +39,7 @@ class PFEnergySeriesIntegrator(PFGeneralIntegrator):
         #    get the energy and locate the matching integrator
         #    use that integrator to reduce
         #    return single reduced frame
+
         #print(f'    img.energy is a {type(img.energy)}, len = {len(img.energy)} and is {img.energy}') 
         #print(f'    img.system is a {type(img.system)}, len = {len(img.energy)} and is {img.system}')
         #print(f'    img.system.levels: {img.indexes["system"].names}')
@@ -57,7 +58,10 @@ class PFEnergySeriesIntegrator(PFGeneralIntegrator):
                     for i,n in enumerate(img.indexes[multiindex_name].names):
                         if n == 'energy':
                             idx_of_energy = i
-                    en = float(getattr(img,multiindex_name).values[idx_of_energy][0])
+                    try:
+                        en = float(getattr(img,multiindex_name).values[idx_of_energy][0]) # this does not work for 2022-2 data; does it work for other cycles?
+                    except IndexError:
+                        en = float(getattr(img,multiindex_name).values[0][idx_of_energy])
             except KeyError:
                 pass
         if en is not None:
@@ -72,10 +76,12 @@ class PFEnergySeriesIntegrator(PFGeneralIntegrator):
             except IndexError:
                 en = float(img.energy)
             except AttributeError:
-                en = img.energy[0]
-                warnings.warn(f'Using the first energy value of {img.energy}, check that this is correct.',stacklevel=2)
+                try:
+                    en = img.energy[0]
+                    warnings.warn(f'Using the first energy value of {img.energy}, if this contains more than one energy, your data are likely wrong.',stacklevel=2)
+                except IndexError:
+                    en = float(img.energy)
             
-        
         try:
             self.integrator = self.integrator_stack[en]
         except KeyError:
@@ -86,7 +92,7 @@ class PFEnergySeriesIntegrator(PFGeneralIntegrator):
                 return res.interp(q=self.dest_q)
             else:
                 return res
-        except TypeError:
+        except (TypeError,AttributeError):
             return res
     def setupIntegrators(self,energies):
         '''
@@ -119,7 +125,7 @@ It would cosmically be better (for things like resolution calculation) to have t
         # idx_name_to_use = 'energy'#indexes[0]
         # idx_val_to_use = img_stack.indexes[idx_name_to_use]
         
-        
+
         if 'energy' in indexes:
             dim_to_chunk = 'energy'
         else:
@@ -193,6 +199,8 @@ It would cosmically be better (for things like resolution calculation) to have t
             if img_stack.__getattr__(indexes[0]).to_pandas().drop_duplicates().shape[0] != img_stack.__getattr__(indexes[0]).shape[0]:
                 warnings.warn(f'Axis {indexes[0]} contains duplicate conditions.  This is not supported and may not work.  Try adding additional coords to separate image conditions',stacklevel=2)
             data_int = data.groupby(indexes[0],squeeze=False).progress_apply(self.integrateSingleImage)
+        elif len(indexes) == 0:
+            data_int = self.integrateSingleImage(data).isel(image_num=0)
         else:
             #some kinda logic to check for existing multiindexes and stack into them appropriately maybe
             data = data.stack({'pyhyper_internal_multiindex':indexes})
