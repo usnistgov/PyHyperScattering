@@ -2,6 +2,7 @@ import warnings
 import xarray as xr
 import numpy as np
 import math
+from tqdm.auto import tqdm
 
 try:
     import holoviews as hv
