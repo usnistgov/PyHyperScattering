@@ -603,7 +603,7 @@ class PFGeneralIntegrator:
         self.pixel1 = ponifile.detector.pixel1
         self.pixel2 = ponifile.detector.pixel2
         
-        if self.mask is None and raw_xr is None: 
+        if self.mask is None and raw_xr is not None: 
             self.mask = np.zeros((len(raw_xr.pix_y),len(raw_xr.pix_x)))
             warnings.warn(f'Since mask was none, creating an empty mask with shape {self.mask.shape}',stacklevel=2)
         self.recreateIntegrator()
