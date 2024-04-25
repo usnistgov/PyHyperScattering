@@ -5,6 +5,7 @@ h5py
 nodejs
 numpy
 pandas
+silx==2.0.0
 pyfai
 pygix
 scikit-image
