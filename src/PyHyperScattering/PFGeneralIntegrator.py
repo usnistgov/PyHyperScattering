@@ -351,11 +351,11 @@ class PFGeneralIntegrator:
                  **kwargs):
         # energy units eV
         if maskmethod == 'nika':
-            self.loadNikaMask(filetoload=maskpath, rotate_image=maskrotate, **kwargs)
+            self.loadNikaMask(rotate_image=maskrotate, **kwargs)
         elif maskmethod == 'polygon':
             self.loadPolyMask(**kwargs)
         elif maskmethod == 'image':
-            self.loadImageMask(maskpath=maskpath, maskrotate=maskrotate, **kwargs)
+            self.loadImageMask(maskrotate=maskrotate, **kwargs)
         elif maskmethod == 'pyhyper':
             self.loadPyHyperMask(**kwargs)
         elif maskmethod == 'edf':
@@ -491,7 +491,7 @@ class PFGeneralIntegrator:
         filetoload = kwargs['maskpath']
         self.mask = fabio.open(filetoload).data
 
-    def loadNikaMask(self, filetoload, rotate_image = True,**kwargs):
+    def loadNikaMask(self, rotate_image = True, **kwargs):
 
         '''
         Loads a Nika-generated HDF5 or tiff mask and converts it to an array that matches the local conventions.
