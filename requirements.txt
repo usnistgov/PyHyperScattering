@@ -5,6 +5,7 @@ h5py
 nodejs
 numpy
 pandas
+# pygix fails to improt if silx > 2.0.0 
 silx==2.0.0
 pyfai
 pygix
