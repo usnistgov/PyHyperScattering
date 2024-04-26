@@ -14,13 +14,12 @@ class FileLoader():
     Abstract class defining a generic scattering file loader.  Input is a (or multiple) filename/s and output is a
     xarray I(pix_x,pix_y,dims,coords) where dims and coords are loaded by user request.
     
-    
-     Difference: all coords are dims but not all dims are coords.  Dims can also be auto-hinted using the following   
-     standard names: energy,exposure,pos_x,pos_y,pos_z,theta.
+    Difference: all coords are dims but not all dims are coords.  Dims can also be auto-hinted using the following   
+    standard names: energy,exposure,pos_x,pos_y,pos_z,theta.
      
-     Individual loaders can try searching metadata for other dim names but this is not guaranteed.
-     Coords can be used to provide a list of values for a dimension when that dimension cannot be hinted, e.g. where vals
-     come from external data.
+    Individual loaders can try searching metadata for other dim names but this is not guaranteed.
+    Coords can be used to provide a list of values for a dimension when that dimension cannot be hinted, e.g. where vals
+    come from external data.
     '''
     file_ext = ''  # file extension to be used to filter files from this instrument
     md_loading_is_quick = False
@@ -32,20 +31,35 @@ class FileLoader():
     
     def peekAtMd(self,filepath):
         return self.loadSingleImage(filepath,{})
-    
 
-
-    def loadFileSeries(self,basepath,dims,coords={},file_filter=None,file_filter_regex=None,file_skip=None,md_filter={},quiet=True,output_qxy=False,dest_qx=None,dest_qy=None,output_raw=False,image_slice=None):
+    def loadFileSeries(self, 
+                       basepath, 
+                       dims, 
+                       coords={},
+                       file_filter=None,
+                       file_filter_regex=None,
+                       file_skip=None,
+                       md_filter={},
+                       quiet=True,
+                       output_qxy=False,
+                       dest_qx=None,
+                       dest_qy=None,
+                       output_raw=False,
+                       image_slice=None):
         '''
         Load a series into a single xarray.
         
+        * = not implemented yet
+
         Args:
             basepath (str or Path): path to the directory to load
-            dims (list): dimensions of the resulting xarray, as list of str
+            dims (list): dimensions of the resulting xarray (excluding 'pix_x' and 'pix_y'), as list of str
             coords (dict): dictionary of any dims that are *not* present in metadata
             file_filter (str): string that must be in each file name
-            file_filer_regex(str): regex string that must match in each file name
-            file_skip (str): string that, if present in file name, means file should be skipped.
+
+            *file_filer_regex(str): regex string that must match in each file name
+            *file_skip (str): string that, if present in file name, means file should be skipped.
+
             md_filter (dict): dict of *required* metadata values; points without these metadata values will be dropped
             md_filter_regex (dict): dict of *required* metadata regex; points without these metadata values will be dropped
             quiet (bool): skip printing most intermediate output if true.

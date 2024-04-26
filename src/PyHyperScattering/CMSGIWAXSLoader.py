@@ -14,6 +14,15 @@ class CMSGIWAXSLoader(FileLoader):
     Used to load single TIFF time-series TIFF GIWAXS images.
     """
     def __init__(self, md_naming_scheme=[], root_folder=None, delim='_'):
+        """
+        Inputs: md_naming_scheme: A list of attribute names to load from filename, 
+                which is split by the delimeter argument (default is '_')
+
+                root_folder: not implemented yet, to use with future helper functions
+
+                delim: delimeter value to split filename (default is underscore)
+        """
+
         self.md_naming_scheme = md_naming_scheme
         if len(md_naming_scheme) == 0:
             warnings.warn('Provided an empty md_naming_scheme. This will just load the filename as an attribute.',stacklevel=2)
@@ -22,10 +31,19 @@ class CMSGIWAXSLoader(FileLoader):
         self.sample_dict = None
         self.selected_series = []
         
-
     def loadSingleImage(self, filepath,coords=None,return_q=False,image_slice=None,use_cached_md=False,**kwargs):
         """
         Loads a single xarray DataArray from a filepath to a raw TIFF
+
+        Inputs: 
+        - filepath: str or pathlib.Path to image to load
+
+        Unused inputs (for loadFileSeries compatability): 
+        - coords 
+        - return_q 
+        - image_slice 
+        - use_cached_md
+
         """
 
         # Check that the path exists before continuing.
@@ -76,6 +94,8 @@ class CMSGIWAXSLoader(FileLoader):
     
     def loadSeries(self, files, filter='', time_start=0):
         """
+        LEGACY METHOD: PyHyperScattering.load.loadFileSeries() will be the updated method moving forward
+        
         Load many raw TIFFs into an xarray DataArray
 
         Input: files: Either a pathlib.Path object that can be filtered with a 
@@ -116,6 +136,8 @@ class CMSGIWAXSLoader(FileLoader):
 
     def createSampleDictionary(self, root_folder):
         """
+        NOT FULLY IMPLEMENTED YET
+        
         Loads and creates a sample dictionary from a root folder path.
         The dictionary will contain: sample name, scanID list, series scanID list, 
         a pathlib object variable for each sample's data folder (which contains the /maxs/raw/ subfolders),
@@ -201,6 +223,8 @@ class CMSGIWAXSLoader(FileLoader):
 
     def selectSampleAndSeries(self):
             """
+            NOT FULLY IMPLEMENTED YET
+
             Prompts the user to select a sample and one or more series of scans from that sample.
             The user can choose to select all series of scans.
             The selections will be stored as the 'selected_series' attribute and returned.
@@ -285,69 +309,4 @@ class CMSGIWAXSLoader(FileLoader):
                     self.selected_series.extend([(selected_sample, series) for series in selected_series])
 
                 print("\nSelection completed.")
-            return self.selected_series
-
-# -- originally pushed createSampleDictionary() method: (07/18/2023)
-"""    def createSampleDictionary(self, root_folder):
-        
-        # Loads and creates a sample dictionary from a root folder path.
-        # The dictionary will contain: sample name, scanID list, series scanID list, 
-        # and a pathlib object variable for each sample's data folder (which contains the /maxs/raw/ subfolders).
-        
-
-        # Ensure the root_folder is a pathlib.Path object
-        self.root_folder = pathlib.Path(self.root_folder)
-        if not self.root_folder.is_dir():
-            raise ValueError(f"Directory {self.root_folder} does not exist.")
-        
-        # Initialize the sample dictionary
-        sample_dict = {}
-
-        # Find the index of 'scan_id' and 'series_number' in the md_naming_scheme list
-        scan_id_index = None
-        series_number_index = None
-        scan_id_aliases = ['scanID', 'ID', 'scannum', 'scan', 'SCAN', 'Scan', 'scanid', 'id', 'ScanNum', 'scan_id', 'scan_ID']
-        series_number_aliases = ['seriesnum', 'seriesid', 'series_id', 'series_ID', 'series', 'SERIES', 'Series', 'series_number', 'series_num']
-
-        for index, name in enumerate(self.md_naming_scheme):
-            if name.lower() in [alias.lower() for alias in scan_id_aliases]:
-                scan_id_index = index
-            elif name.lower() in [alias.lower() for alias in series_number_aliases]:
-                series_number_index = index
-
-        if scan_id_index is None or series_number_index is None:
-            raise ValueError('md_naming_scheme does not contain keys for scan_id or series_number.')
-        
-        # Iterate through all subdirectories in the root folder
-        for subdir in root_folder.iterdir():
-            if subdir.is_dir():
-                # Check if /maxs/raw/ subdirectory exists
-                maxs_raw_dir = subdir / "maxs" / "raw"
-                if maxs_raw_dir.is_dir():
-                    # The name of the subdirectory is considered as the sample name
-                    sample_name = subdir.name
-                    sample_dict[sample_name] = {
-                        "scanlist": [],
-                        "serieslist": {},
-                        "sample_path": subdir
-                    }
-                    
-                    # Iterate through the files in the /maxs/raw/ subdirectory
-                    for filename in maxs_raw_dir.glob('*'):
-                        metadata = filename.stem.split('_')
-                        scan_id = metadata[scan_id_index]
-                        series_number = metadata[series_number_index]
-
-                        # Update serieslist
-                        if scan_id in sample_dict[sample_name]["serieslist"]:
-                            sample_dict[sample_name]["serieslist"][scan_id] += 1
-                        else:
-                            sample_dict[sample_name]["serieslist"][scan_id] = 1
-
-                        # Append the series_number to the scanlist in the dictionary
-                        if series_number not in sample_dict[sample_name]["scanlist"]:
-                            sample_dict[sample_name]["scanlist"].append(series_number)
-
-        self.sample_dict = sample_dict
-        return sample_dict
-"""
+            return self.selected_series    

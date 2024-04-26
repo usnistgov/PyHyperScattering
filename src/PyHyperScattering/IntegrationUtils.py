@@ -210,10 +210,11 @@ class CMSGIWAXS:
     """For streamlined loading for CMS data"""
     def __init__(self, files, loader, integrator):
         """
-        Inputs: files: indexable object containing pathlib.Path filepaths to raw GIWAXS data
-                loader: custom PyHyperScattering CMSGIWAXSLoader object, must return DataArray with attributes metadata
-                integrator: instance of PGGeneralIntegrator object defined above, takes raw 
-                            dataarray and returns processed data in reciprocal space (recip or caked)
+        Inputs: files: indexable object str or pathlib.Path filepaths to 
+                       raw GIWAXS data
+                loader: custom PyHyperScattering CMSGIWAXSLoader object, must 
+                        return DataArray with attributes metadata
+                integrator: instance of PGGeneralIntegrator object
         """
         self.files = files
         self.loader = loader

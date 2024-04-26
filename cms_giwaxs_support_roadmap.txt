@@ -1,8 +1,0 @@
-Plans for establishing CMS time resolved GIWAXS support in phs:
-
-1. Write file loading class / script and successfully load raw TIFFs into xarrays, need:
-    - A loadSingleImage method, this will get pulled into the loadFileSeries method of the FileLoader parent class for actual useage
-    - A loadMd method to gather metadata
-2. Write functions to perform data corrections & reductions
-    - For now build these into GIWAXS.py script, but maybe work into PFGeneralIntegrator?
-3. Work on robustly loading in metadata 

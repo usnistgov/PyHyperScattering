@@ -155,6 +155,8 @@ class PGGeneralIntegrator(PFGeneralIntegrator):
     def __str__(self):
         return f"PyGIX general integrator wrapper SDD = {self.dist} m, poni1 = {self.poni1} m, poni2 = {self.poni2} m, rot1 = {self.rot1} rad, rot2 = {self.rot2} rad"
 
+
+# The below function is located as a method in the CMSGIWAXS class in IntegrationUtils.py
 def single_images_to_dataset(files, loader, integrator):
     """
     Function that takes a subscriptable object of filepaths corresponding to raw GIWAXS
