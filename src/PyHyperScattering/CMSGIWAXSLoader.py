@@ -15,8 +15,10 @@ class CMSGIWAXSLoader(FileLoader):
     """
     def __init__(self, md_naming_scheme=[], root_folder=None, delim='_'):
         """
-        Inputs: md_naming_scheme: A list of attribute names to load from filename, 
-                which is split by the delimeter argument (default is '_')
+        Inputs: md_naming_scheme: A list of attribute names to load from 
+                filename, which is split by the delimeter argument (default is 
+                '_'). If no list is provided, the filename will be loaded an 
+                an attribute. 
 
                 root_folder: not implemented yet, to use with future helper functions
 
