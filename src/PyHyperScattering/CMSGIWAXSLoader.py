@@ -1,10 +1,9 @@
-from PIL import Image
+import pathlib
+import warnings
+import fabio
 from PyHyperScattering.FileLoader import FileLoader
-import os, pathlib, datetime, warnings, json
-# import corrections
 import xarray as xr
 import pandas as pd
-#from pyFAI import azimuthalIntegrator
 import numpy as np
 from tqdm.auto import tqdm 
 
@@ -53,10 +52,10 @@ class CMSGIWAXSLoader(FileLoader):
             raise ValueError(f"File {filepath} does not exist.")
         
         # Open the image from the filepath
-        image = Image.open(filepath)
+        image = fabio.open(filepath)
 
         # Create a numpy array from the image
-        image_data = np.array(image)
+        image_data = image.data
 
         # Run the loadMetaData method to construct the attribute dictionary for the filePath.
         attr_dict = self.loadMd(filepath)
