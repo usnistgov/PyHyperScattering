@@ -591,12 +591,12 @@ class SST1RSoXSDB:
         monitors = self.loadMonitors(run)
 
         if dims is None:
-            if ("NEXAFS" or "nexafs") in md["start"]["plan_name"]:
-                raise NotImplementedError(
-                    f"Scan {md['start']['scan_id']} is a {md['start']['plan_name']} NEXAFS scan. "
-                    " NEXAFS loading is not yet supported."
-                )  # handled case change in "NEXAFS"
-            elif (
+            # if 'nexafs' in md["start"]["plan_name"].lower():
+            #     raise NotImplementedError(
+            #         f"Scan {md['start']['scan_id']} is a {md['start']['plan_name']} NEXAFS scan. "
+            #         " NEXAFS loading is not yet supported."
+            #     )  # handled case change in "NEXAFS"; despite commenting this out, I noticed that the previous case change wasn't working anymore.
+            if (
                 "full" in md["start"]["plan_name"]
                 or "short" in md["start"]["plan_name"]
                 or "custom_rsoxs_scan" in md["start"]["plan_name"]
@@ -691,121 +691,147 @@ class SST1RSoXSDB:
             if len(dims) == 0:
                 raise NotImplementedError('You have not entered any dimensions; please enter at least one, or use None rather than an empty list')
         """
+        try:
+            data = run["primary"]["data"][md["detector"] + "_image"]
+            if isinstance(data,tiled.client.array.ArrayClient):
+                data = run["primary"]["data"].read()[md["detector"] + "_image"]
+            elif isinstance(data,tiled.client.array.DaskArrayClient):
+                data = run["primary"]["data"].read()[md["detector"] + "_image"]
 
-        data = run["primary"]["data"][md["detector"] + "_image"]
-        if isinstance(data,tiled.client.array.ArrayClient):
-            data = run["primary"]["data"].read()[md["detector"] + "_image"]
-        elif isinstance(data,tiled.client.array.DaskArrayClient):
-            data = run["primary"]["data"].read()[md["detector"] + "_image"]
         
-        data = data.astype(int)  # convert from uint to handle dark subtraction
-
-        if self.dark_subtract:
-            dark = run["dark"]["data"][md["detector"] + "_image"]
-            if (
-                type(dark) == tiled.client.array.ArrayClient
-                or type(dark) == tiled.client.array.DaskArrayClient
-            ):
-                dark = run["dark"]["data"].read()[md["detector"] + "_image"]
-            darkframe = np.copy(data.time)
-            for n, time in enumerate(dark.time):
-                darkframe[(data.time - time) > 0] = int(n)
-            data = data.assign_coords(dark_id=("time", darkframe))
-
-            def subtract_dark(img, pedestal=100, darks=None):
-                return img + pedestal - darks[int(img.dark_id.values)]
-
-            data = data.groupby("time",squeeze=False).map(subtract_dark, darks=dark, pedestal=self.dark_pedestal)
-
-        dims_to_join = []
-        dim_names_to_join = []
-
-        for dim in dims:
+            data = data.astype(int)  # convert from uint to handle dark subtraction
+    
+            if self.dark_subtract:
+                dark = run["dark"]["data"][md["detector"] + "_image"]
+                if (
+                    type(dark) == tiled.client.array.ArrayClient
+                    or type(dark) == tiled.client.array.DaskArrayClient
+                ):
+                    dark = run["dark"]["data"].read()[md["detector"] + "_image"]
+                darkframe = np.copy(data.time)
+                for n, time in enumerate(dark.time):
+                    darkframe[(data.time - time) > 0] = int(n)
+                data = data.assign_coords(dark_id=("time", darkframe))
+    
+                def subtract_dark(img, pedestal=100, darks=None):
+                    return img + pedestal - darks[int(img.dark_id.values)]
+    
+                data = data.groupby("time",squeeze=False).map(subtract_dark, darks=dark, pedestal=self.dark_pedestal)
+    
+            dims_to_join = []
+            dim_names_to_join = []
+    
+            for dim in dims:
+                try:
+                    test = len(md[dim])  # this will throw a typeerror if single value
+                    if type(md[dim]) == dask.array.core.Array:
+                        dims_to_join.append(md[dim].compute())
+                    else:
+                        dims_to_join.append(md[dim])
+                    dim_names_to_join.append(dim)
+                except TypeError:
+                    dims_to_join.append([md[dim]] * run.start["num_points"])
+                    dim_names_to_join.append(dim)
+    
+            for key, val in coords.items():
+                dims_to_join.append(val)
+                dim_names_to_join.append(key)
+    
+            index = pd.MultiIndex.from_arrays(dims_to_join, names=dim_names_to_join)
+    
+            # handle the edge case of a partly-finished scan
+            if len(index) != len(data["time"]):
+                index = index[: len(data["time"])]
+            actual_exposure = md["exposure"] * len(data.dim_0)
+            mindex_coords = xr.Coordinates.from_pandas_multiindex(index, 'system')
+            print(mindex_coords)
+            retxr = (
+                data.sum("dim_0")
+                .rename({"dim_1": "pix_y", "dim_2": "pix_x"})
+                .rename({"time": "system"})
+                .assign_coords(mindex_coords)
+            )  # ,md['detector']+'_image':'intensity'})
+    
+            # this is needed for holoviews compatibility, hopefully does not break other features.
+            retxr = retxr.assign_coords(
+                {
+                    "pix_x": np.arange(0, len(retxr.pix_x)),
+                    "pix_y": np.arange(0, len(retxr.pix_y)),
+                }
+            )
             try:
-                test = len(md[dim])  # this will throw a typeerror if single value
-                if type(md[dim]) == dask.array.core.Array:
-                    dims_to_join.append(md[dim].compute())
-                else:
-                    dims_to_join.append(md[dim])
-                dim_names_to_join.append(dim)
-            except TypeError:
-                dims_to_join.append([md[dim]] * run.start["num_points"])
-                dim_names_to_join.append(dim)
-
-        for key, val in coords.items():
-            dims_to_join.append(val)
-            dim_names_to_join.append(key)
-
-        index = pd.MultiIndex.from_arrays(dims_to_join, names=dim_names_to_join)
-        # handle the edge case of a partly-finished scan
-        if len(index) != len(data["time"]):
-            index = index[: len(data["time"])]
-        actual_exposure = md["exposure"] * len(data.dim_0)
-        mindex_coords = xr.Coordinates.from_pandas_multiindex(index, 'system')
-        retxr = (
-            data.sum("dim_0")
-            .rename({"dim_1": "pix_y", "dim_2": "pix_x"})
-            .rename({"time": "system"})
-            .assign_coords(mindex_coords)
-        )  # ,md['detector']+'_image':'intensity'})
-
-        # this is needed for holoviews compatibility, hopefully does not break other features.
-        retxr = retxr.assign_coords(
-            {
-                "pix_x": np.arange(0, len(retxr.pix_x)),
-                "pix_y": np.arange(0, len(retxr.pix_y)),
-            }
-        )
-        try:
-            monitors = (
-                monitors.rename({"time": "system"})
-                .reset_index("system")
-                .assign_coords(system=index)
-            )
-
-            if "system_" in monitors.indexes.keys():
-                monitors = monitors.drop("system_")
-
-        except Exception as e:
-            warnings.warn(
-                (
-                    "Monitor streams loaded successfully, but could not be correlated to images. "
-                    " Check monitor stream for issues, probable metadata change."
-                ),
-                stacklevel=2,
-            )
-        retxr.attrs.update(md)
-
-        retxr.attrs["exposure"] = (
-            len(data.dim_0) * retxr.attrs["exposure"]
-        )  # patch for multi exposures
-        # now do corrections:
-        frozen_attrs = retxr.attrs
-        if self.corr_mode == "i0":
-            retxr = retxr / monitors["RSoXS Au Mesh Current"]
-        elif self.corr_mode != "none":
-            warnings.warn(
-                "corrections other than none or i0 are not supported at the moment",
-                stacklevel=2,
-            )
-
-        retxr.attrs.update(frozen_attrs)
-
+                monitors = (
+                    monitors.rename({"time": "system"})
+                    .reset_index("system")
+                    .assign_coords(system=index)
+                )
+    
+                if "system_" in monitors.indexes.keys():
+                    monitors = monitors.drop("system_")
+    
+            except Exception as e:
+                warnings.warn(
+                    (
+                        "Monitor streams loaded successfully, but could not be correlated to images. "
+                        " Check monitor stream for issues, probable metadata change."
+                    ),
+                    stacklevel=2,
+                )
+            retxr.attrs.update(md)
+    
+            retxr.attrs["exposure"] = (
+                len(data.dim_0) * retxr.attrs["exposure"]
+            )  # patch for multi exposures
+            # now do corrections:
+            frozen_attrs = retxr.attrs
+            if self.corr_mode == "i0":
+                retxr = retxr / monitors["RSoXS Au Mesh Current"]
+            elif self.corr_mode != "none":
+                warnings.warn(
+                    "corrections other than none or i0 are not supported at the moment",
+                    stacklevel=2,
+                )
+    
+            retxr.attrs.update(frozen_attrs)
+    
         # deal with the edge case where the LAST energy of a run is repeated... this may need modification to make it correct (did the energies shift when this happened??)
-        try:
-            if retxr.system[-1] == retxr.system[-2]:
-                retxr = retxr[:-1]
-        except IndexError:
-            pass
+            try:
+                if retxr.system[-1] == retxr.system[-2]:
+                    retxr = retxr[:-1]
+            except IndexError:
+                pass
+    
+            if return_dataset:
+                # retxr = (index,monitors,retxr)
+                monitors.attrs.update(retxr.attrs)
+                retxr = monitors.merge(retxr)
+    
+            if self.use_chunked_loading:
+                # dask and multiindexes are like PEO and PPO.  They're kinda the same thing and they don't like each other.
+                retxr = retxr.unstack("system")
 
-        if return_dataset:
-            # retxr = (index,monitors,retxr)
-            monitors.attrs.update(retxr.attrs)
-            retxr = monitors.merge(retxr)
+        except: # this will take you to NEXAFS loading (including diodes). Will work for current (March 2024 or later) scans; remains to be seen for older
 
-        if self.use_chunked_loading:
-            # dask and multiindexes are like PEO and PPO.  They're kinda the same thing and they don't like each other.
-            retxr = retxr.unstack("system")
+            energydim = monitors['energy_readback'] # this is the most likely failure point for older scans
+            tran = monitors['WAXS Beamstop']
+            Io = monitors['RSoXS Au Mesh Current']
+            I_curr = monitors['RSoXS Sample Current']
+
+            das_to_merge = []
+            da_labels = ['Transmission','Io','TEY']
+            i = 0
+
+            for v in [tran, Io, I_curr]:
+                da = xr.DataArray(
+                    data=v.data ,
+                    dims='energy',
+                    coords = {'energy':energydim.data},
+                    name = da_labels[i])
+                da = da.sortby('energy')
+                das_to_merge.append(da)
+                i += 1
+            retxr = xr.merge(das_to_merge)
+            retxr.attrs.update(md)
 
         return retxr
 
@@ -847,7 +873,9 @@ class SST1RSoXSDB:
         xr.Dataset
             xarray dataset containing all monitor streams as data variables mapped against the dimension "time"
         """
-
+        if isinstance(entry,int):
+            entry = self.c[entry]
+        
         monitors = None
 
         # Iterate through the list of streams held by the Bluesky document 'entry'
@@ -939,6 +967,9 @@ class SST1RSoXSDB:
 
         """
         md = {}
+
+        if isinstance(run,int):
+            run = self.c[run]
 
         # items coming from the start document
         start = run.start
@@ -1180,3 +1211,14 @@ class SST1RSoXSDB:
             )
         else:
             return xr.DataArray(img, dims=["pix_x", "pix_y"], attrs=headerdict)
+            
+    def ret_profile(self, scan_no): # helper function during troubleshooting
+        """
+        Simple function to return all raw streams from a given scan number. 
+        Created for troubleshooting.
+        """
+        if isinstance(scan_no,int):
+            entry = self.c[scan_no]
+        else:
+            print('Not a valid scan number')
+        return entry
