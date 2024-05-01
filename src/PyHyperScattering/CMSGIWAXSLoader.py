@@ -1,6 +1,7 @@
 import pathlib
 import warnings
 import fabio
+from PIL import Image
 from PyHyperScattering.FileLoader import FileLoader
 import xarray as xr
 import pandas as pd
@@ -47,15 +48,20 @@ class CMSGIWAXSLoader(FileLoader):
 
         """
 
-        # Check that the path exists before continuing.
-        if not pathlib.Path(filepath).is_file():
-            raise ValueError(f"File {filepath} does not exist.")
+        # Ensure that the path exists before continuing.
+        filepath = pathlib.Path(filepath)
         
         # Open the image from the filepath
-        image = fabio.open(filepath)
+        # Get the file extension using pathlib
+        file_extension = filepath.suffix.lower()
 
-        # Create a numpy array from the image
-        image_data = image.data
+        # Choose the appropriate method based on the file extension
+        if file_extension in ['.tiff', '.tif']:
+            # Load using PIL for tiffs, just to avoid a warning message
+            image_data = np.array(Image.open(filepath))
+        else:
+            # Default for Load using Fabio
+            image_data = fabio.open(filepath).data
 
         # Run the loadMetaData method to construct the attribute dictionary for the filePath.
         attr_dict = self.loadMd(filepath)
