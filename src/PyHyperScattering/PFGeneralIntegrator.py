@@ -76,9 +76,6 @@ class PFGeneralIntegrator:
         maskmethod (str, default = 'none'): What type of mask to load 
                    options: [nika, polygon, image, pyhyper, edf, numpy, none]
 
-                   Note: if maskmethod is 'none', then template_xr (if supplied) 
-                   will be used for an empty mask shape. 
-
         geomethod (str, default = 'none'): where to get calibration information 
                   from for integrators
                   options: ['nika', 'template_xr', 'ponifile', 'none']
@@ -106,10 +103,7 @@ class PFGeneralIntegrator:
             self.loadEdfMask(**kwargs)
         elif maskmethod == 'numpy':
             self.mask = kwargs['mask']
-        elif maskmethod == 'none' and template_xr is not None:
-            self.mask = np.zeros((len(template_xr.pix_y),len(template_xr.pix_x)))
-            warnings.warn(f'Since mask was none, creating an empty mask with shape {self.mask.shape}', stacklevel=2)
-        elif maskmethod == 'none' and template_xr is None:
+        elif maskmethod == 'none':
             self.mask = None
         else:
             raise ValueError(f'Invalid or unsupported maskmethod {maskmethod}.')

@@ -91,8 +91,8 @@ class PGGeneralIntegrator(PFGeneralIntegrator):
             img_to_integ = da.values
         
         if self.mask is None:
-            warnings.warn('No mask defined.  Creating an empty mask with dimensions {img.shape}.',stacklevel=2)
-            self.mask = np.zeros_like(da).squeeze()
+            warnings.warn(f'No mask defined. Creating an empty mask with dimensions {img_to_integ.shape}.',stacklevel=2)
+            self.mask = np.zeros_like(img_to_integ)
         assert np.shape(self.mask)==np.shape(img_to_integ),f'Error!  Mask has shape {np.shape(self.mask)} but you are attempting to integrate data with shape {np.shape(img_to_integ)}.  Try changing mask orientation or updating mask.'
         stacked_axis = list(da.dims)
         stacked_axis.remove('pix_x')
