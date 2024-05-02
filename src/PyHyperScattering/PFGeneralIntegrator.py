@@ -51,22 +51,22 @@ class PFGeneralIntegrator:
     """PyFAI general integrator wrapper"""
 
     def __init__(self,
-                 maskmethod='none',
+                 maskmethod = 'none',
                  maskrotate = True,
                  geomethod = 'none',
                  NIdistance = 0, NIbcx = 0, NIbcy = 0, NItiltx = 0, NItilty = 0,
                  NIpixsizex = 0, NIpixsizey = 0,
-                 template_xr=None,
+                 template_xr = None,
                  ponifile = None,
-                 energy=2000,
-                 integration_method='csr_ocl',
-                 correctSolidAngle=True,
-                 maskToNan=True,
-                 npts=500,
-                 use_log_ish_binning=False,
-                 do_1d_integration=False,
-                 return_sigma=False,
-                 use_chunked_processing=False,
+                 energy = 2000,
+                 integration_method = 'csr_ocl',
+                 correctSolidAngle = True,
+                 maskToNan = True,
+                 npts = 500,
+                 use_log_ish_binning = False,
+                 do_1d_integration = False,
+                 return_sigma = False,
+                 use_chunked_processing = False,
                  **kwargs):
         
         """
@@ -76,22 +76,24 @@ class PFGeneralIntegrator:
         maskmethod (str, default = 'none'): What type of mask to load 
                    options: [nika, polygon, image, pyhyper, edf, numpy, none]
 
-        maskrotate (bool):
+                   Note: if maskmethod is 'none', then template_xr (if supplied) 
+                   will be used for an empty mask shape. 
 
         geomethod (str, default = 'none'): where to get calibration information 
                   from for integrators
                   options: ['nika', 'template_xr', 'ponifile', 'none']
 
-        template_xr (xr.DataArray): xarray for example shape for empty masks 
+        template_xr (xr.DataArray): xarray for example shape for empty masks, 
                     and attributes for calibration if geomethod='template_xr'
 
         ponifile (str or pathlib.Path):
 
         Important keyword arguments:
         maskpath (str or pathlib.Path): path to mask, if specifed a method that 
-                                        requires a file                             
-        """
-        # energy units eV
+                                        requires a file     
+        mask (numpy.ndarray): if maskmethod is 'numpy', supply an array mask                        
+        """     
+
         if maskmethod == 'nika':
             self.loadNikaMask(rotate_image=maskrotate, **kwargs)
         elif maskmethod == 'polygon':
@@ -104,7 +106,10 @@ class PFGeneralIntegrator:
             self.loadEdfMask(**kwargs)
         elif maskmethod == 'numpy':
             self.mask = kwargs['mask']
-        elif maskmethod == 'none':
+        elif maskmethod == 'none' and template_xr is not None:
+            self.mask = np.zeros((len(template_xr.pix_y),len(template_xr.pix_x)))
+            warnings.warn(f'Since mask was none, creating an empty mask with shape {self.mask.shape}', stacklevel=2)
+        elif maskmethod == 'none' and template_xr is None:
             self.mask = None
         else:
             raise ValueError(f'Invalid or unsupported maskmethod {maskmethod}.')
@@ -145,7 +150,7 @@ class PFGeneralIntegrator:
         elif geomethod == 'template_xr':
             self.calibrationFromTemplateXRParams(template_xr)
         elif geomethod == 'ponifile':
-            self.calibrationFromPoniFile(ponifile, template_xr)
+            self.calibrationFromPoniFile(ponifile)
         elif geomethod == "none":
             warnings.warn(
                 'Initializing geometry with default values.  This is probably NOT what you want.',
@@ -590,13 +595,6 @@ class PFGeneralIntegrator:
         except TypeError:
             pass
 
-        if self.mask is None:
-            self.mask = np.zeros((len(raw_xr.pix_y), len(raw_xr.pix_x)))
-            warnings.warn(
-                f'Since mask was none, creating an empty mask with shape {self.mask.shape}',
-                stacklevel=2,
-            )
-
         if hasattr(raw_xr.energy, '__iter__'):  # this is an iterable, not a single number
             self.energy = raw_xr.energy[0]
         else:
@@ -604,7 +602,7 @@ class PFGeneralIntegrator:
 
         self.recreateIntegrator()
 
-    def calibrationFromPoniFile(self, ponifile, raw_xr=None):
+    def calibrationFromPoniFile(self, ponifile):
 
         '''
         Sets calibration from a pyFAI poni-file
@@ -625,10 +623,7 @@ class PFGeneralIntegrator:
 
         self.pixel1 = ponifile.detector.pixel1
         self.pixel2 = ponifile.detector.pixel2
-        
-        if self.mask is None and raw_xr is not None: 
-            self.mask = np.zeros((len(raw_xr.pix_y),len(raw_xr.pix_x)))
-            warnings.warn(f'Since mask was none, creating an empty mask with shape {self.mask.shape}',stacklevel=2)
+
         self.recreateIntegrator()
 
     def calibrationFromNikaParams(self, distance, bcx, bcy, tiltx, tilty, pixsizex, pixsizey):
