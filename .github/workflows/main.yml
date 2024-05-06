@@ -12,7 +12,7 @@ jobs:
     runs-on: ${{ matrix.os}}
     strategy:
       matrix:
-        python-version: [ '3.8', '3.9', '3.10','3.11']
+        python-version: ['3.10','3.11']
         os: [ubuntu-latest, macOS-latest, windows-latest]
 
     steps:
@@ -58,6 +58,8 @@ jobs:
         unzip PSS300nm_C_ccd100.zip
         wget https://github.com/usnistgov/PyHyperScattering/releases/download/0.0.0-example-data/smi_example.zip
         unzip smi_example.zip
+        wget https://github.com/usnistgov/PyHyperScattering/releases/download/0.0.0-example-data/CMS_giwaxs_series.zip
+        unzip CMS_giwaxs_series.zip
     - name: Fetch and unzip example data (Windows)
       if: ${{ matrix.os == 'windows-latest' }}
       run: |
@@ -71,6 +73,8 @@ jobs:
         unzip PSS300nm_C_ccd100.zip
         C:\msys64\usr\bin\wget.exe https://github.com/usnistgov/PyHyperScattering/releases/download/0.0.0-example-data/smi_example.zip
         unzip smi_example.zip
+        C:\msys64\usr\bin\wget.exe https://github.com/usnistgov/PyHyperScattering/releases/download/0.0.0-example-data/CMS_giwaxs_series.zip
+        unzip CMS_giwaxs_series.zip
     - name: Test with pytest
       run: |
         #pytest -v
