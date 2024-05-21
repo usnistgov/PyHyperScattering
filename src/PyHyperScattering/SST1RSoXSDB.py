@@ -698,6 +698,11 @@ class SST1RSoXSDB:
         elif isinstance(data,tiled.client.array.DaskArrayClient):
             data = run["primary"]["data"].read()[md["detector"] + "_image"]
         
+        # Handle extra dimensions (non-pixel and non-intended dimensions from repeat exposures) by averaging them along the dim_0 axis
+        if len(data.shape) > 3:
+            data = data.mean("dim_0")
+
+
         data = data.astype(int)  # convert from uint to handle dark subtraction
 
         if self.dark_subtract:
@@ -1008,7 +1013,8 @@ class SST1RSoXSDB:
         elif md["rsoxs_config"] == "waxs":
             md["detector"] = "Wide Angle CCD Detector"
         else:
-            warnings.warn(f"Cannot auto-hint detector type without RSoXS config.", stacklevel=2)
+            warnings.warn(f"Cannot auto-hint detector type without RSoXS config.  Assuming WAXS.", stacklevel=2)
+            md["detector"] = "Wide Angle CCD Detector"
 
         # items coming from baseline
         baseline = run["baseline"]["data"]
@@ -1089,23 +1095,30 @@ class SST1RSoXSDB:
             md["wavelength"] = 1.239842e-6 / md["energy"]
         except TypeError:
             md["wavelength"] = None
-        md["sampleid"] = start["scan_id"]
-
-        md["dist"] = md["sdd"] / 1000
-
-        md["pixel1"] = self.pix_size_1 / 1000
-        md["pixel2"] = self.pix_size_2 / 1000
 
         if not self.use_precise_positions:
             md["sam_x"] = md["sam_x"].round(1)
             md["sam_y"] = md["sam_y"].round(1)
 
-        md["poni1"] = md["beamcenter_y"] * md["pixel1"]
-        md["poni2"] = md["beamcenter_x"] * md["pixel2"]
+        md["sampleid"] = start["scan_id"]
+        try:
+            md["dist"] = md["sdd"] / 1000
 
-        md["rot1"] = 0
-        md["rot2"] = 0
-        md["rot3"] = 0
+            md["pixel1"] = self.pix_size_1 / 1000
+            md["pixel2"] = self.pix_size_2 / 1000
+
+
+            md["poni1"] = md["beamcenter_y"] * md["pixel1"]
+            md["poni2"] = md["beamcenter_x"] * md["pixel2"]
+
+            md["rot1"] = 0
+            md["rot2"] = 0
+            md["rot3"] = 0
+        except KeyError:
+            warnings.warn(
+                "Could not find all necessary metadata entries for geometry calculation.",
+                stacklevel=2,
+            )
 
         md.update(run.metadata)
         return md
