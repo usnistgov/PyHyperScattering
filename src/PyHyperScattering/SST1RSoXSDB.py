@@ -53,6 +53,7 @@ class SST1RSoXSDB:
     }
     md_secondary_lookup = {
         "energy": "en_monoen_setpoint",
+        "exposure": "Small Angle CCD Detector_cam_acquire_time",
     }
 
     def __init__(
@@ -258,6 +259,7 @@ class SST1RSoXSDB:
         scan_id: int = None,
         userOutputs: list = [],
         debugWarnings: bool = False,
+        existingCatalog: pd.DataFrame = None,
         **kwargs,
     ) -> pd.DataFrame:
         """Search the Bluesky catalog for scans matching all provided keywords and return metadata as a dataframe.
@@ -300,6 +302,7 @@ class SST1RSoXSDB:
             plan (str, optional): Measurement Plan, case-insensitive, regex search,
                 e.g., "Full" matches "full_carbon_scan_nd", "full_fluorine_scan_nd"
                 e.g., "carbon|oxygen|fluorine" matches carbon OR oxygen OR fluorine scans
+            scan_id (int, optional): Scan ID, exact numeric match, e.g., 12345
             **kwargs: Additional search terms can be provided as keyword args and will further filter
                 the catalog Valid input follows metadataLabel='searchTerm' or metadataLavel = ['searchTerm','matchType'].
                 Metadata labels must match an entry in the 'start' dictionary of the catalog. Supported match types are
@@ -319,6 +322,7 @@ class SST1RSoXSDB:
                 r'catalog.stop["num_events"]']
                 e.g., userOutputs = [["Exposure Multiplier","exptime", r'catalog.start'], ["Stop Time","time",r'catalog.stop']]
             debugWarnings (bool, optional): if True, raises a warning with debugging information whenever a key can't be found.
+            existingCatalog (pd.Dataframe, optional): if provided, results with scan_id that appear in this dataframe and equal number of points will not be re-downloaded.
         Returns:
             Pandas dataframe containing the results of the search, or an empty dataframe if the search fails
         """
@@ -418,7 +422,6 @@ class SST1RSoXSDB:
             # List elements are [Output Column Title, Bluesky Metadata Code, Metadata Source location, Applicable Output flag]
             outputValueLibrary = [
                 ["scan_id", "scan_id", r"catalog.start", "default"],
-                ["uid", "uid", r"catalog.start", "ext_bio"],
                 ["start_time", "time", r"catalog.start", "default"],
                 ["cycle", "cycle", r"catalog.start", "default"],
                 ["saf", "SAF", r"catalog.start", "ext_bio"],
@@ -434,6 +437,7 @@ class SST1RSoXSDB:
                 ["sample_rotation", "angle", r"catalog.start", "ext_msmt"],
                 ["exit_status", "exit_status", r"catalog.stop", "default"],
                 ["num_Images", "primary", r'catalog.stop["num_events"]', "default"],
+                ["uid", "uid", r"catalog.start", "default"],
             ]
 
             # Subset the library based on the output flag selected
@@ -478,10 +482,17 @@ class SST1RSoXSDB:
 
             # Build output dataframe as a list of lists
             outputList = []
-
+            
             # Outer loop: Catalog entries
-            for scanEntry in tqdm(reducedCatalog.values(), desc="Retrieving results..."):
+            for scanEntry in tqdm(reducedCatalog.items(), desc="Retrieving results"):
                 singleScanOutput = []
+
+                if existingCatalog is not None:
+                    if scanEntry[0] in existingCatalog.uid.values:
+                        # if the scan is already in the catalog, skip it
+                        continue
+                
+                scanEntry = scanEntry[1]
 
                 # Pull the start and stop docs once
 
@@ -1032,23 +1043,28 @@ class SST1RSoXSDB:
 
         monitors = None
 
+        monitor_accumulator = []
+        
         # Iterate through the list of streams held by the Bluesky document 'entry'
         for stream_name in list(entry.keys()):
             # Add monitor streams to the output xr.Dataset
             if "monitor" in stream_name:
-                if monitors is None:  # First one
-                    # incantation to extract the dataset from the bluesky stream
-                    monitors = entry[stream_name].data.read()
-                else:  # merge into the to existing output xarray
-                    monitors = xr.merge((monitors, entry[stream_name].data.read()))
+                monitor_accumulator.append(entry[stream_name].data.read())
+                #if monitors is None:  # First one
+                #    # incantation to extract the dataset from the bluesky stream
+                #    monitors = entry[stream_name].data.read()
+                #else:  # merge into the to existing output xarray
+                #    monitors = xr.merge((monitors, entry[stream_name].data.read()))
+        # if there are no monitors, return an empty xarray Dataset
+        if len(monitor_accumulator) == 0:
+            return xr.Dataset()
 
+        monitors = xr.merge(monitor_accumulator)
+        
         # At this stage monitors has dimension time and all streams as data variables
         # the time dimension inherited all time values from all streams
         # the data variables (Mesh current, sample current etc.) are all sparse, with lots of nans
 
-        # if there are no monitors, return an empty xarray Dataset
-        if monitors is None:
-            return xr.Dataset()
 
         # For each nan value, replace with the closest value ahead of it in time
         # For remaining nans, replace with closest value behind it in time
@@ -1184,6 +1200,7 @@ class SST1RSoXSDB:
                 ),
                 stacklevel=2,
             )
+
 
         if md["rsoxs_config"] == "saxs":
             md["detector"] = "Small Angle CCD Detector"
