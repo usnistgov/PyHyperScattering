@@ -1,0 +1,19 @@
+
+[1mLattice Information
+[0m
+cylinder radius = 80 nm
+center-center spacing = 480 nm
+(100) d-spacing = 415.692 nm
+q* = 0.015 nm^-1
+
+~~orientation~~
+decay model: powerlaw
+if linear: decay width 5 from 1 to 0
+if powerlaw: exponent -0.1 starting at 1 at shell wall
+2021-09-03_pl-0.1_cyl10_core5_sp60.h5
+tiled_morphology shape: (1768, 2040)
+Tiled_directors shape: (1768, 2040, 3)
+tiled_distance shape: (1768, 2040)
+Morphology shape: (1024, 1024)
+Director shape: (1024, 1024, 3)
+Distance shape: (1024, 1024)

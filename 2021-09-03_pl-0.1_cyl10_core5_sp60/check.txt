@@ -1,0 +1,19 @@
+Model has 3 materials
+Dataset dimensions: 1 x 1024 x 1024
+Material 1 Unaligned. Min:0.0 Max:1.0
+Material 1 Aligned. Min:0.0 Max:0.0
+Material 1 Total. Min:0.0 Max:1.0
+Material 1 minimum in-plane rotation:0.0 max:0.0
+Material 1 minimum out-of-plane rotation:0.0 max:0.0
+Material 2 Unaligned. Min:0.0 Max:1.0
+Material 2 Aligned. Min:0.0 Max:0.0
+Material 2 Total. Min:0.0 Max:1.0
+Material 2 minimum in-plane rotation:0.0 max:0.0
+Material 2 minimum out-of-plane rotation:0.0 max:0.0
+Material 3 Unaligned. Min:0.0 Max:0.0662616640329361
+Material 3 Aligned. Min:0.0 Max:0.9970908145231228
+Material 3 Total. Min:0.0 Max:1.0000000661985524
+Material 3 minimum in-plane rotation:0.0 max:179.90870138657237
+Material 3 minimum out-of-plane rotation:0.0 max:89.89209350958103
+All materials Total. Min:0.9999999327831404 Max:1.0000000661985524
+0:00:01.815826

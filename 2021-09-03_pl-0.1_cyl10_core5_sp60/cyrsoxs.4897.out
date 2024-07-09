@@ -1,0 +1,394 @@
+--> No loaded packages!
+--> Adding package cyrsoxs version 0.9.0 to ['PATH', 'PYTHONPATH']
+/home/tbm/software/anaconda/lib/python3.8/site-packages/matplotlib/image.py:446: UserWarning: Warning: converting a masked element to nan.
+  dv = np.float64(self.norm.vmax) - np.float64(self.norm.vmin)
+/home/tbm/software/anaconda/lib/python3.8/site-packages/matplotlib/image.py:453: UserWarning: Warning: converting a masked element to nan.
+  a_min = np.float64(newmin)
+/home/tbm/software/anaconda/lib/python3.8/site-packages/matplotlib/image.py:458: UserWarning: Warning: converting a masked element to nan.
+  a_max = np.float64(newmax)
+/home/tbm/software/anaconda/lib/python3.8/site-packages/matplotlib/image.py:477: UserWarning: Warning: converting a masked element to nan.
+  vrange = np.array([self.norm.vmin, self.norm.vmax],
+directory: .
+file: 2021-09-03_pl-0.1_cyl10_core5_sp60.h5
+Model has 3 materials
+Dataset dimensions: 1 x 1024 x 1024
+Material 1 Unaligned. Min:0.0 Max:1.0
+Material 1 Aligned. Min:0.0 Max:0.0
+Material 1 Total. Min:0.0 Max:1.0
+Material 1 minimum in-plane rotation:0.0 max:0.0
+Material 1 minimum out-of-plane rotation:0.0 max:0.0
+Material 2 Unaligned. Min:0.0 Max:1.0
+Material 2 Aligned. Min:0.0 Max:0.0
+Material 2 Total. Min:0.0 Max:1.0
+Material 2 minimum in-plane rotation:0.0 max:0.0
+Material 2 minimum out-of-plane rotation:0.0 max:0.0
+Material 3 Unaligned. Min:0.0 Max:0.0662616640329361
+Material 3 Aligned. Min:0.0 Max:0.9970908145231228
+Material 3 Total. Min:0.0 Max:1.0000000661985524
+Material 3 minimum in-plane rotation:0.0 max:179.90870138657237
+Material 3 minimum out-of-plane rotation:0.0 max:89.89209350958103
+All materials Total. Min:0.9999999327831404 Max:1.0000000661985524
+0:00:01.815826
+~~MORPHOLOGY CHECK RESULTS~~
+~~~~~~~see images too~~~~~~~
+Model has 3 materials
+Dataset dimensions: 1 x 1024 x 1024
+Material 1 Unaligned. Min:0.0 Max:1.0
+Material 1 Aligned. Min:0.0 Max:0.0
+Material 1 Total. Min:0.0 Max:1.0
+Material 1 minimum in-plane rotation:0.0 max:0.0
+Material 1 minimum out-of-plane rotation:0.0 max:0.0
+Material 2 Unaligned. Min:0.0 Max:1.0
+Material 2 Aligned. Min:0.0 Max:0.0
+Material 2 Total. Min:0.0 Max:1.0
+Material 2 minimum in-plane rotation:0.0 max:0.0
+Material 2 minimum out-of-plane rotation:0.0 max:0.0
+Material 3 Unaligned. Min:0.0 Max:0.0662616640329361
+Material 3 Aligned. Min:0.0 Max:0.9970908145231228
+Material 3 Total. Min:0.0 Max:1.0000000661985524
+Material 3 minimum in-plane rotation:0.0 max:179.90870138657237
+Material 3 minimum out-of-plane rotation:0.0 max:89.89209350958103
+All materials Total. Min:0.9999999327831404 Max:1.0000000661985524
+0:00:01.815826
+~~WITH MATERIALS~~
+lrwxrwxrwx 1 pab2 users 31 Sep  2 14:32 Material0.txt -> ../optical-constants/vacuum.txt
+lrwxrwxrwx 1 pab2 users 27 Sep  2 14:32 Material1.txt -> ../optical-constants/Si.txt
+lrwxrwxrwx 1 pab2 users 39 Sep  2 14:32 Material2.txt -> ../optical-constants/PA_extrap_1cyc.txt
+RUNNING ON GPU1
+[0;33m[WARNING] : No value corresponding to VTIDirName found. Setting to default[0m
+[0;33m[WARNING] : No value corresponding to HDF5DirName found. Setting to default[0m
+[INFO] 2D computation enabled
+[0;32mInput Data : [OK] [0m
+Dimensions           : [1024 1024 1]
+PhysSize             : 8 nm 
+E Rotation Angle     : 0 : 2 : 180
+K RotationType       : No Rotation : (k = 0,0,1)
+MorphologyType       : VectorMorphology
+Energies simulated   : [270 270.1 270.2 270.3 270.4 270.5 270.6 270.7 270.8 270.9 271 271.1 271.2 271.3 271.4 271.5 271.6 271.7 271.8 271.9 272 272.1 272.2 272.3 272.4 272.5 272.6 272.7 272.8 272.9 273 273.1 273.2 273.3 273.4 273.5 273.6 273.7 273.8 273.9 274 274.1 274.2 274.3 274.4 274.5 274.6 274.7 274.8 274.9 275 275.1 275.2 275.3 275.4 275.5 275.6 275.7 275.8 275.9 276 276.1 276.2 276.3 276.4 276.5 276.6 276.7 276.8 276.9 277 277.1 277.2 277.3 277.4 277.5 277.6 277.7 277.8 277.9 278 278.1 278.2 278.3 278.4 278.5 278.6 278.7 278.8 278.9 279 279.1 279.2 279.3 279.4 279.5 279.6 279.7 279.8 279.9 280 280.1 280.2 280.3 280.4 280.5 280.6 280.7 280.8 280.9 281 281.1 281.2 281.3 281.4 281.5 281.6 281.7 281.8 281.9 282 282.1 282.2 282.3 282.4 282.5 282.6 282.7 282.8 282.9 283 283.1 283.2 283.3 283.4 283.5 283.6 283.7 283.8 283.9 284 284.1 284.2 284.3 284.4 284.5 284.6 284.7 284.8 284.9 285 285.1 285.2 285.3 285.4 285.5 285.6 285.7 285.8 285.9 286 286.1 286.2 286.3 286.4 286.5 286.6 286.7 286.8 286.9 287 287.1 287.2 287.3 287.4 287.5 287.6 287.7 287.8 287.9 288 288.1 288.2 288.3 288.4 288.5 288.6 288.7 288.8 288.9 289 289.1 289.2 289.3 289.4 289.5 289.6 289.7 289.8 289.9 290 290.1 290.2 290.3 290.4 290.5 290.6 290.7 290.8 290.9 291 291.1 291.2 291.3 291.4 291.5 291.6 291.7 291.8 291.9 292 292.1 292.2 292.3 292.4 292.5 292.6 292.7 292.8 292.9 293 293.1 293.2 293.3 293.4 293.5 293.6 293.7 293.8 293.9 294 294.1 294.2 294.3 294.4 294.5 294.6 294.7 294.8 294.9 295 295.1 295.2 295.3 295.4 295.5 295.6 295.7 295.8 295.9 296 296.1 296.2 296.3 296.4 296.5 296.6 296.7 296.8 296.9 297 297.1 297.2 297.3 297.4 297.5 297.6 297.7 297.8 297.9 298 298.1 298.2 298.3 298.4 298.5 298.6 298.7 298.8 298.9 299 299.1 299.2 299.3 299.4 299.5 299.6 299.7 299.8 299.9 ]
+Windowing Type       : NONE
+Rotation Mask        : 0
+Interpolation Type   : Trilinear interpolation
+HDF Output Directory : HDF5
+Scatter Approach     : Partial
+ __________________________________________________________________________________________________
+|                                 Thanks for using Cy-RSoXS                                        |
+|--------------------------------------------------------------------------------------------------|
+|  Copyright          : Iowa State University                                                      |
+|  License            : MIT                                                                        |
+|  Acknowledgement    : ONR MURI                                                                   |
+|  Developed at Iowa State University in collaboration with NIST                                   |
+|  Please cite the following publication :                                                         |
+|  Comments/Questions :                                                                            |
+|          1. Dr. Baskar GanapathySubramanian (baskarg@iastate.edu)                                |
+|          2. Dr. Adrash Krishnamurthy        (adarsh@iastate.edu)                                 |
+ -------------------------------------------------------------------------------------------------- 
+
+Number of CUDA devices:1
+[INFO] [GPU = NVIDIA Quadro RTX 8000] : 270eV -> 299.9eV
+ [STAT] Energy = 270 starting 
+ [STAT] Energy = 270.1 starting 
+ [STAT] Energy = 270.2 starting 
+ [STAT] Energy = 270.3 starting 
+ [STAT] Energy = 270.4 starting 
+ [STAT] Energy = 270.5 starting 
+ [STAT] Energy = 270.6 starting 
+ [STAT] Energy = 270.7 starting 
+ [STAT] Energy = 270.8 starting 
+ [STAT] Energy = 270.9 starting 
+ [STAT] Energy = 271 starting 
+ [STAT] Energy = 271.1 starting 
+ [STAT] Energy = 271.2 starting 
+ [STAT] Energy = 271.3 starting 
+ [STAT] Energy = 271.4 starting 
+ [STAT] Energy = 271.5 starting 
+ [STAT] Energy = 271.6 starting 
+ [STAT] Energy = 271.7 starting 
+ [STAT] Energy = 271.8 starting 
+ [STAT] Energy = 271.9 starting 
+ [STAT] Energy = 272 starting 
+ [STAT] Energy = 272.1 starting 
+ [STAT] Energy = 272.2 starting 
+ [STAT] Energy = 272.3 starting 
+ [STAT] Energy = 272.4 starting 
+ [STAT] Energy = 272.5 starting 
+ [STAT] Energy = 272.6 starting 
+ [STAT] Energy = 272.7 starting 
+ [STAT] Energy = 272.8 starting 
+ [STAT] Energy = 272.9 starting 
+ [STAT] Energy = 273 starting 
+ [STAT] Energy = 273.1 starting 
+ [STAT] Energy = 273.2 starting 
+ [STAT] Energy = 273.3 starting 
+ [STAT] Energy = 273.4 starting 
+ [STAT] Energy = 273.5 starting 
+ [STAT] Energy = 273.6 starting 
+ [STAT] Energy = 273.7 starting 
+ [STAT] Energy = 273.8 starting 
+ [STAT] Energy = 273.9 starting 
+ [STAT] Energy = 274 starting 
+ [STAT] Energy = 274.1 starting 
+ [STAT] Energy = 274.2 starting 
+ [STAT] Energy = 274.3 starting 
+ [STAT] Energy = 274.4 starting 
+ [STAT] Energy = 274.5 starting 
+ [STAT] Energy = 274.6 starting 
+ [STAT] Energy = 274.7 starting 
+ [STAT] Energy = 274.8 starting 
+ [STAT] Energy = 274.9 starting 
+ [STAT] Energy = 275 starting 
+ [STAT] Energy = 275.1 starting 
+ [STAT] Energy = 275.2 starting 
+ [STAT] Energy = 275.3 starting 
+ [STAT] Energy = 275.4 starting 
+ [STAT] Energy = 275.5 starting 
+ [STAT] Energy = 275.6 starting 
+ [STAT] Energy = 275.7 starting 
+ [STAT] Energy = 275.8 starting 
+ [STAT] Energy = 275.9 starting 
+ [STAT] Energy = 276 starting 
+ [STAT] Energy = 276.1 starting 
+ [STAT] Energy = 276.2 starting 
+ [STAT] Energy = 276.3 starting 
+ [STAT] Energy = 276.4 starting 
+ [STAT] Energy = 276.5 starting 
+ [STAT] Energy = 276.6 starting 
+ [STAT] Energy = 276.7 starting 
+ [STAT] Energy = 276.8 starting 
+ [STAT] Energy = 276.9 starting 
+ [STAT] Energy = 277 starting 
+ [STAT] Energy = 277.1 starting 
+ [STAT] Energy = 277.2 starting 
+ [STAT] Energy = 277.3 starting 
+ [STAT] Energy = 277.4 starting 
+ [STAT] Energy = 277.5 starting 
+ [STAT] Energy = 277.6 starting 
+ [STAT] Energy = 277.7 starting 
+ [STAT] Energy = 277.8 starting 
+ [STAT] Energy = 277.9 starting 
+ [STAT] Energy = 278 starting 
+ [STAT] Energy = 278.1 starting 
+ [STAT] Energy = 278.2 starting 
+ [STAT] Energy = 278.3 starting 
+ [STAT] Energy = 278.4 starting 
+ [STAT] Energy = 278.5 starting 
+ [STAT] Energy = 278.6 starting 
+ [STAT] Energy = 278.7 starting 
+ [STAT] Energy = 278.8 starting 
+ [STAT] Energy = 278.9 starting 
+ [STAT] Energy = 279 starting 
+ [STAT] Energy = 279.1 starting 
+ [STAT] Energy = 279.2 starting 
+ [STAT] Energy = 279.3 starting 
+ [STAT] Energy = 279.4 starting 
+ [STAT] Energy = 279.5 starting 
+ [STAT] Energy = 279.6 starting 
+ [STAT] Energy = 279.7 starting 
+ [STAT] Energy = 279.8 starting 
+ [STAT] Energy = 279.9 starting 
+ [STAT] Energy = 280 starting 
+ [STAT] Energy = 280.1 starting 
+ [STAT] Energy = 280.2 starting 
+ [STAT] Energy = 280.3 starting 
+ [STAT] Energy = 280.4 starting 
+ [STAT] Energy = 280.5 starting 
+ [STAT] Energy = 280.6 starting 
+ [STAT] Energy = 280.7 starting 
+ [STAT] Energy = 280.8 starting 
+ [STAT] Energy = 280.9 starting 
+ [STAT] Energy = 281 starting 
+ [STAT] Energy = 281.1 starting 
+ [STAT] Energy = 281.2 starting 
+ [STAT] Energy = 281.3 starting 
+ [STAT] Energy = 281.4 starting 
+ [STAT] Energy = 281.5 starting 
+ [STAT] Energy = 281.6 starting 
+ [STAT] Energy = 281.7 starting 
+ [STAT] Energy = 281.8 starting 
+ [STAT] Energy = 281.9 starting 
+ [STAT] Energy = 282 starting 
+ [STAT] Energy = 282.1 starting 
+ [STAT] Energy = 282.2 starting 
+ [STAT] Energy = 282.3 starting 
+ [STAT] Energy = 282.4 starting 
+ [STAT] Energy = 282.5 starting 
+ [STAT] Energy = 282.6 starting 
+ [STAT] Energy = 282.7 starting 
+ [STAT] Energy = 282.8 starting 
+ [STAT] Energy = 282.9 starting 
+ [STAT] Energy = 283 starting 
+ [STAT] Energy = 283.1 starting 
+ [STAT] Energy = 283.2 starting 
+ [STAT] Energy = 283.3 starting 
+ [STAT] Energy = 283.4 starting 
+ [STAT] Energy = 283.5 starting 
+ [STAT] Energy = 283.6 starting 
+ [STAT] Energy = 283.7 starting 
+ [STAT] Energy = 283.8 starting 
+ [STAT] Energy = 283.9 starting 
+ [STAT] Energy = 284 starting 
+ [STAT] Energy = 284.1 starting 
+ [STAT] Energy = 284.2 starting 
+ [STAT] Energy = 284.3 starting 
+ [STAT] Energy = 284.4 starting 
+ [STAT] Energy = 284.5 starting 
+ [STAT] Energy = 284.6 starting 
+ [STAT] Energy = 284.7 starting 
+ [STAT] Energy = 284.8 starting 
+ [STAT] Energy = 284.9 starting 
+ [STAT] Energy = 285 starting 
+ [STAT] Energy = 285.1 starting 
+ [STAT] Energy = 285.2 starting 
+ [STAT] Energy = 285.3 starting 
+ [STAT] Energy = 285.4 starting 
+ [STAT] Energy = 285.5 starting 
+ [STAT] Energy = 285.6 starting 
+ [STAT] Energy = 285.7 starting 
+ [STAT] Energy = 285.8 starting 
+ [STAT] Energy = 285.9 starting 
+ [STAT] Energy = 286 starting 
+ [STAT] Energy = 286.1 starting 
+ [STAT] Energy = 286.2 starting 
+ [STAT] Energy = 286.3 starting 
+ [STAT] Energy = 286.4 starting 
+ [STAT] Energy = 286.5 starting 
+ [STAT] Energy = 286.6 starting 
+ [STAT] Energy = 286.7 starting 
+ [STAT] Energy = 286.8 starting 
+ [STAT] Energy = 286.9 starting 
+ [STAT] Energy = 287 starting 
+ [STAT] Energy = 287.1 starting 
+ [STAT] Energy = 287.2 starting 
+ [STAT] Energy = 287.3 starting 
+ [STAT] Energy = 287.4 starting 
+ [STAT] Energy = 287.5 starting 
+ [STAT] Energy = 287.6 starting 
+ [STAT] Energy = 287.7 starting 
+ [STAT] Energy = 287.8 starting 
+ [STAT] Energy = 287.9 starting 
+ [STAT] Energy = 288 starting 
+ [STAT] Energy = 288.1 starting 
+ [STAT] Energy = 288.2 starting 
+ [STAT] Energy = 288.3 starting 
+ [STAT] Energy = 288.4 starting 
+ [STAT] Energy = 288.5 starting 
+ [STAT] Energy = 288.6 starting 
+ [STAT] Energy = 288.7 starting 
+ [STAT] Energy = 288.8 starting 
+ [STAT] Energy = 288.9 starting 
+ [STAT] Energy = 289 starting 
+ [STAT] Energy = 289.1 starting 
+ [STAT] Energy = 289.2 starting 
+ [STAT] Energy = 289.3 starting 
+ [STAT] Energy = 289.4 starting 
+ [STAT] Energy = 289.5 starting 
+ [STAT] Energy = 289.6 starting 
+ [STAT] Energy = 289.7 starting 
+ [STAT] Energy = 289.8 starting 
+ [STAT] Energy = 289.9 starting 
+ [STAT] Energy = 290 starting 
+ [STAT] Energy = 290.1 starting 
+ [STAT] Energy = 290.2 starting 
+ [STAT] Energy = 290.3 starting 
+ [STAT] Energy = 290.4 starting 
+ [STAT] Energy = 290.5 starting 
+ [STAT] Energy = 290.6 starting 
+ [STAT] Energy = 290.7 starting 
+ [STAT] Energy = 290.8 starting 
+ [STAT] Energy = 290.9 starting 
+ [STAT] Energy = 291 starting 
+ [STAT] Energy = 291.1 starting 
+ [STAT] Energy = 291.2 starting 
+ [STAT] Energy = 291.3 starting 
+ [STAT] Energy = 291.4 starting 
+ [STAT] Energy = 291.5 starting 
+ [STAT] Energy = 291.6 starting 
+ [STAT] Energy = 291.7 starting 
+ [STAT] Energy = 291.8 starting 
+ [STAT] Energy = 291.9 starting 
+ [STAT] Energy = 292 starting 
+ [STAT] Energy = 292.1 starting 
+ [STAT] Energy = 292.2 starting 
+ [STAT] Energy = 292.3 starting 
+ [STAT] Energy = 292.4 starting 
+ [STAT] Energy = 292.5 starting 
+ [STAT] Energy = 292.6 starting 
+ [STAT] Energy = 292.7 starting 
+ [STAT] Energy = 292.8 starting 
+ [STAT] Energy = 292.9 starting 
+ [STAT] Energy = 293 starting 
+ [STAT] Energy = 293.1 starting 
+ [STAT] Energy = 293.2 starting 
+ [STAT] Energy = 293.3 starting 
+ [STAT] Energy = 293.4 starting 
+ [STAT] Energy = 293.5 starting 
+ [STAT] Energy = 293.6 starting 
+ [STAT] Energy = 293.7 starting 
+ [STAT] Energy = 293.8 starting 
+ [STAT] Energy = 293.9 starting 
+ [STAT] Energy = 294 starting 
+ [STAT] Energy = 294.1 starting 
+ [STAT] Energy = 294.2 starting 
+ [STAT] Energy = 294.3 starting 
+ [STAT] Energy = 294.4 starting 
+ [STAT] Energy = 294.5 starting 
+ [STAT] Energy = 294.6 starting 
+ [STAT] Energy = 294.7 starting 
+ [STAT] Energy = 294.8 starting 
+ [STAT] Energy = 294.9 starting 
+ [STAT] Energy = 295 starting 
+ [STAT] Energy = 295.1 starting 
+ [STAT] Energy = 295.2 starting 
+ [STAT] Energy = 295.3 starting 
+ [STAT] Energy = 295.4 starting 
+ [STAT] Energy = 295.5 starting 
+ [STAT] Energy = 295.6 starting 
+ [STAT] Energy = 295.7 starting 
+ [STAT] Energy = 295.8 starting 
+ [STAT] Energy = 295.9 starting 
+ [STAT] Energy = 296 starting 
+ [STAT] Energy = 296.1 starting 
+ [STAT] Energy = 296.2 starting 
+ [STAT] Energy = 296.3 starting 
+ [STAT] Energy = 296.4 starting 
+ [STAT] Energy = 296.5 starting 
+ [STAT] Energy = 296.6 starting 
+ [STAT] Energy = 296.7 starting 
+ [STAT] Energy = 296.8 starting 
+ [STAT] Energy = 296.9 starting 
+ [STAT] Energy = 297 starting 
+ [STAT] Energy = 297.1 starting 
+ [STAT] Energy = 297.2 starting 
+ [STAT] Energy = 297.3 starting 
+ [STAT] Energy = 297.4 starting 
+ [STAT] Energy = 297.5 starting 
+ [STAT] Energy = 297.6 starting 
+ [STAT] Energy = 297.7 starting 
+ [STAT] Energy = 297.8 starting 
+ [STAT] Energy = 297.9 starting 
+ [STAT] Energy = 298 starting 
+ [STAT] Energy = 298.1 starting 
+ [STAT] Energy = 298.2 starting 
+ [STAT] Energy = 298.3 starting 
+ [STAT] Energy = 298.4 starting 
+ [STAT] Energy = 298.5 starting 
+ [STAT] Energy = 298.6 starting 
+ [STAT] Energy = 298.7 starting 
+ [STAT] Energy = 298.8 starting 
+ [STAT] Energy = 298.9 starting 
+ [STAT] Energy = 299 starting 
+ [STAT] Energy = 299.1 starting 
+ [STAT] Energy = 299.2 starting 
+ [STAT] Energy = 299.3 starting 
+ [STAT] Energy = 299.4 starting 
+ [STAT] Energy = 299.5 starting 
+ [STAT] Energy = 299.6 starting 
+ [STAT] Energy = 299.7 starting 
+ [STAT] Energy = 299.8 starting 
+ [STAT] Energy = 299.9 starting 
+Complete. Exiting 
+/home/pab2/pyhyper-dev/PyHyperScattering/src/PyHyperScattering/IntegrationUtils.py:12: UserWarning: Could not import package for interactive integration utils.  Install holoviews and scikit-image.
+  warnings.warn('Could not import package for interactive integration utils.  Install holoviews and scikit-image.')
+Imports failed.  Are you running on a machine with proper libraries for databroker, tiled, etc.?
+directory: .
+file: 2021-09-03_pl-0.1_cyl10_core5_sp60.h5
+Finished reading 300 energies. Time required: 0:00:01.322912
