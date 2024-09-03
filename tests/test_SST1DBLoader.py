@@ -36,7 +36,9 @@ def sstdb():
     try:
         catalog = tiled.client.from_profile('rsoxs')
     except tiled.profiles.ProfileNotFound:
-        catalog = tiled.client.from_uri('https://tiled-demo.blueskyproject.io')['rsoxs']['raw']
+        import os
+        api_key = os.environ['TILED_API_KEY']
+        client = tiled.client.from_uri('https://tiled.nsls2.bnl.gov',api_key=api_key)
     sstdb = SST1RSoXSDB(catalog=catalog,corr_mode='none')
     return sstdb
 
