@@ -39,7 +39,7 @@ def sstdb():
         import os
         api_key = os.environ['TILED_API_KEY']
         client = tiled.client.from_uri('https://tiled.nsls2.bnl.gov',api_key=api_key)
-    sstdb = SST1RSoXSDB(catalog=client['rsoxs'],corr_mode='none')
+    sstdb = SST1RSoXSDB(catalog=client['rsoxs']['raw'],corr_mode='none')
     return sstdb
 
 @must_have_tiled
