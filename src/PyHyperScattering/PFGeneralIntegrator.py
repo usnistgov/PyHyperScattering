@@ -49,7 +49,6 @@ DatasetGroupBy.progress_map_blocks = inner_generator(df_function='map_blocks')
 
 class PFGeneralIntegrator:
     """PyFAI general integrator wrapper"""
-
     def __init__(self,
                  maskmethod = 'none',
                  maskrotate = True,
@@ -75,7 +74,10 @@ class PFGeneralIntegrator:
         Some Inputs:
         maskmethod (str, default = 'none'): What type of mask to load 
                    options: [nika, polygon, image, pyhyper, edf, numpy, none]
-
+        
+        Instrument geometry properties (SDD, beamcenter, pixelsize) are now properties of the integrator (as of PR ## 22) 
+                Nidistance = 
+        
         geomethod (str, default = 'none'): where to get calibration information 
                   from for integrators
                   options: ['nika', 'template_xr', 'ponifile', 'none']
