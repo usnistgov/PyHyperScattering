@@ -13,6 +13,7 @@ try:
             import os
             api_key = os.environ['TILED_API_KEY']
             client = tiled.client.from_uri('https://tiled.nsls2.bnl.gov',api_key=api_key)
+            SKIP_DB_TESTING=False
         except Exception:
             SKIP_DB_TESTING=True
 except ImportError:
