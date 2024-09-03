@@ -422,6 +422,57 @@ document.write(`
                   
   <section id="searching-the-catalog-finding-your-scans">
 <span id="search-catalog"></span><h1>Searching the catalog: finding your scans<a class="headerlink" href="#searching-the-catalog-finding-your-scans" title="Permalink to this heading">#</a></h1>
+<dl>
+<dt>As mentioned, finding your scans is one of the first steps in processing your scans stored in the Bluesky catalog. The general steps for using the searchCatalog function are:</dt><dd><ol class="arabic simple">
+<li><p>Define the tiled Bluesky catalog (potentially optional step as it can be set by default usingthe SST1RSoXSDB)</p></li>
+<li><p>Define the databroker loader object (i.e. SST1RSoXSDB.)</p></li>
+<li><p>Call the searchCatalog method of SST1RSoXSDB, with chosen selection criteria</p></li>
+</ol>
+</dd>
+<dt>The most common selection criteria (pulled directly from the searchCatalog docstring):</dt><dd><p>cycle (str, optional): NSLS2 beamtime cycle, regex search e.g., “2022” matches “2022-2”, “2022-1”
+proposal (str, optional): NSLS2 PASS proposal ID, case-insensitive, exact match, e.g., “GU-310176”
+saf (str, optional): Safety Approval Form (SAF) number, exact match, e.g., “309441”
+user (str, optional): User name, case-insensitive, regex search e.g., “eliot” matches “Eliot”, “Eliot Gann”
+institution (str, optional): Research Institution, case-insensitive, exact match, e.g., “NIST”
+project (str, optional): Project code, case-insensitive, regex search,</p>
+<blockquote>
+<div><p>e.g., “liquid” matches “Liquids”, “Liquid-RSoXS”</p>
+</div></blockquote>
+<p>sample (str, optional): Sample name, case-insensitive, regex search, e.g., “<a href="#id1"><span class="problematic" id="id2">BBP_</span></a>” matches “BBP_PF902A”
+sampleID (str, optional): Sample ID, case-insensitive, regex search, e.g., “<a href="#id3"><span class="problematic" id="id4">BBP_</span></a>” matches “BBP_PF902A”
+plan (str, optional): Measurement Plan, case-insensitive, regex search,</p>
+<blockquote>
+<div><p>e.g., “Full” matches “full_carbon_scan_nd”, “full_fluorine_scan_nd”
+e.g., “carbon|oxygen|fluorine” matches carbon OR oxygen OR fluorine scans</p>
+</div></blockquote>
+</dd>
+</dl>
+<p>In the NSLS-II JupyterHub, a catalog generated using the tiled “from_profile” function. “from_profile” only works on BNL network machines, so “from_uri” or other methods must be used to build a catalog on machines outside of the BNL network.</p>
+<dl class="simple">
+<dt>Below are some options for further slicing the returned pandas DataFrame (calling this DataFrame “df”), as this is often useful for omitting bad scans or selecting specific ranges/filters. Refer to pandas documentation for more, rich information on all the different ways you can slice and manipulate DataFrames.</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>Select specific values of a column heading; e.g. select the ‘rsoxs_carbon’ plan:</dt><dd><p>runs_of_interest = df[(df[‘plan’]==’rsoxs_carbon’)]</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Select ‘rsoxs_carbon’ plan and only scans with 228 images:</dt><dd><p>runs_of_interest = df[(df[‘plan’]==’rsoxs_carbon’) &amp; (df[‘num_Images’]==228)]</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Select ‘rsoxs_carbon’ plan and omit some bad scans, select scans below or above given scan ID numbers:</dt><dd><p>runs_of_interest = df[(df[‘plan’]==’rsoxs_carbon’) &amp; ((df[‘scan_id’]&lt;80033) | (df[‘scan_id’]&gt;80046))]</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Omit a specific index from the pandas DataFrame:</dt><dd><p>runs_of_interest = runs_of_interest.drop(index=31)</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
 </section>
 
 
