@@ -1,6 +1,10 @@
-name: PyHyperScattering
+name: PyHyperScattering CI Testing
 
-on: [push]
+on: 
+  push:
+  pull_request:
+    # The branches below must be a subset of the branches above
+    branches: [ main ]
 
 jobs:
   build:
@@ -8,7 +12,7 @@ jobs:
     runs-on: ${{ matrix.os}}
     strategy:
       matrix:
-        python-version: [ '3.7', '3.8', '3.9', '3.10']
+        python-version: ['3.10','3.11']
         os: [ubuntu-latest, macOS-latest, windows-latest]
 
     steps:
@@ -33,6 +37,7 @@ jobs:
         pip install flake8 pytest coverage
         pip install pybind11 wheel
         pip install -r requirements.txt
+        pip install -r requirements-bluesky.txt
         pip install dask
     - name: Lint with flake8
       run: |
@@ -49,6 +54,12 @@ jobs:
         unzip cyrsoxs-example.zip
         wget https://github.com/usnistgov/PyHyperScattering/releases/download/0.0.0-example-data/mask-test-pack.zip
         unzip mask-test-pack.zip
+        wget https://github.com/usnistgov/PyHyperScattering/releases/download/0.0.0-example-data/PSS300nm_C_ccd100.zip
+        unzip PSS300nm_C_ccd100.zip
+        wget https://github.com/usnistgov/PyHyperScattering/releases/download/0.0.0-example-data/smi_example.zip
+        unzip smi_example.zip
+        wget https://github.com/usnistgov/PyHyperScattering/releases/download/0.0.0-example-data/CMS_giwaxs_series.zip
+        unzip CMS_giwaxs_series.zip
     - name: Fetch and unzip example data (Windows)
       if: ${{ matrix.os == 'windows-latest' }}
       run: |
@@ -58,6 +69,12 @@ jobs:
         unzip cyrsoxs-example.zip
         C:\msys64\usr\bin\wget.exe https://github.com/usnistgov/PyHyperScattering/releases/download/0.0.0-example-data/mask-test-pack.zip
         unzip mask-test-pack.zip
+        C:\msys64\usr\bin\wget.exe https://github.com/usnistgov/PyHyperScattering/releases/download/0.0.0-example-data/PSS300nm_C_ccd100.zip
+        unzip PSS300nm_C_ccd100.zip
+        C:\msys64\usr\bin\wget.exe https://github.com/usnistgov/PyHyperScattering/releases/download/0.0.0-example-data/smi_example.zip
+        unzip smi_example.zip
+        C:\msys64\usr\bin\wget.exe https://github.com/usnistgov/PyHyperScattering/releases/download/0.0.0-example-data/CMS_giwaxs_series.zip
+        unzip CMS_giwaxs_series.zip
     - name: Test with pytest
       run: |
         #pytest -v
@@ -70,7 +87,7 @@ jobs:
     - name: Upload coverage report
       uses: actions/upload-artifact@v2
       with:
-        name: coverage-${{ matrix.python-version }}
+        name: coverage-${{ matrix.os}}-${{ matrix.python-version }}.html
         path: htmlcov/index.html
       # Use always() to always run this step to publish test results when there are test failures
       if: ${{ always() }}

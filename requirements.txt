@@ -5,9 +5,16 @@ h5py
 nodejs
 numpy
 pandas
+# pygix fails to improt if silx > 2.0.0 
+silx==2.0.0
 pyfai
+pygix
 scikit-image
 scipy
 pillow
 xarray
 tqdm
+pydata_sphinx_theme
+# the following pin is due to a security update to numexpr: https://github.com/pydata/numexpr/issues/442
+# consider removing once this is resolved
+numexpr<2.8.5

@@ -5,6 +5,8 @@ import pandas as pd
 import numpy as np
 import warnings
 import re
+import PyHyperScattering
+
 try:
     from astropy.io import fits
 except ImportError:
@@ -26,13 +28,14 @@ class ALS11012RSoXSLoader(FileLoader):
     md_loading_is_quick = True
     
     
-    def __init__(self,corr_mode=None,user_corr_func=None,dark_pedestal=0,exposure_offset=0.002,dark_subtract=False,constant_md={}):
+    def __init__(self,corr_mode=None,user_corr_func=None,dark_pedestal=0,exposure_offset=0.002,dark_subtract=False,data_collected_after_mar2021=False,constant_md={}):
         '''
         Args:
             corr_mode (str): origin to use for the intensity correction.  Can be 'expt','i0','expt+i0','user_func','old',or 'none'
             user_corr_func (callable): that takes the header dictionary and returns the value of the correction.
             dark_pedestal (numeric): number to add to the whole image before doing dark subtraction, to avoid non-negative values.
             exposure_offset (numeric): value to add to the exposure time.  Measured at 2ms with the piezo shutter in Dec 2019 by Jacob Thelen, NIST
+            data_collected_after_mar2021 (boolean, default False): if True, uses 'CCD Camera Shutter Inhibit' as the dark-indicator; if False, uses 'CCD Shutter Inhibit'
             constant_md (dict): values to insert into every metadata load.  Example: beamcenter_x, beamcenter_y, sdd to enable qx/qy loading.
         '''
         if corr_mode == None:
@@ -41,6 +44,18 @@ class ALS11012RSoXSLoader(FileLoader):
             self.corr_mode = 'none'
         else:
             self.corr_mode = corr_mode
+        
+        if data_collected_after_mar2021 is None:
+            warnings.warn("The default behavior will change in PyHyperScattering 0.3 to assume data was collected after March 2021.  Set kwarg explicitly to override.", DeprecationWarning)
+            if PyHyperScattering.__version__ < 0.3:
+                data_collected_after_mar2021 = False
+            else:
+                data_collected_after_mar2021 = True
+                
+        if data_collected_after_mar2021:
+            self.shutter_inhibit = 'CCD Camera Shutter Inhibit'
+        else:
+            self.shutter_inhibit = 'CCD Shutter Inhibit'
         self.dark_pedestal = dark_pedestal
         self.user_corr_func = user_corr_func
         self.exposure_offset = exposure_offset
@@ -59,7 +74,7 @@ class ALS11012RSoXSLoader(FileLoader):
         for file in os.listdir(basepath):
             if dark_base_name in file:
                 darkimage = fits.open(basepath+file)
-                assert darkimage[0].header['CCD Shutter Inhibit']==1,"CCD Shutter was not inhibited for image "+file+"... probably not a dark."
+                assert darkimage[0].header[self.shutter_inhibit]==1,"CCD Shutter was not inhibited for image "+file+"... probably not a dark."
 
                 exptime = round(darkimage[0].header['EXPOSURE'],2)
 
@@ -79,7 +94,7 @@ class ALS11012RSoXSLoader(FileLoader):
             md_filter (dict): dict of required metadata values.  this will be appended with dark images only, no need to put that here.
         '''
         
-        md_filter.update({'CCD Shutter Inhibit':1})
+        md_filter.update({self.shutter_inhibit:1})
         
         for file in os.listdir(basepath):
             if (re.match(self.file_ext,file) is not None) and file_filter in file and file_skip not in file:
