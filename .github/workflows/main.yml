@@ -24,8 +24,7 @@ jobs:
     - name: Cache pip
       uses: actions/cache@v2
       with:
-        # This path is specific to Ubuntu
-        path: ~/.cache/pip
+        path: ${{ env.pythonLocation }}
         # Look to see if there is a cache hit for the corresponding requirements file
         key: ${{ runner.os }}-py${{ matrix.python-version }}-pip-${{ hashFiles('requirements.txt') }}
         restore-keys: |
