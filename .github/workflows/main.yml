@@ -76,6 +76,8 @@ jobs:
         C:\msys64\usr\bin\wget.exe https://github.com/usnistgov/PyHyperScattering/releases/download/0.0.0-example-data/CMS_giwaxs_series.zip
         unzip CMS_giwaxs_series.zip
     - name: Test with pytest
+      env: 
+         TILED_API_KEY: ${{ secrets.TILED_API_KEY }}
       run: |
         #pytest -v
         #temporarily disabling coverage for memory usage
