@@ -34,7 +34,7 @@ must_have_tiled = pytest.mark.skipif(SKIP_DB_TESTING,reason='Connection to Tiled
 @pytest.fixture(autouse=True,scope='module')
 def sstdb():
     try:
-        catalog = tiled.client.from_profile('rsoxs')
+        client = tiled.client.from_profile('rsoxs')
     except tiled.profiles.ProfileNotFound:
         import os
         api_key = os.environ['TILED_API_KEY']
