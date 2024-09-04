@@ -82,5 +82,7 @@ class CenteringAccessor:
                 print(f'Optimization successful. Updating beamcenter to ({res.x[0]},{res.x[1]}), old values were ({self._obj.poni1},{self._obj.poni2})')
                 self._obj.attrs['poni1'] = res.x[0]
                 self._obj.attrs['poni2'] = res.x[1]
+                
+            return res
         else:
             warnings.warn('Optimization was unsuccessful. Try new guesses and start again')
