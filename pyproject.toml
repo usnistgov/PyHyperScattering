@@ -4,3 +4,41 @@ requires = [
     "wheel"
 ]
 build-backend = "setuptools.build_meta"
+[project]
+dependencies = [
+'versioneer',
+'astropy',
+'fabio',
+'h5py',
+'nodejs',
+'numpy<2',
+'pandas',
+# pygix fails to improt if silx > 2.0.0 
+'silx==2.0.0',
+'pyfai',
+'pygix',
+'scikit-image',
+'scipy',
+'pillow',
+'xarray',
+'tqdm',
+'pydata_sphinx_theme',
+# the following pin is due to a security update to numexpr: https://github.com/pydata/numexpr/issues/442
+# consider removing once this is resolved
+'numexpr<2.8.5'
+]
+[project.optional-dependencies]
+bluesky = [
+    "tiled[all]>=0.1.0a74",
+    "databroker[all]>=2.0.0b10",
+    "bottleneck"
+]
+performance = [
+  "pyopencl",
+  "dask",
+  "cupy"
+]
+ui = [
+  "holoviews==1.16.2",
+  "hvplot"
+]
