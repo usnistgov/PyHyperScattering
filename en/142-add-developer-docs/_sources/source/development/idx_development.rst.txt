@@ -1,18 +1,37 @@
 .. _Development:
 
-Development and Contributing Info: TODO
+
+Development and Contributing Info
 ==============================================================
 
-PyHyperScattering is an open-source collaboration maintained by the `National Institute of 
-Standards and Technology (NIST) <https://www.nist.gov/>`_. This package is under active 
-development, and the team welcome DMs with questions on the NIST RSoXS slack, Nikea, and NSLS2 slack 
-channels, or by email to `Dr. Peter Beaucage <mailto:peter.beaucage@nist.gov>`_. For more information 
-about contributing, development philosophy, and licensing, see :ref:`the Development page <Development>`.
+.. toctree::
+   :maxdepth: 1
+   :hidden:
+   
+   Scope and Package Outline <scope>
+   Development Philosophy <philosophy>
+   Key API Concepts / Abstract Classes <api_concepts>
 
 
 Scope and Package Outline
 -------------------------
-TODO
+
+We consider in-scope any aspect of loading, reduction, and analysis of hyperspectral scattering data.  Details are at <scope>.
+
+
+Development Philosophy
+----------------------
+
+The PyHyperScattering package is designed to be modular and extensible.  Our general philosophy is to accept contributions that don't break existing user experiences and don't impose too large of a documentation burden.  Details at <philosophy>.
+
+Key API Concepts / Abstract Classes
+-----------------------------------
+
+The API is built around formalized interfaces of XArrays between Loader, Integrator, and Analysis classes.  Details at <api_concepts>.
+
+
+
+
 
 Contributing
 ------------

@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Development and Contributing Info: TODO &#8212; PyHyperScattering 0+unknown documentation</title>
+    <title>Development and Contributing Info &#8212; PyHyperScattering 0+unknown documentation</title>
   
   
   
@@ -42,7 +42,7 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'source/development/idx_development';</script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Release Notes" href="../release_notes/idx_release_notes.html" />
+    <link rel="next" title="Scope and Package Outline" href="scope.html" />
     <link rel="prev" title="PyHyperScattering package" href="../reference_API/PyHyperScattering.html" />
   
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -361,7 +361,10 @@ document.write(`
 <nav class="bd-docs-nav bd-links"
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
-  <div class="bd-toc-item navbar-nav"></div>
+  <div class="bd-toc-item navbar-nav"><ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="scope.html">Scope and Package Outline</a></li>
+</ul>
+</div>
 </nav></div>
     </div>
   
@@ -414,16 +417,21 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="development-and-contributing-info-todo">
-<span id="development"></span><h1>Development and Contributing Info: TODO<a class="headerlink" href="#development-and-contributing-info-todo" title="Permalink to this heading">#</a></h1>
-<p>PyHyperScattering is an open-source collaboration maintained by the <a class="reference external" href="https://www.nist.gov/">National Institute of
-Standards and Technology (NIST)</a>. This package is under active
-development, and the team welcome DMs with questions on the NIST RSoXS slack, Nikea, and NSLS2 slack
-channels, or by email to <a class="reference external" href="mailto:peter&#46;beaucage&#37;&#52;&#48;nist&#46;gov">Dr<span>&#46;</span> Peter Beaucage</a>. For more information
-about contributing, development philosophy, and licensing, see <a class="reference internal" href="#development"><span class="std std-ref">the Development page</span></a>.</p>
+  <section id="development-and-contributing-info">
+<span id="development"></span><h1>Development and Contributing Info<a class="headerlink" href="#development-and-contributing-info" title="Permalink to this heading">#</a></h1>
+<div class="toctree-wrapper compound">
+</div>
 <section id="scope-and-package-outline">
 <h2>Scope and Package Outline<a class="headerlink" href="#scope-and-package-outline" title="Permalink to this heading">#</a></h2>
-<p>TODO</p>
+<p>We consider in-scope any aspect of loading, reduction, and analysis of hyperspectral scattering data.  Details are at &lt;scope&gt;.</p>
+</section>
+<section id="development-philosophy">
+<h2>Development Philosophy<a class="headerlink" href="#development-philosophy" title="Permalink to this heading">#</a></h2>
+<p>The PyHyperScattering package is designed to be modular and extensible.  Our general philosophy is to accept contributions that don’t break existing user experiences and don’t impose too large of a documentation burden.  Details at &lt;philosophy&gt;.</p>
+</section>
+<section id="key-api-concepts-abstract-classes">
+<h2>Key API Concepts / Abstract Classes<a class="headerlink" href="#key-api-concepts-abstract-classes" title="Permalink to this heading">#</a></h2>
+<p>The API is built around formalized interfaces of XArrays between Loader, Integrator, and Analysis classes.  Details at &lt;api_concepts&gt;.</p>
 </section>
 <section id="contributing">
 <h2>Contributing<a class="headerlink" href="#contributing" title="Permalink to this heading">#</a></h2>
@@ -461,11 +469,11 @@ Permission to use this data is contingent upon your acceptance of the terms of t
       </div>
     </a>
     <a class="right-next"
-       href="../release_notes/idx_release_notes.html"
+       href="scope.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Release Notes</p>
+        <p class="prev-next-title">Scope and Package Outline</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -488,6 +496,8 @@ Permission to use this data is contingent upon your acceptance of the terms of t
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scope-and-package-outline">Scope and Package Outline</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#development-philosophy">Development Philosophy</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#key-api-concepts-abstract-classes">Key API Concepts / Abstract Classes</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#contributing">Contributing</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#license">License</a></li>
 </ul>
