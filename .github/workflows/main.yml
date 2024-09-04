@@ -24,12 +24,11 @@ jobs:
     - name: Cache pip
       uses: actions/cache@v2
       with:
-        # This path is specific to Ubuntu
-        path: ~/.cache/pip
+        path: ${{ env.pythonLocation }}
         # Look to see if there is a cache hit for the corresponding requirements file
-        key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+        key: ${{ runner.os }}-py${{ matrix.python-version }}-pip-${{ hashFiles('requirements.txt') }}
         restore-keys: |
-         ${{ runner.os }}-pip-
+         ${{ runner.os }}-py${{ matrix.python-version }}-pip-
           ${{ runner.os }}-
     - name: Install dependencies
       run: |
@@ -76,6 +75,8 @@ jobs:
         C:\msys64\usr\bin\wget.exe https://github.com/usnistgov/PyHyperScattering/releases/download/0.0.0-example-data/CMS_giwaxs_series.zip
         unzip CMS_giwaxs_series.zip
     - name: Test with pytest
+      env: 
+         TILED_API_KEY: ${{ secrets.TILED_API_KEY }}
       run: |
         #pytest -v
         #temporarily disabling coverage for memory usage
