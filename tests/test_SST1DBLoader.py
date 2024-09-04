@@ -68,3 +68,10 @@ def test_SST1DB_load_snake_scan_explicit_dims(sstdb):
     assert type(run) == xr.DataArray
     assert 'sam_th' in run.indexes
     assert 'polarization' in run.indexes
+
+@must_have_tiled
+def test_SST1DB_exposurewarnings(sstdb):
+    with pytest.warns(UserWarning, match="Wide Angle CCD Detector is reported as underexposed"):
+        sstdb.loadRun(83192)
+    with pytest.warns(UserWarning, match="Wide Angle CCD Detector is reported as saturated"):
+        sstdb.loadRun(67522)
