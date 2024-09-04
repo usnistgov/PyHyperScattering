@@ -1,32 +1,50 @@
 [build-system]
 requires = [
     "setuptools>=42",
-    "wheel"
+    "wheel",
+    "versioneer"
 ]
 build-backend = "setuptools.build_meta"
+
 [project]
-dependencies = [
-'versioneer',
-'astropy',
-'fabio',
-'h5py',
-'nodejs',
-'numpy<2',
-'pandas',
-# pygix fails to improt if silx > 2.0.0 
-'silx==2.0.0',
-'pyfai',
-'pygix',
-'scikit-image',
-'scipy',
-'pillow',
-'xarray',
-'tqdm',
-'pydata_sphinx_theme',
-# the following pin is due to a security update to numexpr: https://github.com/pydata/numexpr/issues/442
-# consider removing once this is resolved
-'numexpr<2.8.5'
+name = "PyHyperScattering"
+dynamic = ["version"]
+authors = [
+    {name = "Peter Beaucage", email = "peter.beaucage@nist.gov"},
 ]
+description = "Utilities for loading, reducing, fitting, and plotting hyperspectral x-ray and neutron scattering data."
+readme = "README.md"
+requires-python = ">=3.6"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: Freely Distributable",
+    "Topic :: Scientific/Engineering :: Chemistry",
+    "Topic :: Scientific/Engineering :: Physics",
+]
+dependencies = [
+    "h5py",
+    "numpy<2",
+    "pandas",
+    "pyfai",
+    "pyopencl",
+    "scikit-image",
+    "scipy",
+    "pillow",
+    "xarray",
+    "tqdm",
+    "astropy",
+    "fabio",
+    "nodejs",
+    "silx==2.0.0",
+    "pygix",
+    "pydata_sphinx_theme",
+    "numexpr<2.8.5",
+]
+
 [project.optional-dependencies]
 bluesky = [
     "tiled[all]>=0.1.0a74",
@@ -34,11 +52,27 @@ bluesky = [
     "bottleneck"
 ]
 performance = [
-  "pyopencl",
-  "dask",
-  "cupy"
+    "pyopencl",
+    "dask",
+    "cupy"
 ]
 ui = [
-  "holoviews==1.16.2",
-  "hvplot"
+    "holoviews==1.16.2",
+    "hvplot"
 ]
+
+[project.urls]
+"Homepage" = "https://github.com/usnistgov/pyhyperscattering"
+"Bug Tracker" = "https://github.com/usnistgov/pyhyperscattering/issues"
+"Project Site" = "https://www.nist.gov/laboratories/tools-instruments/polarized-resonant-soft-x-ray-scattering-p-rsoxs"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.versioneer]
+VCS = "git"
+style = "pep440"
+versionfile_source = "src/PyHyperScattering/_version.py"
+versionfile_build = "PyHyperScattering/_version.py"
+tag_prefix = ""
+parentdir_prefix = "pyhyperscattering-"
