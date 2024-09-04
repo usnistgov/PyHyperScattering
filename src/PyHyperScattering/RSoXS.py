@@ -75,7 +75,7 @@ class RSoXS:
             selector = np.logical_and(self._obj.chi>=slice_begin,
                                       self._obj.chi<=slice_end)
             
-        return self._obj.isel({'chi':selector}).mean('chi')
+        return self._obj.isel({'chi':selector})  #.mean('chi')
             
     def slice_q(self,q,q_width=None):
         '''
