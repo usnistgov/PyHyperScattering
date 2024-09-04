@@ -3,7 +3,7 @@ astropy
 fabio
 h5py
 nodejs
-numpy
+numpy<2
 pandas
 # pygix fails to improt if silx > 2.0.0 
 silx==2.0.0
