@@ -1088,7 +1088,7 @@ class SST1RSoXSDB:
         # looking at exposure tests in the stream and issuing warnings
         if "Wide Angle CCD Detector_under_exposed" in md:
             if np.any(md["Wide Angle CCD Detector_under_exposed"]):
-                message = "\nWide Angle CCD Detectoris reported as underexposed\n"
+                message = "\nWide Angle CCD Detector is reported as underexposed\n"
                 message += "at one or more energies per definitions here:\n"
                 message += "https://github.com/NSLS-II-SST/rsoxs/blob/10c2c41b695c1db552f62decdde571472b71d981/rsoxs/Base/detectors.py#L110-L119\n"
                 if np.all(md["Wide Angle CCD Detector_under_exposed"]):
@@ -1104,7 +1104,7 @@ class SST1RSoXSDB:
             )
         if "Wide Angle CCD Detector_saturated" in md:
             if np.any(md["Wide Angle CCD Detector_saturated"]):
-                message = "\nWide Angle CCD Detectoris reported as saturated\n"
+                message = "\nWide Angle CCD Detector is reported as saturated\n"
                 message += "at one or more energies per definitions here:\n"
                 message += "https://github.com/NSLS-II-SST/rsoxs/blob/10c2c41b695c1db552f62decdde571472b71d981/rsoxs/Base/detectors.py#L110-L119\n"
                 if np.all(md["Wide Angle CCD Detector_saturated"]):
