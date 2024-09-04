@@ -38,8 +38,8 @@ def sstdb():
     except tiled.profiles.ProfileNotFound:
         import os
         api_key = os.environ['TILED_API_KEY']
-        client = tiled.client.from_uri('https://tiled.nsls2.bnl.gov',api_key=api_key)
-    sstdb = SST1RSoXSDB(catalog=client['rsoxs']['raw'],corr_mode='none')
+        client = tiled.client.from_uri('https://tiled.nsls2.bnl.gov',api_key=api_key)['rsoxs']['raw']
+    sstdb = SST1RSoXSDB(catalog=client,corr_mode='none')
     return sstdb
 
 @must_have_tiled
