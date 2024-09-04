@@ -56,6 +56,32 @@ ui = [
     "holoviews==1.16.2",
     "hvplot"
 ]
+doc = [
+        "sphinx",
+        "pydata_sphinx_theme"
+        ]
+test =  [
+        "pytest",
+         "black",
+         "codecov",
+         "pylint"
+         ]
+all = [
+    "tiled[all]>=0.1.0a74",
+    "databroker[all]>=2.0.0b10",
+    "bottleneck",
+    "pyopencl",
+    "dask",
+    "cupy",
+    "holoviews==1.16.2",
+    "hvplot",
+    "sphinx",
+    "pydata_sphinx_theme",
+    "pytest",
+    "black",
+    "codecov",
+    "pylint"
+]
 
 [project.urls]
 "Homepage" = "https://github.com/usnistgov/pyhyperscattering"
