@@ -67,7 +67,7 @@ def test_SST1DB_load_snake_scan_explicit_dims(sstdb):
 
 @must_have_tiled
 def test_SST1DB_exposurewarnings(sstdb):
-    with pytest.warns(UserWarning, match="Wide Angle CCD Detector isreported as underexposed"):
+    with pytest.warns(UserWarning, match="Wide Angle CCD Detector is reported as underexposed"):
         sstdb.loadRun(83192)
     with pytest.warns(UserWarning, match="Wide Angle CCD Detector is reported as saturated"):
         sstdb.loadRun(67522)
