@@ -2,6 +2,7 @@ import xarray as xr
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
+from matplotlib.colors import LogNorm
 import pathlib
 
 @xr.register_dataset_accessor('pt')
@@ -34,13 +35,19 @@ class PlotTools():
         """
         Plot the integrated scattered intensity:
         
-        Inputs: (default will be to pull from 'plot_ROIs' attribute)
+        Inputs: (default will be to pull from 'plot_roi' attribute)
             pol (int): X-ray polarization to determine para/perp chi regions
             chi_width (int): width of chi wedge for para/perp slices
             q_slice (slice): q range entered as slice object
             e_slice (slice): energy range entered as slice object 
             sample_name (str): sample name to be included in plot title  
             save (bool, default True): save figure to new folder in notebook directory
+
+            Example 'plot_roi' format:
+            plot_roi = {'chi_width': 90,
+                        'q_range': (0.01, 0.09),
+                        'energy_range': (280, 295),
+                        'energy_default': 285}
 
         Returns:
             fig: matplotlib figure object of the ISI plot
@@ -52,12 +59,12 @@ class PlotTools():
         if pol is None:
             pol = int(self._obj.polarization)
         if chi_width is None:
-            chi_width = self._obj.plot_ROIs['chi_width']
+            chi_width = self._obj.plot_roi['chi_width']
         if q_slice is None:
-            q_tup = self._obj.plot_ROIs['q_range']
+            q_tup = self._obj.plot_roi['q_range']
             q_slice = slice(q_tup[0], q_tup[1])
         if e_slice is None:
-            e_tup = self._obj.plot_ROIs['energy_range']
+            e_tup = self._obj.plot_roi['energy_range']
             e_slice = slice(e_tup[0], e_tup[1])
         if sample_name is None:
             sample_name = str(self._obj.sample_name.values)
@@ -95,5 +102,107 @@ class PlotTools():
             fig.savefig(savePath.joinpath(filename))
 
         return fig, ax
+
+    def plot_Imap(self,
+                  pol=None,
+                  chi_width=None,
+                  q_slice=None,
+                  e_slice=None,
+                  cmap=None,
+                  xscale=None,
+                  sample_name=None,
+                  save=True):
+        """
+        Plot an intensity heatmap (2D). Q along x, energy along y, intensity colormap
+
+        Inputs:
+            pol (int): X-ray polarization to determine para/perp chi regions
+            chi_width (int): width of chi wedge for para/perp slices
+            q_slice (slice): q range entered as slice object
+            e_slice (slice): energy range entered as slice object 
+            cmap (str or plt.cm): matplotlib colormap, default is 'turbo'
+            xscale (str): 'log' (default) or 'linear'
+            sample_name (str): sample name to be included in plot title  
+            save (bool, default True): save figure to new folder in notebook directory
+
+            Example 'plot_roi' format:
+            plot_roi = {'chi_width': 90,
+                        'q_range': (0.01, 0.09),
+                        'energy_range': (280, 295),
+                        'energy_default': 285}
+
+            Example 'plot_hints' format:
+            plot_hints = {'cmap': 'turbo',
+                          'xscale': 'log'}
+
+        Returns:
+            fig: matplotlib figure object of the intensity map plots
+            ax: list of the 2 matplotlib axes object of the intensity map plots
+        """
+        
+        # Load default plot roi values from 'plot_roi' attribute / dict
+        # Load default plot hint values from 'plot_hints' attribute / dict
+        # Can be overwritten in the function call
+        if pol is None:
+            pol = int(self._obj.polarization)
+        if chi_width is None:
+            chi_width = self._obj.plot_roi['chi_width']
+        if q_slice is None:
+            q_tup = self._obj.plot_roi['q_range']
+            q_slice = slice(q_tup[0], q_tup[1])
+        if e_slice is None:
+            e_tup = self._obj.plot_roi['energy_range']
+            e_slice = slice(e_tup[0], e_tup[1])
+        if cmap is None:
+            cmap = self._obj.plot_hints['cmap']
+        if xscale is None:
+            xscale = self._obj.plot_hints['xscale']
+        if sample_name is None:
+            sample_name = str(self._obj.sample_name.values)
+
+        # Slice parallel & perpendicular DataArrays (for polarization = 0)
+        if pol == 0:
+            para_DA = self._obj.rsoxs.slice_chi(180, chi_width=(chi_width/2))
+            perp_DA = self._obj.rsoxs.slice_chi(90, chi_width=(chi_width/2))
+        elif pol == 90:
+            perp_DA = self._obj.rsoxs.slice_chi(180, chi_width=(chi_width/2))
+            para_DA = self._obj.rsoxs.slice_chi(90, chi_width=(chi_width/2))  
+
+        # Plotting
+        fig, axs = plt.subplots(1, 2, figsize=(8,4))
+
+        # Downselect data to selected region
+        para_slice = para_DA.mean('chi').sel(q=q_slice, energy=e_slice)
+        perp_slice = perp_DA.mean('chi').sel(q=q_slice, energy=e_slice)
+
+        # Get colorlimits
+        cmin = float(perp_slice.quantile(0.01))
+        cmax = float(para_slice.quantile(0.995))
+
+        # Generate plot
+        para_slice.plot(ax=axs[0], xscale=xscale, cmap=cmap, norm=LogNorm(cmin, cmax), add_colorbar=False)
+        perp_slice.plot(ax=axs[1], xscale=xscale, cmap=cmap, norm=LogNorm(cmin, cmax), add_colorbar=False)
+
+        # Add colorbar
+        sm = plt.cm.ScalarMappable(cmap=cmap, norm=LogNorm(cmin, cmax)) 
+        cax = axs[1].inset_axes([1.03, 0, 0.05, 1])
+        cbar = fig.colorbar(sm, cax=cax, orientation='vertical')
+        cbar.set_label(label='Intensity [arb. units]', labelpad=12, rotation=270)
+
+        # Set title & labels
+        fig.suptitle(f'Intensity Maps: {sample_name}, Polarization = {pol}°, Chi Width = {chi_width}°')
+        fig.set(tight_layout=True)
+        axs[0].set(title='Parallel to $E_p$', ylabel='Photon energy [eV]', xlabel='Q [$Å^{-1}$]')
+        axs[1].set(title='Perpendicular to $E_p$ ', ylabel=None, xlabel='Q [$Å^{-1}$]')
+        
+        # Save plot if true (saves to notebook working directory)
+        if save:
+            filename = f'{sample_name}_chi-{chi_width}_q-{q_slice.start}-{q_slice.stop}_energy-{e_slice.start}-{e_slice.stop}_.png'
+            savePath = pathlib.Path.cwd().joinpath('Imap_plots')
+            savePath.mkdir(exist_ok=True)
+            fig.savefig(savePath.joinpath(filename))
+
+        return fig, axs
+
 
         
