@@ -18,12 +18,6 @@ class PlotTools():
             self._chi_range = [self._chi_min,self._chi_max]
         except AttributeError:
             self._pyhyper_type = 'raw'
-    
-    def plot_loglog(self):
-        '''
-        
-        '''
-        return self._obj.plot(xscale='log',yscale='log')
 
     def plot_ISI(self, 
                  pol=None, 
@@ -235,11 +229,11 @@ class PlotTools():
         """
         Plot intensity vs Q for parallel and perpendicular cuts at selected energies
 
-        Inputs:
+        Inputs: (defaults to contents in plot_roi & plot_hints attributes)
             pol (int): X-ray polarization to determine para/perp chi regions
             chi_width (int): width of chi wedge for para/perp slices
             q_slice (slice): q range entered as slice object
-            e_slice (slice): energy range entered as slice object 
+            selected_energies (list or np.array): selected energies to plot
             I_cmap (str or plt.cm): matplotlib colormap for intensity, default is 'turbo'
             xscale (str): 'log' (default) or 'linear'
             sample_name (str): sample name to be included in plot title  
@@ -334,7 +328,6 @@ class PlotTools():
                    chi_width=None,
                    q_slice=None,
                    e_slice=None,
-                   I_cmap=None,
                    xscale=None,
                    ar_vlim=None,
                    sample_name=None,
@@ -351,6 +344,7 @@ class PlotTools():
             e_slice (slice): energy range entered as slice object 
             I_cmap (str or plt.cm): matplotlib colormap for intensity, default is 'turbo'
             xscale (str): 'log' (default) or 'linear'
+            ar_vlim (float): magnitude for color limits of anisotropy, defaults to 1
             sample_name (str): sample name to be included in plot title  
             save (bool, default True): save figure to new folder in notebook directory
             savePath (pathlib.Path): pathlib directory for where to save plots (will create directory)
@@ -385,8 +379,6 @@ class PlotTools():
         if e_slice is None:
             e_tup = self._obj.plot_roi['energy_range']
             e_slice = slice(e_tup[0], e_tup[1])
-        if I_cmap is None:
-            I_cmap = self._obj.plot_hints['I_cmap']
         if xscale is None:
             xscale = self._obj.plot_hints['xscale']
         if ar_vlim is None:
@@ -415,6 +407,97 @@ class PlotTools():
                 filename = f'{sample_name}_chi-{chi_width}_q-{q_slice.start}-{q_slice.stop}_energy-{e_slice.start}-{e_slice.stop}_.png'
             if savePath is None:
                 savePath = pathlib.Path.cwd().joinpath('ARmap_plots')
+            savePath.mkdir(exist_ok=True)
+            fig.savefig(savePath.joinpath(filename))
+
+        return fig, ax
+    
+    def plot_ARvQ(self,
+                  pol=None,
+                  chi_width=None,
+                  q_slice=None,
+                  selected_energies=None,
+                  xscale=None,
+                  I_cmap=None,
+                  sample_name=None,
+                  save=True,
+                  filename=None,
+                  savePath=None):
+        """
+        Plots anistropy ratio versus Q linecuts
+
+        Inputs: (defaults to values in 'plot_roi' and 'plot_hints' attributes)
+            pol (int): X-ray polarization to determine para/perp chi regions
+            chi_width (int): width of chi wedge for para/perp slices
+            q_slice (slice): q range entered as slice object
+            selected_energies (list or np.array): selected energies to plot            
+            I_cmap (str or plt.cm): matplotlib colormap for intensity, default is 'turbo'
+            xscale (str): 'log' (default) or 'linear'
+            sample_name (str): sample name to be included in plot title  
+            save (bool, default True): save figure to new folder in notebook directory
+            savePath (pathlib.Path): pathlib directory for where to save plots (will create directory)
+                defaults to a new 'ARmap_plots' folder in notebook working directory
+            filename (str): filename to name saved figure
+                defaults to f'{sample_name}_chi-{chi_width}_q-{q_slice.start}-{q_slice.stop}_energy-{e_slice.start}-{e_slice.stop}_.png'
+
+            Example 'plot_roi' format:
+            plot_roi = {'chi_width': 90,
+                        'q_range': (0.01, 0.09),
+                        'energy_range': (280, 295),
+                        'energy_default': 285}
+
+            Example 'plot_hints' format:
+            plot_hints = {'I_cmap': 'turbo',
+                          'xscale': 'log'}
+
+        Returns:
+            fig: matplotlib figure object of the AR map plots
+            ax: list of the 2 matplotlib axes object of the AR map plots
+        """
+        # Load default plot roi values from 'plot_roi' attribute / dict
+        # Load default plot hint values from 'plot_hints' attribute / dict
+        # Can be overwritten in the function call
+        if pol is None:
+            pol = int(self._obj.polarization)
+        if chi_width is None:
+            chi_width = self._obj.plot_roi['chi_width']
+        if q_slice is None:
+            q_tup = self._obj.plot_roi['q_range']
+            q_slice = slice(q_tup[0], q_tup[1])
+        if selected_energies is None:
+            selected_energies = self._obj.plot_roi['selected_energies']
+        if I_cmap is None:
+            I_cmap = self._obj.plot_hints['I_cmap']
+            if isinstance(I_cmap, str):  # convert to matplotlib ListedColormap object
+                I_cmap = getattr(plt.cm, I_cmap)
+        if xscale is None:
+            xscale = self._obj.plot_hints['xscale']
+        if sample_name is None:
+            sample_name = str(self._obj.sample_name.values)
+
+        # Extract AR data:
+        sel_DA = self._obj.sel(q=q_slice)
+        ar_DA = sel_DA.rsoxs.AR(chi_width=chi_width/2)
+        # Get selected energies
+        ar_slice = ar_DA.sel(energy=selected_energies, method='nearest')
+
+        # Plot
+        fig, ax = plt.subplots(tight_layout=True, figsize=(5,3.5), dpi=120)
+        colors = I_cmap(np.linspace(0,1,len(selected_energies)))
+        for j, energy in enumerate(ar_slice.energy.values):
+            ar_DA.sel(energy=energy).plot.line(ax=ax, color=colors[j], label=energy, xscale=xscale)
+
+        fig.suptitle(f'Anisotropy Ratio vs Q: {sample_name}', x=0.46, y=0.95)
+
+        ax.set(title=f'Chi width = {chi_width}°, Pol = {pol}°', ylim=(-0.5, 0.5), ylabel='AR [arb. units]', xlabel='Q [$Å^{-1}$]')
+        ax.legend(title='Energy [eV]', loc=(1.03,0.01))
+
+        # Save plot if true (saves to notebook working directory by default)
+        if save:
+            if filename is None:
+                filename = f'{sample_name}_chi-{chi_width}_q-{q_slice.start}-{q_slice.stop}.png'
+            if savePath is None:
+                savePath = pathlib.Path.cwd().joinpath('ARvQ_plots')
             savePath.mkdir(exist_ok=True)
             fig.savefig(savePath.joinpath(filename))
 
