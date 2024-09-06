@@ -116,7 +116,7 @@ class PlotTools():
                   chi_width=None,
                   q_slice=None,
                   e_slice=None,
-                  cmap=None,
+                  I_cmap=None,
                   xscale=None,
                   sample_name=None,
                   save=True,
@@ -130,7 +130,7 @@ class PlotTools():
             chi_width (int): width of chi wedge for para/perp slices
             q_slice (slice): q range entered as slice object
             e_slice (slice): energy range entered as slice object 
-            cmap (str or plt.cm): matplotlib colormap, default is 'turbo'
+            I_cmap (str or plt.cm): matplotlib colormap for intensity, default is 'turbo'
             xscale (str): 'log' (default) or 'linear'
             sample_name (str): sample name to be included in plot title  
             save (bool, default True): save figure to new folder in notebook directory
@@ -146,7 +146,7 @@ class PlotTools():
                         'energy_default': 285}
 
             Example 'plot_hints' format:
-            plot_hints = {'cmap': 'turbo',
+            plot_hints = {'I_cmap': 'turbo',
                           'xscale': 'log'}
 
         Returns:
@@ -167,8 +167,8 @@ class PlotTools():
         if e_slice is None:
             e_tup = self._obj.plot_roi['energy_range']
             e_slice = slice(e_tup[0], e_tup[1])
-        if cmap is None:
-            cmap = self._obj.plot_hints['cmap']
+        if I_cmap is None:
+            I_cmap = self._obj.plot_hints['I_cmap']
         if xscale is None:
             xscale = self._obj.plot_hints['xscale']
         if sample_name is None:
@@ -194,11 +194,11 @@ class PlotTools():
         cmax = float(para_slice.quantile(0.995))
 
         # Generate plot
-        para_slice.plot(ax=axs[0], xscale=xscale, cmap=cmap, norm=LogNorm(cmin, cmax), add_colorbar=False)
-        perp_slice.plot(ax=axs[1], xscale=xscale, cmap=cmap, norm=LogNorm(cmin, cmax), add_colorbar=False)
+        para_slice.plot(ax=axs[0], xscale=xscale, cmap=I_cmap, norm=LogNorm(cmin, cmax), add_colorbar=False)
+        perp_slice.plot(ax=axs[1], xscale=xscale, cmap=I_cmap, norm=LogNorm(cmin, cmax), add_colorbar=False)
 
         # Add colorbar
-        sm = plt.cm.ScalarMappable(cmap=cmap, norm=LogNorm(cmin, cmax)) 
+        sm = plt.cm.ScalarMappable(cmap=I_cmap, norm=LogNorm(cmin, cmax)) 
         cax = axs[1].inset_axes([1.03, 0, 0.05, 1])
         cbar = fig.colorbar(sm, cax=cax, orientation='vertical')
         cbar.set_label(label='Intensity [arb. units]', labelpad=12, rotation=270)
@@ -225,7 +225,7 @@ class PlotTools():
                  chi_width=None,
                  q_slice=None,
                  selected_energies=None,
-                 cmap=None,
+                 I_cmap=None,
                  xscale=None,
                  yscale=None,
                  sample_name=None,
@@ -240,7 +240,7 @@ class PlotTools():
             chi_width (int): width of chi wedge for para/perp slices
             q_slice (slice): q range entered as slice object
             e_slice (slice): energy range entered as slice object 
-            cmap (str or plt.cm): matplotlib colormap, default is 'turbo'
+            I_cmap (str or plt.cm): matplotlib colormap for intensity, default is 'turbo'
             xscale (str): 'log' (default) or 'linear'
             sample_name (str): sample name to be included in plot title  
             save (bool, default True): save figure to new folder in notebook directory
@@ -258,7 +258,7 @@ class PlotTools():
                         [275, 284, 284.4, 284.8, 285.2, 285.6, 286.2, 287, 300, 335])}
 
             Example 'plot_hints' format:
-            plot_hints = {'cmap': 'turbo',
+            plot_hints = {'I_cmap': 'turbo',
                           'xscale': 'log',
                           'yscale': 'log}
 
@@ -279,10 +279,10 @@ class PlotTools():
             q_slice = slice(q_tup[0], q_tup[1])
         if selected_energies is None:
             selected_energies = self._obj.plot_roi['selected_energies']
-        if cmap is None:
-            cmap = self._obj.plot_hints['cmap']
-            if isinstance(cmap, str):  # convert to matplotlib ListedColormap object
-                cmap = getattr(plt.cm, cmap)
+        if I_cmap is None:
+            I_cmap = self._obj.plot_hints['I_cmap']
+            if isinstance(I_cmap, str):  # convert to matplotlib ListedColormap object
+                I_cmap = getattr(plt.cm, I_cmap)
         if xscale is None:
             xscale = self._obj.plot_hints['xscale']
         if yscale is None:
@@ -305,7 +305,7 @@ class PlotTools():
         # Plot
         fig, axs = plt.subplots(ncols=2, figsize=(8,4), tight_layout=True)
 
-        colors = cmap(np.linspace(0,1,len(selected_energies)))
+        colors = I_cmap(np.linspace(0,1,len(selected_energies)))
         for i, energy in enumerate(para_slice.energy.values):
             para_slice.sel(energy=energy).plot.line(ax=axs[0], color=colors[i], yscale=yscale, xscale=xscale, label=energy)
             perp_slice.sel(energy=energy).plot.line(ax=axs[1], color=colors[i], yscale=yscale, xscale=xscale, label=energy)
@@ -328,4 +328,94 @@ class PlotTools():
             fig.savefig(savePath.joinpath(filename))            
 
         return fig, axs
-        
+
+    def plot_ARmap(self,
+                   pol=None,
+                   chi_width=None,
+                   q_slice=None,
+                   e_slice=None,
+                   I_cmap=None,
+                   xscale=None,
+                   ar_vlim=None,
+                   sample_name=None,
+                   save=True,
+                   filename=None,
+                   savePath=None):
+        """
+        Plots anistropy ratio heatmap
+
+        Inputs:
+            pol (int): X-ray polarization to determine para/perp chi regions
+            chi_width (int): width of chi wedge for para/perp slices
+            q_slice (slice): q range entered as slice object
+            e_slice (slice): energy range entered as slice object 
+            I_cmap (str or plt.cm): matplotlib colormap for intensity, default is 'turbo'
+            xscale (str): 'log' (default) or 'linear'
+            sample_name (str): sample name to be included in plot title  
+            save (bool, default True): save figure to new folder in notebook directory
+            savePath (pathlib.Path): pathlib directory for where to save plots (will create directory)
+                defaults to a new 'ARmap_plots' folder in notebook working directory
+            filename (str): filename to name saved figure
+                defaults to f'{sample_name}_chi-{chi_width}_q-{q_slice.start}-{q_slice.stop}_energy-{e_slice.start}-{e_slice.stop}_.png'
+
+            Example 'plot_roi' format:
+            plot_roi = {'chi_width': 90,
+                        'q_range': (0.01, 0.09),
+                        'energy_range': (280, 295),
+                        'energy_default': 285}
+
+            Example 'plot_hints' format:
+            plot_hints = {'I_cmap': 'turbo',
+                          'xscale': 'log'}
+
+        Returns:
+            fig: matplotlib figure object of the AR map plots
+            ax: list of the 2 matplotlib axes object of the AR map plots
+        """
+        # Load default plot roi values from 'plot_roi' attribute / dict
+        # Load default plot hint values from 'plot_hints' attribute / dict
+        # Can be overwritten in the function call
+        if pol is None:
+            pol = int(self._obj.polarization)
+        if chi_width is None:
+            chi_width = self._obj.plot_roi['chi_width']
+        if q_slice is None:
+            q_tup = self._obj.plot_roi['q_range']
+            q_slice = slice(q_tup[0], q_tup[1])
+        if e_slice is None:
+            e_tup = self._obj.plot_roi['energy_range']
+            e_slice = slice(e_tup[0], e_tup[1])
+        if I_cmap is None:
+            I_cmap = self._obj.plot_hints['I_cmap']
+        if xscale is None:
+            xscale = self._obj.plot_hints['xscale']
+        if ar_vlim is None:
+            ar_vlim = 1
+        if sample_name is None:
+            sample_name = str(self._obj.sample_name.values)
+
+        # Extract AR data:
+        sel_DA = self._obj.sel(q=q_slice, energy=e_slice)
+        ar_DA = sel_DA.rsoxs.AR(chi_width=chi_width/2)
+
+        # Plot
+        im = ar_DA.plot.pcolormesh(figsize=(6,4), norm=plt.Normalize(-ar_vlim, ar_vlim))
+
+        im.figure.suptitle('Anisotropy Ratio (AR) Map', fontsize=14, x=0.43)
+        im.axes.set(title=f'{sample_name}, Polarization = {pol}°, Chi Width = {chi_width}°', ylabel='Photon Energy [eV]', xlabel='q [$Å^{-1}$]', xscale='log')
+        im.colorbar.set_label('AR [arb. units]', rotation=270, labelpad=12)
+
+        # Extract figure and axes to return matplotlib object
+        fig = im.figure
+        ax = im.axes
+
+        # Save plot if true (saves to notebook working directory)
+        if save:
+            if filename is None:
+                filename = f'{sample_name}_chi-{chi_width}_q-{q_slice.start}-{q_slice.stop}_energy-{e_slice.start}-{e_slice.stop}_.png'
+            if savePath is None:
+                savePath = pathlib.Path.cwd().joinpath('ARmap_plots')
+            savePath.mkdir(exist_ok=True)
+            fig.savefig(savePath.joinpath(filename))
+
+        return fig, ax

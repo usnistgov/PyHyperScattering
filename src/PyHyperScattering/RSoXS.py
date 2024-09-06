@@ -102,9 +102,9 @@ class RSoXS:
 
     def select_q(self,q,method='interp'):
         return self._obj.sel(q=q,method=method)
+    
     def select_pol(self,pol,method='nearest'):
         return self._obj.sel(polarization=pol,method=method)
-
 
     def AR(self,calc2d=False,two_AR=False,chi_width=5,calc2d_norm_energy=None):
         '''
@@ -120,18 +120,18 @@ class RSoXS:
             chi_width (int, default 5): the width of chi slices used in calculating AR.  
         '''
         if(not calc2d):
-            para = self.slice_chi(0,chi_width=chi_width)
-            perp = self.slice_chi(-90,chi_width=chi_width)
+            para = self.slice_chi(0,chi_width=chi_width).mean('chi')
+            perp = self.slice_chi(-90,chi_width=chi_width).mean('chi')
             return ((para - perp) / (para+perp))
         elif(calc2d):
             para_pol = self.select_pol(0)
             perp_pol = self.select_pol(90)
 
-            para_para = para_pol.rsoxs.slice_chi(0,chi_width=chi_width)
-            para_perp = para_pol.rsoxs.slice_chi(-90,chi_width=chi_width)
+            para_para = para_pol.rsoxs.slice_chi(0,chi_width=chi_width).mean('chi')
+            para_perp = para_pol.rsoxs.slice_chi(-90,chi_width=chi_width).mean('chi')
 
-            perp_perp = perp_pol.rsoxs.slice_chi(-90,chi_width=chi_width)
-            perp_para = perp_pol.rsoxs.slice_chi(0,chi_width=chi_width)
+            perp_perp = perp_pol.rsoxs.slice_chi(-90,chi_width=chi_width).mean('chi')
+            perp_para = perp_pol.rsoxs.slice_chi(0,chi_width=chi_width).mean('chi')
 
             AR_para = ((para_para - para_perp)/(para_para+para_perp))
             AR_perp = ((perp_perp - perp_para)/(perp_perp+perp_para))
