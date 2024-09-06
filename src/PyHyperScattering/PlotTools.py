@@ -31,7 +31,9 @@ class PlotTools():
                  q_slice=None, 
                  e_slice=None, 
                  sample_name=None,
-                 save=True):
+                 save=True,
+                 filename=None,
+                 savePath=None):
         """
         Plot the integrated scattered intensity:
         
@@ -42,6 +44,10 @@ class PlotTools():
             e_slice (slice): energy range entered as slice object 
             sample_name (str): sample name to be included in plot title  
             save (bool, default True): save figure to new folder in notebook directory
+            savePath (pathlib.Path): pathlib directory for where to save plots (will create directory)
+                defaults to a new 'ISI_plots' folder in notebook working directory
+            filename (str): filename to name saved figure
+                defaults to f'{sample_name}_chi-{chi_width}_q-{q_slice.start}-{q_slice.stop}_energy-{e_slice.start}-{e_slice.stop}_.png'
 
             Example 'plot_roi' format:
             plot_roi = {'chi_width': 90,
@@ -96,8 +102,10 @@ class PlotTools():
 
         # Save plot if true (saves to notebook working directory)
         if save:
-            filename = f'{sample_name}_chi-{chi_width}_q-{q_slice.start}-{q_slice.stop}_energy-{e_slice.start}-{e_slice.stop}_.png'
-            savePath = pathlib.Path.cwd().joinpath('ISI_plots')
+            if filename is None:
+                filename = f'{sample_name}_chi-{chi_width}_q-{q_slice.start}-{q_slice.stop}_energy-{e_slice.start}-{e_slice.stop}_.png'
+            if savePath is None:
+                savePath = pathlib.Path.cwd().joinpath('ISI_plots')
             savePath.mkdir(exist_ok=True)
             fig.savefig(savePath.joinpath(filename))
 
@@ -111,7 +119,9 @@ class PlotTools():
                   cmap=None,
                   xscale=None,
                   sample_name=None,
-                  save=True):
+                  save=True,
+                  filename=None,
+                  savePath=None):
         """
         Plot an intensity heatmap (2D). Q along x, energy along y, intensity colormap
 
@@ -124,6 +134,10 @@ class PlotTools():
             xscale (str): 'log' (default) or 'linear'
             sample_name (str): sample name to be included in plot title  
             save (bool, default True): save figure to new folder in notebook directory
+            savePath (pathlib.Path): pathlib directory for where to save plots (will create directory)
+                defaults to a new 'Imap_plots' folder in notebook working directory
+            filename (str): filename to name saved figure
+                defaults to f'{sample_name}_chi-{chi_width}_q-{q_slice.start}-{q_slice.stop}_energy-{e_slice.start}-{e_slice.stop}_.png'
 
             Example 'plot_roi' format:
             plot_roi = {'chi_width': 90,
@@ -139,7 +153,7 @@ class PlotTools():
             fig: matplotlib figure object of the intensity map plots
             ax: list of the 2 matplotlib axes object of the intensity map plots
         """
-        
+
         # Load default plot roi values from 'plot_roi' attribute / dict
         # Load default plot hint values from 'plot_hints' attribute / dict
         # Can be overwritten in the function call
@@ -197,12 +211,121 @@ class PlotTools():
         
         # Save plot if true (saves to notebook working directory)
         if save:
-            filename = f'{sample_name}_chi-{chi_width}_q-{q_slice.start}-{q_slice.stop}_energy-{e_slice.start}-{e_slice.stop}_.png'
-            savePath = pathlib.Path.cwd().joinpath('Imap_plots')
+            if filename is None:
+                filename = f'{sample_name}_chi-{chi_width}_q-{q_slice.start}-{q_slice.stop}_energy-{e_slice.start}-{e_slice.stop}_.png'
+            if savePath is None:
+                savePath = pathlib.Path.cwd().joinpath('Imap_plots')
             savePath.mkdir(exist_ok=True)
             fig.savefig(savePath.joinpath(filename))
 
         return fig, axs
 
+    def plot_IvQ(self,
+                 pol=None,
+                 chi_width=None,
+                 q_slice=None,
+                 selected_energies=None,
+                 cmap=None,
+                 xscale=None,
+                 yscale=None,
+                 sample_name=None,
+                 save=True, 
+                 filename=None,
+                 savePath=None):
+        """
+        Plot intensity vs Q for parallel and perpendicular cuts at selected energies
 
+        Inputs:
+            pol (int): X-ray polarization to determine para/perp chi regions
+            chi_width (int): width of chi wedge for para/perp slices
+            q_slice (slice): q range entered as slice object
+            e_slice (slice): energy range entered as slice object 
+            cmap (str or plt.cm): matplotlib colormap, default is 'turbo'
+            xscale (str): 'log' (default) or 'linear'
+            sample_name (str): sample name to be included in plot title  
+            save (bool, default True): save figure to new folder in notebook directory
+            savePath (pathlib.Path): pathlib directory for where to save plots (will create directory)
+                defaults to a new 'IvQ_plots' folder in notebook working directory
+            filename (str): filename to name saved figure
+                defaults to f'{sample_name}_chi-{chi_width}_q-{q_slice.start}-{q_slice.stop}.png'
+
+            Example 'plot_roi' format:
+            plot_roi = {'chi_width': 90,
+                        'q_range': (0.01, 0.09),
+                        'energy_range': (280, 295),
+                        'energy_default': 285,
+                        'selected_energies': np.array(
+                        [275, 284, 284.4, 284.8, 285.2, 285.6, 286.2, 287, 300, 335])}
+
+            Example 'plot_hints' format:
+            plot_hints = {'cmap': 'turbo',
+                          'xscale': 'log',
+                          'yscale': 'log}
+
+        Returns:
+            fig: matplotlib figure object of the intensity vs Q linecuts
+            ax: list of the 2 matplotlib axes object of the intensity vs Q plots
+        """
+
+        # Load default plot roi values from 'plot_roi' attribute / dict
+        # Load default plot hint values from 'plot_hints' attribute / dict
+        # Can be overwritten in the function call
+        if pol is None:
+            pol = int(self._obj.polarization)
+        if chi_width is None:
+            chi_width = self._obj.plot_roi['chi_width']
+        if q_slice is None:
+            q_tup = self._obj.plot_roi['q_range']
+            q_slice = slice(q_tup[0], q_tup[1])
+        if selected_energies is None:
+            selected_energies = self._obj.plot_roi['selected_energies']
+        if cmap is None:
+            cmap = self._obj.plot_hints['cmap']
+            if isinstance(cmap, str):  # convert to matplotlib ListedColormap object
+                cmap = getattr(plt.cm, cmap)
+        if xscale is None:
+            xscale = self._obj.plot_hints['xscale']
+        if yscale is None:
+            yscale = self._obj.plot_hints['yscale']
+        if sample_name is None:
+            sample_name = str(self._obj.sample_name.values)
+
+        # Slice parallel & perpendicular DataArrays (for polarization = 0)
+        if pol == 0:
+            para_DA = self._obj.rsoxs.slice_chi(180, chi_width=(chi_width/2))
+            perp_DA = self._obj.rsoxs.slice_chi(90, chi_width=(chi_width/2))
+        elif pol == 90:
+            perp_DA = self._obj.rsoxs.slice_chi(180, chi_width=(chi_width/2))
+            para_DA = self._obj.rsoxs.slice_chi(90, chi_width=(chi_width/2))  
+
+        # Downselect data to selected region
+        para_slice = para_DA.mean('chi').sel(q=q_slice).sel(energy=selected_energies, method='nearest')
+        perp_slice = perp_DA.mean('chi').sel(q=q_slice).sel(energy=selected_energies, method='nearest')
+
+        # Plot
+        fig, axs = plt.subplots(ncols=2, figsize=(8,4), tight_layout=True)
+
+        colors = cmap(np.linspace(0,1,len(selected_energies)))
+        for i, energy in enumerate(para_slice.energy.values):
+            para_slice.sel(energy=energy).plot.line(ax=axs[0], color=colors[i], yscale=yscale, xscale=xscale, label=energy)
+            perp_slice.sel(energy=energy).plot.line(ax=axs[1], color=colors[i], yscale=yscale, xscale=xscale, label=energy)
+
+        fig.suptitle(f'Intensity vs Q, {pol}° pol, 90° chi width: {sample_name}', x=0.47)
+
+        axs[0].set(title=f'Parallel to E$_p$', ylabel='Intensity [arb. units]', xlabel='Q [$Å^{-1}$]')
+        axs[1].set(title=f'Perpendicular to E$_p$', ylabel='Intensity [arb. units]', xlabel='Q [$Å^{-1}$]')
+        axs[1].legend(title='Energy [eV]', loc=(1.05,0.05))
+        for ax in axs:
+            ax.grid(visible=True, axis='x', which='both')
+
+        # Save plot if true (saves to notebook working directory)
+        if save:
+            if filename is None:
+                filename = f'{sample_name}_chi-{chi_width}_q-{q_slice.start}-{q_slice.stop}.png'
+            if savePath is None:
+                savePath = pathlib.Path.cwd().joinpath('IvQ_plots')
+            savePath.mkdir(exist_ok=True)
+            fig.savefig(savePath.joinpath(filename))            
+
+        return fig, axs
         
