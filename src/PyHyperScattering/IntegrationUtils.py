@@ -2,6 +2,7 @@ import warnings
 import xarray as xr
 import numpy as np
 import math
+from tqdm.auto import tqdm
 
 try:
     import holoviews as hv
@@ -98,6 +99,8 @@ class Check:
         ax.add_patch(guide1)
         ax.add_patch(guide2)
         ax.imshow(integrator.mask,origin='lower',alpha=alpha)
+
+
 class DrawMask:
     '''
     Utility class for interactively drawing a mask in a Jupyter notebook.
@@ -114,21 +117,22 @@ class DrawMask:
 
     '''
     
-    def __init__(self,frame):
+    def __init__(self,frame, cmap='viridis', clim=(5e0, 5e3), width=800, height=700):
         '''
         Construct a DrawMask object
 
         Args:
             frame (xarray): a single data frame with pix_x and pix_y axes
 
-
         '''
+
         if len(frame.shape) > 2:
             warnings.warn('This tool needs a single frame, not a stack!  .sel down to a single frame before starting!',stacklevel=2)
             
-        self.frame=frame
+        self.frame = frame
         
-        self.fig = frame.hvplot(cmap='terrain',clim=(5,5000),logz=True,data_aspect=1)
+        self.fig = frame.hvplot(cmap=cmap, clim=clim, logz=True, data_aspect=1, 
+                                width=width, height=height)
 
         self.poly = hv.Polygons([])
         self.path_annotator = hv.annotate.instance()
@@ -140,17 +144,13 @@ class DrawMask:
 
         Returns: the holoviews object
 
-
-
         '''
         print('Usage: click the "PolyAnnotator" tool at top right.  DOUBLE CLICK to start drawing a masked object, SINGLE CLICK to add a vertex, then DOUBLE CLICK to finish.  Click/drag individual vertex to adjust.')
-        return self.path_annotator(
-                self.fig * self.poly.opts(
-                            width=self.frame.shape[0], 
-                            height=self.frame.shape[1], 
-                            responsive=False), 
-                annotations=['Label'], 
-            vertex_annotations=['Value'])
+        annotator_plot = self.path_annotator(
+                                    self.fig * self.poly.opts(responsive=False), 
+                                    annotations=['Label'], 
+                                    vertex_annotations=['Value'])
+        return annotator_plot.opts(toolbar='left')
 
 
     def save(self,fname):
@@ -178,11 +178,11 @@ class DrawMask:
         '''
         with open(fname,'r') as f:
             strlist = json.load(f)
-        print(strlist)
+        # print(strlist)
         dflist = []
         for item in strlist:
             dflist.append(pd.read_json(item))
-        print(dflist)
+        # print(dflist)
         self.poly = hv.Polygons(dflist)
         
         self.path_annotator(
@@ -204,3 +204,58 @@ class DrawMask:
             mask |= skimage.draw.polygon2mask(self.frame.shape,self.path_annotator.annotated.iloc[i].dframe(['x','y']))
 
         return mask
+
+
+class CMSGIWAXS:
+    """For streamlined loading for CMS data"""
+    def __init__(self, files, loader, integrator):
+        """
+        Inputs: files: indexable object str or pathlib.Path filepaths to 
+                       raw GIWAXS data
+                loader: custom PyHyperScattering CMSGIWAXSLoader object, must 
+                        return DataArray with attributes metadata
+                integrator: instance of PGGeneralIntegrator object
+        """
+        self.files = files
+        self.loader = loader
+        self.integrator = integrator
+
+    def single_images_to_dataset(self):
+        """
+        Method that takes a subscriptable object of filepaths corresponding to raw GIWAXS
+        beamline data, loads the raw data into an xarray DataArray, generates pygix-transformed 
+        cartesian and polar DataArrays, and creates 3 corresponding xarray Datasets 
+        containing a DataArray per sample. 
+        The raw dataarrays must contain the attributes 'scan_id' and 'incident_angle'
+
+        Outputs: 2 Datasets: raw & reciprocal space (cartesian or polar based on integrator object)
+        """
+        # Select the first element of the sorted set outside of the for loop to initialize the xr.DataSet
+        DA = self.loader.loadSingleImage(self.files[0])
+        assert 'scan_id' in DA.attrs.keys(), "'scan_id' is a required attribute to use this function"
+
+        # Update incident angle per sample:
+        assert 'incident_angle' in DA.attrs.keys(), "'incident_angle' is a required attribute to use this function"
+        self.integrator.incident_angle = float(DA.incident_angle[2:])
+
+        # Integrate single image
+        integ_DA = self.integrator.integrateSingleImage(DA)
+
+        # Save coordinates for interpolating other dataarrays 
+        integ_coords = integ_DA.coords
+
+        # Create a DataSet, each DataArray will be named according to it's scan id
+        raw_DS = DA.to_dataset(name=DA.scan_id)
+        integ_DS = integ_DA.to_dataset(name=DA.scan_id)
+
+        # Populate the DataSet with 
+        for filepath in tqdm(self.files[1:], desc=f'Transforming Raw Data'):
+            DA = self.loader.loadSingleImage(filepath)
+            integ_DA = self.integrator.integrateSingleImage(DA)
+            
+            integ_DA = integ_DA.interp(integ_coords)
+
+            raw_DS[f'{DA.scan_id}'] = DA
+            integ_DS[f'{DA.scan_id}'] = integ_DA
+
+        return raw_DS, integ_DS
