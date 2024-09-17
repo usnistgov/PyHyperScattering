@@ -44,9 +44,9 @@ def pfgenint_dask(sst_data):
 
 
 def test_integrator_loads_nika_mask_tiff(pfesint):
-    pfesint.loadNikaMask(filetoload=pathlib.Path('mask-test-pack/37738-CB_TPD314K1_mask.tif'))
+    pfesint.loadNikaMask(maskpath=pathlib.Path('mask-test-pack/37738-CB_TPD314K1_mask.tif'))
 def test_integrator_loads_nika_mask_hdf5(pfesint):
-    pfesint.loadNikaMask(filetoload=pathlib.Path('mask-test-pack/SST1-SAXS_mask.hdf'))
+    pfesint.loadNikaMask(maskpath=pathlib.Path('mask-test-pack/SST1-SAXS_mask.hdf'))
     
 def test_integrator_loads_polygon_mask(pfesint):
     pfesint.loadPolyMask(maskpoints=[[[367, 545], [406, 578], [880, 0], [810, 0]]],maskshape=(1024,1026))
