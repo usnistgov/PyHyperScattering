@@ -77,7 +77,7 @@ def test_SST1DB_load_SingleEnergy2Polarizations_scan_hinted_dims(sstdb):
     assert 'energy' in run.indexes
     assert 'polarization' in run.indexes
 @must_have_tiled
-def test_SST1DB_load_SingleEnergy2Polarizations_scan_legacy_explicit_dims(sstdb):
+def test_SST1DB_load_SingleEnergy2Polarizations_scan_explicit_dims(sstdb):
     run = sstdb.loadRun(87758,dims=['energy','polarization']).unstack('system')
     assert type(run) == xr.DataArray
     assert 'energy' in run.indexes
