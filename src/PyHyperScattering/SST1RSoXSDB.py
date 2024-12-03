@@ -697,7 +697,10 @@ class SST1RSoXSDB:
             data = run["primary"]["data"].read()[md["detector"] + "_image"]
         elif isinstance(data,tiled.client.array.DaskArrayClient):
             data = run["primary"]["data"].read()[md["detector"] + "_image"]
-
+        # Handle extra dimensions (non-pixel and non-intended dimensions from repeat exposures) by averaging them along the dim_0 axis
+        if len(data.shape) > 3:
+            data = data.mean("dim_0")
+            
         data = data.astype(int)  # convert from uint to handle dark subtraction
 
         if self.dark_subtract:
