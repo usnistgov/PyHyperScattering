@@ -5,14 +5,14 @@ import math
 from tqdm.auto import tqdm
 
 try:
-    import holoviews as hv
-    import hvplot.xarray
-
-    import skimage.draw
     import matplotlib.pyplot as plt
     from matplotlib.colors import LogNorm,Normalize
+    import holoviews as hv
+    import hvplot.xarray
+    import skimage.draw
+    
 except (ModuleNotFoundError,ImportError):
-    warnings.warn('Could not import package for interactive integration utils.  Install holoviews and scikit-image.',stacklevel=2)
+    warnings.warn('Could not import package for interactive integration utils.  Install pyhyperscattering[ui] or pyhyperscattering[all].',stacklevel=2)
 import pandas as pd
 
 import json
