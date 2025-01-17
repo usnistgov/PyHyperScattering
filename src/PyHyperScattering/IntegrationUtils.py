@@ -12,7 +12,7 @@ try:
     import skimage.draw
     
 except (ModuleNotFoundError,ImportError):
-    warnings.warn('Could not import package for interactive integration utils.  Install pyhyperscattering[ui] or pyhyperscattering[all].',stacklevel=2)
+    warnings.warn('Could not import a dependency for interactive integration utils.  Install pyhyperscattering[ui] or pyhyperscattering[all].',stacklevel=2)
 import pandas as pd
 
 import json
