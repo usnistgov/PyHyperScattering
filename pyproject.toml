@@ -55,7 +55,8 @@ performance = [
 ]
 ui = [
     "holoviews==1.16.2",
-    "hvplot"
+    "hvplot",
+    "matplotlib"
 ]
 doc = [
         "sphinx",
