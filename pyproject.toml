@@ -45,6 +45,7 @@ dependencies = [
 bluesky = [
     "tiled[all]>=0.1.0a74",
     "databroker[all]>=2.0.0b10",
+    "bluesky-tiled-plugins",
     "bottleneck"
 ]
 performance = [
@@ -70,6 +71,7 @@ test =  [
 all = [
     "tiled[all]>=0.1.0a74",
     "databroker[all]>=2.0.0b10",
+    "bluesky-tiled-plugins",
     "bottleneck",
     "pyopencl",
     "dask",
