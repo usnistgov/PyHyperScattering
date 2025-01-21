@@ -47,6 +47,7 @@ bluesky = [
     "databroker[all]>=2.0.0b10",
     "bluesky-tiled-plugins",
     "bottleneck"
+    ## TODO: tiled, databroker, and bottleneck probably can be deleted for data from December 2024 onwards, but need to check if this harms backwards compatibility
 ]
 performance = [
     "pyopencl",
