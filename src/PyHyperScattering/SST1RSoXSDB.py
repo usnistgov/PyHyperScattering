@@ -20,11 +20,10 @@ try:
     from httpx import HTTPStatusError
     import tiled
     import dask
-    from databroker.queries import RawMongo, Key, FullText, Contains, Regex
+    from bluesky-tiled-plugins.queries import RawMongo, Key, FullText, Contains, Regex
 except Exception:
     print(
-        "Imports failed.  Are you running on a machine with proper libraries for databroker,"
-        " tiled, etc.?"
+        "Imports failed.  Are you running on a machine with proper libraries for tiled, etc.?"
     )
 
 import copy
