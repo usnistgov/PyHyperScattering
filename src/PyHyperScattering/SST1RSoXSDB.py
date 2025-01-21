@@ -571,7 +571,6 @@ class SST1RSoXSDB:
 
         """
         if isinstance(run,int):
-            run = self.c[run]
             catalogString = str(self.c)
             if "Catalog" in catalogString: run = self.c[int(run)]
             if "Container" in catalogString: ## Alternative method to load scan in case databroker, etc. does not work and only a container of UIDs is available
