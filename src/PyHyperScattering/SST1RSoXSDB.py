@@ -20,7 +20,7 @@ try:
     from httpx import HTTPStatusError
     import tiled
     import dask
-    from bluesky-tiled-plugins.queries import RawMongo, Key, FullText, Contains, Regex
+    from bluesky_tiled_plugins.queries import RawMongo, Key, FullText, Contains, Regex
 except Exception:
     print(
         "Imports failed.  Are you running on a machine with proper libraries for tiled, etc.?"
