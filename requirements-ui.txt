@@ -1,2 +1,3 @@
 holoviews==1.16.2
 hvplot
+matplotlib

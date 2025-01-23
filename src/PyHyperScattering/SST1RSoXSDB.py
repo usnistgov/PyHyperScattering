@@ -813,6 +813,10 @@ class SST1RSoXSDB:
                 axis_list = [x for x in axis_list if "saturated" not in x]
                 axis_list = [x for x in axis_list if "under_exposed" not in x]
 
+                # remove hinted Energy and EPU60 items #161
+                axis_list = [x for x in axis_list if "EPU60" not in x]
+                axis_list = [x for x in axis_list if "Energy" not in x]
+                
                 # knock out any known names of scalar counters
                 axis_list = [x for x in axis_list if "Beamstop" not in x]
                 axis_list = [x for x in axis_list if "Current" not in x]
@@ -1297,8 +1301,11 @@ class SST1RSoXSDB:
                     message += "Wide Angle CCD Detector is reported as underexposed at all energies."
                 else:
                     idx = np.where(md["Wide Angle CCD Detector_under_exposed"])
-                    warning_e = md["energy"][idx]
-                    message += f"Affected energies include: \n{warning_e}"
+                    try:
+                        warning_e = md["energy"][idx]
+                        message += f"Affected energies include: \n{warning_e}"
+                    except Exception:
+                        message += f"Affected frames were {idx}."
                 warnings.warn(message, stacklevel=2)
         else:
             warnings.warn(
@@ -1313,8 +1320,11 @@ class SST1RSoXSDB:
                     message += "\tWide Angle CCD Detector is reported as saturated at all energies."
                 else:
                     idx = np.where(md["Wide Angle CCD Detector_saturated"])
-                    warning_e = md["energy"][idx]
-                    message += f"Affected energies include: \n{warning_e}"
+                    try:
+                        warning_e = md["energy"][idx]
+                        message += f"Affected energies include: \n{warning_e}"
+                    except Exception:
+                        message += f"Affected frames were {idx}."
                 warnings.warn(message, stacklevel=2)
         else:
             warnings.warn(
