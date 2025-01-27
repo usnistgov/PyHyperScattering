@@ -20,7 +20,8 @@ try:
     from httpx import HTTPStatusError
     import tiled
     import dask
-    from bluesky_tiled_plugins.queries import RawMongo, Key, FullText, Contains, Regex
+    try: from bluesky_tiled_plugins.queries import RawMongo, Key, FullText, Contains, Regex ## Intended to handle database navigation for 2025 onwards
+    except ImportError: from databroker.queries import RawMongo, Key, FullText, Contains, Regex
 except Exception:
     print(
         "Imports failed.  Are you running on a machine with proper libraries for tiled, etc.?"
