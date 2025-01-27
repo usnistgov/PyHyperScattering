@@ -571,11 +571,7 @@ class SST1RSoXSDB:
 
         """
         if isinstance(run,int):
-            catalogString = str(self.c)
-            if "Catalog" in catalogString: run = self.c[int(run)]
-            if "Container" in catalogString: ## Alternative method to load scan in case databroker, etc. does not work and only a container of UIDs is available
-                ScanUID = np.array(self.c.search(Key("scan_id") == int(run)))[0]
-                run = self.c[ScanUID]
+            run = self.c[run]
         elif isinstance(run,pd.DataFrame):
             run = list(run.scan_id)
         if isinstance(run,list):
