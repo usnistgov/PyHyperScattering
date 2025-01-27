@@ -20,11 +20,11 @@ try:
     from httpx import HTTPStatusError
     import tiled
     import dask
-    from databroker.queries import RawMongo, Key, FullText, Contains, Regex
+    try: from bluesky_tiled_plugins.queries import RawMongo, Key, FullText, Contains, Regex ## Intended to handle database navigation for 2025 onwards
+    except ImportError: from databroker.queries import RawMongo, Key, FullText, Contains, Regex
 except Exception:
     print(
-        "Imports failed.  Are you running on a machine with proper libraries for databroker,"
-        " tiled, etc.?"
+        "Imports failed.  Are you running on a machine with proper libraries for tiled, etc.?"
     )
 
 import copy
@@ -620,6 +620,10 @@ class SST1RSoXSDB:
                 axis_list = [x for x in axis_list if "saturated" not in x]
                 axis_list = [x for x in axis_list if "under_exposed" not in x]
 
+                # remove hinted Energy and EPU60 items #161
+                axis_list = [x for x in axis_list if "EPU60" not in x]
+                axis_list = [x for x in axis_list if "Energy" not in x]
+                
                 # knock out any known names of scalar counters
                 axis_list = [x for x in axis_list if "Beamstop" not in x]
                 axis_list = [x for x in axis_list if "Current" not in x]
@@ -697,7 +701,10 @@ class SST1RSoXSDB:
             data = run["primary"]["data"].read()[md["detector"] + "_image"]
         elif isinstance(data,tiled.client.array.DaskArrayClient):
             data = run["primary"]["data"].read()[md["detector"] + "_image"]
-
+        # Handle extra dimensions (non-pixel and non-intended dimensions from repeat exposures) by averaging them along the dim_0 axis
+        if len(data.shape) > 3:
+            data = data.mean("dim_0")
+            
         data = data.astype(int)  # convert from uint to handle dark subtraction
 
         if self.dark_subtract:
@@ -1111,8 +1118,11 @@ class SST1RSoXSDB:
                     message += "Wide Angle CCD Detector is reported as underexposed at all energies."
                 else:
                     idx = np.where(md["Wide Angle CCD Detector_under_exposed"])
-                    warning_e = md["energy"][idx]
-                    message += f"Affected energies include: \n{warning_e}"
+                    try:
+                        warning_e = md["energy"][idx]
+                        message += f"Affected energies include: \n{warning_e}"
+                    except Exception:
+                        message += f"Affected frames were {idx}."
                 warnings.warn(message, stacklevel=2)
         else:
             warnings.warn(
@@ -1127,8 +1137,11 @@ class SST1RSoXSDB:
                     message += "\tWide Angle CCD Detector is reported as saturated at all energies."
                 else:
                     idx = np.where(md["Wide Angle CCD Detector_saturated"])
-                    warning_e = md["energy"][idx]
-                    message += f"Affected energies include: \n{warning_e}"
+                    try:
+                        warning_e = md["energy"][idx]
+                        message += f"Affected energies include: \n{warning_e}"
+                    except Exception:
+                        message += f"Affected frames were {idx}."
                 warnings.warn(message, stacklevel=2)
         else:
             warnings.warn(
