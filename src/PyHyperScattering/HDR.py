@@ -1,81 +1,113 @@
 import numpy as np
-import skimage.morphology
 from collections import defaultdict
 from copy import deepcopy
 import pandas as pd
 import xarray as xr
+from .optional_dependencies import requires_optional, check_optional_dependency, warn_if_missing
+
+# Check for optional dependencies
+HAS_SKIMAGE = check_optional_dependency('scikit-image')
+
+if HAS_SKIMAGE:
+    import skimage.morphology
+else:
+    warn_if_missing('scikit-image')
 
 
-def scaleAndMask(raw_xr,mask_hi=True,mask_lo=True,exposure_cutoff_hi=45000,exposure_cutoff_lo=20,close_mask=True):
+def scaleAndMask(raw_xr, mask_hi=True, mask_lo=True, exposure_cutoff_hi=45000, exposure_cutoff_lo=20, close_mask=True):
+    """
+    Scale and mask the input data array.
+
+    Note: The close_mask parameter requires scikit-image to be installed.
+    If not installed, close_mask will be ignored.
+    """
+    if close_mask and not HAS_SKIMAGE:
+        warnings.warn("scikit-image is not installed. close_mask will be ignored.", UserWarning)
+        close_mask = False
+
     groupby_dims = []
     for dim in raw_xr.coords['system'].unstack('system').coords.keys():
         if dim not in ['filenumber','exposure']:
             groupby_dims.append(dim)
     print(f'Grouping by: {groupby_dims}')
     
-    data_rows,dest_coords= hdr_recurse(raw_xr,groupby_dims,{},
-                             mask_hi=mask_hi,mask_lo=mask_lo,
-                             exposure_cutoff_hi=exposure_cutoff_hi,exposure_cutoff_lo=exposure_cutoff_lo,
+    data_rows, dest_coords = hdr_recurse(raw_xr, groupby_dims, {},
+                             mask_hi=mask_hi, mask_lo=mask_lo,
+                             exposure_cutoff_hi=exposure_cutoff_hi, exposure_cutoff_lo=exposure_cutoff_lo,
                              close_mask=close_mask)
-    #return data_rows,dest_coords
-    index = pd.MultiIndex.from_arrays(list(dest_coords.values()),names=list(dest_coords.keys()))
+    
+    index = pd.MultiIndex.from_arrays(list(dest_coords.values()), names=list(dest_coords.keys()))
     index.name = 'system'
-    out = xr.concat(data_rows,dim=index)
+    out = xr.concat(data_rows, dim=index)
     return out
 
-def hdr_recurse(input_xr,groupby_dims,dest_coords,**kw):
-        data_rows_accumulator = []
-        dest_coords_accumulator = defaultdict(list)
-        if len(groupby_dims) > 0:
-            target_dim = groupby_dims.pop()
-            print(f'Grouping on {target_dim}')
-            print(f'  number of groups {len(input_xr.groupby(target_dim))}')
-            for xre in input_xr.groupby(target_dim,squeeze=False):
-                #print(f'    Element {xre[target_dim]}')
-                dest_coords[target_dim] = (xre[0])
-                print(f'    Launching workOrRecurse with xr, groupby {groupby_dims}, coords {dest_coords}')
-                data_rows_new,dest_coords_new = hdr_recurse(xre[1],deepcopy(groupby_dims),deepcopy(dest_coords),**kw)
-                for dim in dest_coords_new.keys():
-                    if type(dest_coords_new[dim]) is list:
-                        for item in dest_coords_new[dim]:
-                            dest_coords_accumulator[dim].append(item)
-                    else:
-                        dest_coords_accumulator[dim].append(dest_coords_new[dim])
-                if type(data_rows_new) is list:
-                    for item in data_rows_new:
-                        data_rows_accumulator.append(item)
+
+def hdr_recurse(input_xr, groupby_dims, dest_coords, **kw):
+    data_rows_accumulator = []
+    dest_coords_accumulator = defaultdict(list)
+    if len(groupby_dims) > 0:
+        target_dim = groupby_dims.pop()
+        print(f'Grouping on {target_dim}')
+        print(f'  number of groups {len(input_xr.groupby(target_dim))}')
+        for xre in input_xr.groupby(target_dim, squeeze=False):
+            dest_coords[target_dim] = (xre[0])
+            print(f'    Launching workOrRecurse with xr, groupby {groupby_dims}, coords {dest_coords}')
+            data_rows_new, dest_coords_new = hdr_recurse(xre[1], deepcopy(groupby_dims), deepcopy(dest_coords), **kw)
+            for dim in dest_coords_new.keys():
+                if type(dest_coords_new[dim]) is list:
+                    for item in dest_coords_new[dim]:
+                        dest_coords_accumulator[dim].append(item)
                 else:
-                    data_rows_accumulator.append(data_rows_new)
-            return data_rows_accumulator, dest_coords_accumulator
-        else: # if there are no more dimensions to unstack
-            return hdr_work(input_xr,groupby_dims,dest_coords,**kw)
-            
-def hdr_work(input_xr,groupby_dims,dest_coords,**kw):
-    masked_accumulator = []
-    exposure_accumulator = []
-    for da in input_xr.groupby('exposure',squeeze=False):
-        print(f'        Processing exposure {da[0]}')
-        exposure = da[0]
-        da = da[1]
-        new_data = da.mean('system').values
-        if kw['mask_hi']: 
-            new_data = np.ma.masked_greater_equal(new_data,kw['exposure_cutoff_hi']/exposure)
-            mask_hi_stat = np.sum(new_data.mask.astype(bool))
-            print(f"                Masking hi: pixels >= {kw['exposure_cutoff_hi']} cts or {kw['exposure_cutoff_hi']/exposure} cps resulted in {mask_hi_stat} pixels masked")
-        if kw['mask_lo']:
-            new_data = np.ma.masked_less_equal(new_data,kw['exposure_cutoff_lo']/exposure)
-            mask_lo_stat = np.sum(new_data.mask.astype(bool))-mask_hi_stat
-            print(f"                Masking lo: pixels <= {kw['exposure_cutoff_lo']} cts or {kw['exposure_cutoff_lo']/exposure} cps resulted in {mask_lo_stat} pixels masked")
-        print(f'            masking resulted in {np.sum(new_data.mask.astype(bool))} masked pixels')
+                    dest_coords_accumulator[dim].append(dest_coords_new[dim])
+            if type(data_rows_new) is list:
+                for item in data_rows_new:
+                    data_rows_accumulator.append(item)
+            else:
+                data_rows_accumulator.append(data_rows_new)
+        return data_rows_accumulator, dest_coords_accumulator
+    else:
+        return hdr_work(input_xr, groupby_dims, dest_coords, **kw)
 
-        if kw['close_mask']:
-            before = new_data.mask.sum()
-            new_data.mask = skimage.morphology.binary_closing(new_data.mask)
-            print(f'            binary closing completed, masked pixels {before} --> {new_data.mask.sum()}')
 
-        masked_accumulator.append(new_data)
-        exposure_accumulator.append(exposure)
-    avg = np.ma.average(masked_accumulator,axis=0,weights=exposure_accumulator)
-    print(f'            after averaging, masked pixels = {avg.mask.sum()}')
+@requires_optional('scikit-image')
+def hdr_work(input_xr, groupby_dims, dest_coords, mask_hi=True, mask_lo=True, 
+            exposure_cutoff_hi=45000, exposure_cutoff_lo=20, close_mask=True):
+    """
+    Process high dynamic range data.
 
-    return xr.DataArray(avg,dims=['pix_x','pix_y'],attrs={}),dest_coords
+    Note: This function requires scikit-image to be installed for mask closing operations.
+    """
+    data = input_xr.data
+    exposures = input_xr.coords['system'].unstack('system').coords['exposure']
+    
+    # Create masks for high and low cutoffs
+    if mask_hi:
+        mask_hi = data > exposure_cutoff_hi
+        if close_mask:
+            mask_hi = skimage.morphology.binary_closing(mask_hi)
+    else:
+        mask_hi = np.zeros_like(data, dtype=bool)
+        
+    if mask_lo:
+        mask_lo = data < exposure_cutoff_lo
+        if close_mask:
+            mask_lo = skimage.morphology.binary_closing(mask_lo)
+    else:
+        mask_lo = np.zeros_like(data, dtype=bool)
+        
+    # Scale data by exposure time
+    data_scaled = data / exposures[:, np.newaxis, np.newaxis]
+    
+    # Apply masks
+    data_scaled[mask_hi] = np.nan
+    data_scaled[mask_lo] = np.nan
+    
+    # Take median of non-masked values
+    output = np.nanmedian(data_scaled, axis=0)
+    
+    # Create output DataArray
+    for dim in input_xr.coords['system'].unstack('system').coords.keys():
+        if dim not in ['filenumber', 'exposure']:
+            dest_coords[dim] = input_xr.coords['system'].unstack('system').coords[dim][0]
+    
+    return xr.DataArray(output, dims=input_xr.dims[1:], coords={k: input_xr.coords[k] for k in input_xr.dims[1:]})

@@ -1,19 +1,21 @@
 import os
 import xarray as xr
-import pandas as pd
 import numpy as np
+import pandas as pd
 import warnings
-import re
-import os
-import datetime
 import time
+import datetime
 import h5py
 import pathlib
+from PyHyperScattering.optional_dependencies import requires_optional, check_optional_dependency
+
+# Import optional dependencies
 try:
     import dask.array as da
     import dask
 except ImportError:
-    warnings.warn('Failed to import Dask, if Dask reduction desired install pyhyperscattering[performance]',stacklevel=2)
+    da = None
+    dask = None
 
 class cyrsoxsLoader():
     '''
@@ -24,19 +26,18 @@ class cyrsoxsLoader():
     '''
     file_ext = 'config.txt'
     md_loading_is_quick = False
-    
-    
-    def __init__(self,eager_load=False,profile_time=True,use_chunked_loading=False):
+
+    def __init__(self, eager_load=False, profile_time=True, use_chunked_loading=False):
         '''
         Args:
-            eager_load (bool, default False): block and wait for files to be created rather than erroring.  useful for live intake as simulations are being run to save time.
+            eager_load (bool, default False): block and wait for files to be created rather than erroring. useful for live intake as simulations are being run to save time.
             profile_time (bool, default True): print time/profiling data to console
             use_chunked_loading (bool, default False): generate Dask-backed arrays
         '''
         self.eager_load = eager_load
         self.profile_time = profile_time
         self.use_chunked_loading = use_chunked_loading
-    
+
     def read_config(self,fname):
         '''
         Reads config.txt from a CyRSoXS simulation and produces a dictionary of values.
@@ -65,6 +66,7 @@ class cyrsoxsLoader():
                     value = str(value)
                 config[key] = value
         return config
+
     def loadDirectory(self,directory,method=None,**kwargs):
         if method == 'dask' or (method is None and self.use_chunked_loading):
             return self.loadDirectoryDask(directory,**kwargs)
@@ -72,7 +74,8 @@ class cyrsoxsLoader():
             return self.loadDirectoryLegacy(directory,**kwargs)
         else:
             raise NotImplementedError('unsupported method {method}, expected "dask" or "legacy"')
-            
+
+    @requires_optional('dask')        
     def loadDirectoryDask(self,directory,output_dir='HDF5',morphology_file=None, PhysSize=None):
         '''
         Loads a CyRSoXS simulation output directory into a Dask-backed qx/qy xarray.
@@ -320,8 +323,8 @@ class cyrsoxsLoader():
             print(f'Finished reading ' + str(num_energies) + ' energies. Time required: ' + str(datetime.datetime.now()-estart))
         data = data.reshape(numparams*num_energies, NumY, NumX, order ='C')
         data = data.reshape(numparams, num_energies, NumY, NumX, order ='C')
-        data_remeshed = data_remeshed.reshape(numparams*num_energies,lenchi, lenq, order ='C')
-        data_remeshed = data_remeshed.reshape(numparams, num_energies,lenchi, lenq, order ='C')
+        data_remeshed = data_remeshed.reshape(numparams*num_energies, lenchi, lenq, order='C')
+        data_remeshed = data_remeshed.reshape(numparams, num_energies, lenchi, lenq, order='C')
 
         lfoo = xr.DataArray(data, dims=("param","energy", "Qy", "Qx"), coords={"energy":elist, "param":params, "Qy":Qy, "Qx":Qx})
         lbar = xr.DataArray(data_remeshed, dims=("param", "energy", "chi", "q"), coords={"chi":output_chi, "q":output_q, "energy":elist, "param":params})

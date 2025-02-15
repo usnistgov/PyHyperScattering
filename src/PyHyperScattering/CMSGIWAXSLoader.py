@@ -1,17 +1,34 @@
 import pathlib
 import warnings
-import fabio
-from PIL import Image
 from PyHyperScattering.FileLoader import FileLoader
 import xarray as xr
 import pandas as pd
 import numpy as np
 from tqdm.auto import tqdm 
+from .optional_dependencies import requires_optional, check_optional_dependency, warn_if_missing
+
+# Check for optional dependencies
+HAS_FABIO = check_optional_dependency('fabio')
+HAS_PIL = check_optional_dependency('PIL')
+
+if HAS_FABIO:
+    import fabio
+else:
+    warn_if_missing('fabio')
+
+if HAS_PIL:
+    from PIL import Image
+else:
+    warn_if_missing('PIL')
+
 
 class CMSGIWAXSLoader(FileLoader):
     """
     GIXS Data Loader Class | NSLS-II 11-BM (CMS)
     Used to load single TIFF time-series TIFF GIWAXS images.
+
+    Note: This loader requires either the 'fabio' or 'PIL' package for reading image files.
+    At least one of these packages must be installed for the loader to function.
     """
     def __init__(self, md_naming_scheme=[], root_folder=None, delim='_'):
         """
@@ -24,6 +41,8 @@ class CMSGIWAXSLoader(FileLoader):
 
                 delim: delimeter value to split filename (default is underscore)
         """
+        if not (HAS_FABIO or HAS_PIL):
+            raise ImportError("Either 'fabio' or 'PIL' package is required for this loader to function. Please install at least one of them.")
 
         self.md_naming_scheme = md_naming_scheme
         if len(md_naming_scheme) == 0:
@@ -33,7 +52,7 @@ class CMSGIWAXSLoader(FileLoader):
         self.sample_dict = None
         self.selected_series = []
         
-    def loadSingleImage(self, filepath,coords=None,return_q=False,image_slice=None,use_cached_md=False,**kwargs):
+    def loadSingleImage(self, filepath, coords=None, return_q=False, image_slice=None, use_cached_md=False, **kwargs):
         """
         Loads a single xarray DataArray from a filepath to a raw TIFF
 
@@ -46,8 +65,9 @@ class CMSGIWAXSLoader(FileLoader):
         - image_slice 
         - use_cached_md
 
+        Note:
+        This method will attempt to use fabio first, then fall back to PIL if fabio is not available.
         """
-
         # Ensure that the path exists before continuing.
         filepath = pathlib.Path(filepath)
         

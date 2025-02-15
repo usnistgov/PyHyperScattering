@@ -13,28 +13,30 @@ import scipy.ndimage
 import asyncio
 import time
 import copy
+from .optional_dependencies import check_optional_dependency, warn_if_missing, requires_optional
 
-try:
+# Check for tiled and related optional dependencies
+HAS_TILED = check_optional_dependency('tiled')
+if HAS_TILED:
     os.environ["TILED_SITE_PROFILES"] = "/nsls2/software/etc/tiled/profiles"
-    from tiled.client import from_profile,from_uri
+    from tiled.client import from_profile, from_uri
     from httpx import HTTPStatusError
     import tiled
     import dask
-    try: from bluesky_tiled_plugins.queries import RawMongo, Key, FullText, Contains, Regex ## Intended to handle database navigation for 2025 onwards
-    except ImportError: from databroker.queries import RawMongo, Key, FullText, Contains, Regex
-except Exception:
-    print(
-        "Imports failed.  Are you running on a machine with proper libraries for tiled, etc.?"
-    )
-
-import copy
+    try:
+        from bluesky_tiled_plugins.queries import RawMongo, Key, FullText, Contains, Regex
+    except ImportError:
+        from databroker.queries import RawMongo, Key, FullText, Contains, Regex
+else:
+    warn_if_missing('tiled')
 
 
 class SST1RSoXSDB:
     """
-    Loader for bluesky run xarrays form NSLS-II SST1 RSoXS instrument
-
-
+    Loader for bluesky run xarrays from NSLS-II SST1 RSoXS instrument.
+    
+    Note: This loader requires the 'tiled' package for bluesky data access.
+    If not installed, certain functionality will be limited.
     """
 
     file_ext = ""
@@ -55,19 +57,20 @@ class SST1RSoXSDB:
         "energy": "en_monoen_setpoint",
     }
 
+    @requires_optional('tiled')
     def __init__(
-        self,
-        corr_mode=None,
-        user_corr_fun=None,
-        dark_subtract=True,
-        dark_pedestal=0,
-        exposure_offset=0,
-        catalog=None,
-        catalog_kwargs={},
-        use_precise_positions=False,
-        use_chunked_loading=False,
-        suppress_time_dimension=True,
-    ):
+            self,
+            corr_mode=None,
+            user_corr_fun=None,
+            dark_subtract=True,
+            dark_pedestal=0,
+            exposure_offset=0,
+            catalog=None,
+            catalog_kwargs={},
+            use_precise_positions=False,
+            use_chunked_loading=False,
+            suppress_time_dimension=True,
+        ):
         """
         Args:
             corr_mode (str): origin to use for the intensity correction.  Can be 'expt','i0','expt+i0','user_func','old',or 'none'
@@ -80,7 +83,6 @@ class SST1RSoXSDB:
             use_chunked_loading (bool): if True, returns Dask backed arrays for further Dask processing.  if false, behaves in conventional Numpy-backed way
             suppress_time_dimension (bool): if True, time is never a dimension that you want in your data and will be dropped (default).  if False, time will be a dimension in almost every scan.
         """
-
         if corr_mode == None:
             warnings.warn(
                 "Correction mode was not set, not performing *any* intensity corrections.  Are you"
@@ -118,21 +120,7 @@ class SST1RSoXSDB:
         self.use_precise_positions = use_precise_positions
         self.suppress_time_dimension = suppress_time_dimension
 
-    # def loadFileSeries(self,basepath):
-    #     try:
-    #         flist = list(basepath.glob('*primary*.tiff'))
-    #     except AttributeError:
-    #         basepath = pathlib.Path(basepath)
-    #         flist = list(basepath.glob('*primary*.tiff'))
-    #     print(f'Found {str(len(flist))} files.')
-    #
-    #     out = xr.DataArray()
-    #     for file in flist:
-    #         single_img = self.loadSingleImage(file)
-    #         out = xr.concat(out,single_img)
-    #
-    #     return out
-
+    @requires_optional('tiled')
     def runSearch(self, **kwargs):
         """
         Search the catalog using given commands.
@@ -162,6 +150,7 @@ class SST1RSoXSDB:
         )
         return self.searchCatalog(*args, **kwargs)
 
+    @requires_optional('tiled')
     def searchCatalog(
         self,
         outputType: str = "default",
@@ -195,7 +184,7 @@ class SST1RSoXSDB:
 
         Ex3: Complex Search with custom parameters
             bsCatalogReduced3 = db_loader.searchCatalog(['angle', '-1.6', 'numeric'], outputType='all',sample="BBP_", cycle = "2022-2",
-            institution="NIST",plan="carbon", userOutputs = [["Exposure Multiplier", "exptime", r'catalog.start'], ["Stop
+            institution="NIST",plan="carbon", userOutputs = [["Exposure Multiplier","exptime", r'catalog.start'], ["Stop
             Time","time",r'catalog.stop']])
 
         Args:
@@ -489,6 +478,7 @@ class SST1RSoXSDB:
             npts.append(0)
         start_times.append(doc["time"])
 
+    @requires_optional('tiled')
     def loadSeries(
         self,
         run_list,
@@ -550,6 +540,7 @@ class SST1RSoXSDB:
             .stack(system=new_system)
         )
 
+    @requires_optional('tiled')
     def loadRun(
         self,
         run,
@@ -819,6 +810,7 @@ class SST1RSoXSDB:
     def peekAtMd(self, run):
         return self.loadMd(run)
 
+    @requires_optional('tiled')
     def loadMonitors(
         self,
         entry,
@@ -831,8 +823,7 @@ class SST1RSoXSDB:
         Creates a dataset containing all monitor streams (e.g., Mesh Current, Shutter Timing, etc.) as data variables mapped
         against time. Optionally, all streams can be indexed against the primary measurement time for the images using
         integrate_onto_images. Whether or not time integration attempts to account for shutter opening/closing is controlled
-        by useShutterThinning. Warning: for exposure times < 0.5 seconds at SST (as of 9 Feb 2023), useShutterThinning=True
-        may excessively cull data points.
+        by useShutterThinning. Warning: for exposure times ~ < 0.5 s, useShutterThinning=True may excessively cull data points.
 
         Parameters
         ----------

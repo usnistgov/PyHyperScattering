@@ -1,13 +1,25 @@
-from pyFAI import azimuthalIntegrator
 from PyHyperScattering.PFGeneralIntegrator import PFGeneralIntegrator
-import h5py
 import warnings
 import xarray as xr
 import numpy as np
 import math
 import pandas as pd
 from tqdm.auto import tqdm
-#tqdm.pandas()
+from .optional_dependencies import requires_optional, check_optional_dependency, warn_if_missing
+
+# Check for optional dependencies
+HAS_PYFAI = check_optional_dependency('pyFAI')
+HAS_H5PY = check_optional_dependency('h5py')
+
+if HAS_PYFAI:
+    from pyFAI import azimuthalIntegrator
+else:
+    warn_if_missing('pyFAI')
+
+if HAS_H5PY:
+    import h5py
+else:
+    warn_if_missing('h5py')
 
 # the following block monkey-patches xarray to add tqdm support.  This will not be needed once tqdm v5 releases.
 from xarray.core.groupby import DataArrayGroupBy,DatasetGroupBy

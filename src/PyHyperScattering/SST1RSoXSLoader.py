@@ -1,4 +1,3 @@
-from PIL import Image
 from PyHyperScattering.FileLoader import FileLoader
 import os
 import pathlib
@@ -7,26 +6,38 @@ import pandas as pd
 import datetime
 import warnings
 import json
-#from pyFAI import azimuthalIntegrator
 import numpy as np
-try:
-    import dask.array as da
-except ImportError:
-    print('Could not import Dask.  Chunked loading may not work.  Install Dask or pyhyperscattering[performance] if this is desired.')
+from .optional_dependencies import requires_optional, check_optional_dependency, warn_if_missing
 
+# Check for optional dependencies
+HAS_PIL = check_optional_dependency('PIL')
+HAS_DASK = check_optional_dependency('dask')
+
+if HAS_PIL:
+    from PIL import Image
+else:
+    warn_if_missing('PIL')
+
+if HAS_DASK:
+    import dask.array as da
+else:
+    warn_if_missing('dask')
 
 
 class SST1RSoXSLoader(FileLoader):
     '''
     Loader for TIFF files from NSLS-II SST1 RSoXS instrument
 
+    Note: This loader has optional dependencies:
+    - 'PIL': Required for reading TIFF files
+    - 'dask': Required for chunked data loading
     '''
     file_ext = '(.*?)primary(.*?).tiff'
     md_loading_is_quick = True
     pix_size_1 = 0.06
     pix_size_2 = 0.06
 
-    def __init__(self,corr_mode=None,user_corr_func=None,dark_pedestal=100,exposure_offset=0,constant_md={},use_chunked_loading=False):
+    def __init__(self, corr_mode=None, user_corr_func=None, dark_pedestal=100, exposure_offset=0, constant_md={}, use_chunked_loading=False):
         '''
         Args:
             corr_mode (str): origin to use for the intensity correction.  Can be 'expt','i0','expt+i0','user_func','old',or 'none'
@@ -34,7 +45,14 @@ class SST1RSoXSLoader(FileLoader):
             dark_pedestal (numeric): value to subtract(/add, if negative) to the whole image.  this should match the instrument setting for suitcased tiffs, typically 100.
             exposure_offset (numeric): value to add to the exposure time.  Measured at 2ms with the piezo shutter in Dec 2019 by Jacob Thelen, NIST
             constant_md (dict): values to insert into every metadata load. 
+            use_chunked_loading (bool): whether to use dask for chunked loading
         '''
+        if not HAS_PIL:
+            raise ImportError("The 'PIL' package is required for this loader to function. Please install it first.")
+
+        if use_chunked_loading and not HAS_DASK:
+            warnings.warn("Dask is not installed. Chunked loading will be disabled.", UserWarning)
+            use_chunked_loading = False
 
         if corr_mode == None:
             warnings.warn("Correction mode was not set, not performing *any* intensity corrections.  Are you sure this is "+
@@ -43,32 +61,14 @@ class SST1RSoXSLoader(FileLoader):
         else:
             self.corr_mode = corr_mode
 
-
         self.constant_md = constant_md
-
         self.dark_pedestal = dark_pedestal
         self.user_corr_func = user_corr_func
         self.exposure_offset = exposure_offset
         self.use_chunked_loading = use_chunked_loading
-        # self.darks = {}
-    # def loadFileSeries(self,basepath):
-    #     try:
-    #         flist = list(basepath.glob('*primary*.tiff'))
-    #     except AttributeError:
-    #         basepath = pathlib.Path(basepath)
-    #         flist = list(basepath.glob('*primary*.tiff'))
-    #     print(f'Found {str(len(flist))} files.')
-    #
-    #     out = xr.DataArray()
-    #     for file in flist:
-    #         single_img = self.loadSingleImage(file)
-    #         out = xr.concat(out,single_img)
-    #
-    #     return out
 
-
-
-    def loadSingleImage(self,filepath,coords=None, return_q=False,image_slice=None,use_cached_md=False,**kwargs):
+    @requires_optional('PIL')
+    def loadSingleImage(self, filepath, coords=None, return_q=False, image_slice=None, use_cached_md=False, **kwargs):
         '''
         HELPER FUNCTION that loads a single image and returns an xarray with either pix_x / pix_y dimensions (if return_q == False) or qx / qy (if return_q == True)
 

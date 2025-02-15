@@ -6,27 +6,27 @@ import numpy as np
 import warnings
 import re
 import PyHyperScattering
+from .optional_dependencies import requires_optional, check_optional_dependency, warn_if_missing
 
-try:
+# Check for optional dependencies
+HAS_ASTROPY = check_optional_dependency('astropy')
+if HAS_ASTROPY:
     from astropy.io import fits
-except ImportError:
-    warnings.warn('Could not import astropy.io.fits, needed for ALS 11.0.1.2 RSoXS loading.  Is this dependency installed?',stacklevel=2)
+else:
+    warn_if_missing('astropy')
 
 
 class ALS11012RSoXSLoader(FileLoader):
     '''
     Loader for FITS files from the ALS 11.0.1.2 RSoXS instrument
 
-
-    Additional requirement: astropy, for FITS file loader
-
+    Note: This loader requires the 'astropy' package for reading FITS files.
+    If not installed, the loader will not be functional.
 
     Usage is mainly via the inherited function integrateImageStack from FileLoader
-
     '''
     file_ext = '(.*?).fits'
     md_loading_is_quick = True
-    
     
     def __init__(self,corr_mode=None,user_corr_func=None,dark_pedestal=0,exposure_offset=0.002,dark_subtract=False,data_collected_after_mar2021=False,constant_md={}):
         '''
@@ -38,6 +38,9 @@ class ALS11012RSoXSLoader(FileLoader):
             data_collected_after_mar2021 (boolean, default False): if True, uses 'CCD Camera Shutter Inhibit' as the dark-indicator; if False, uses 'CCD Shutter Inhibit'
             constant_md (dict): values to insert into every metadata load.  Example: beamcenter_x, beamcenter_y, sdd to enable qx/qy loading.
         '''
+        if not HAS_ASTROPY:
+            raise ImportError("The 'astropy' package is required for this loader to function. Please install it first.")
+
         if corr_mode == None:
             warnings.warn("Correction mode was not set, not performing *any* intensity corrections.  Are you sure this is "+ 
                           "right? Set corr_mode to 'none' to suppress this warning.",stacklevel=2)
@@ -51,18 +54,21 @@ class ALS11012RSoXSLoader(FileLoader):
                 data_collected_after_mar2021 = False
             else:
                 data_collected_after_mar2021 = True
-                
+
         if data_collected_after_mar2021:
             self.shutter_inhibit = 'CCD Camera Shutter Inhibit'
         else:
             self.shutter_inhibit = 'CCD Shutter Inhibit'
         self.dark_pedestal = dark_pedestal
         self.user_corr_func = user_corr_func
+        self.dark_pedestal = dark_pedestal
         self.exposure_offset = exposure_offset
-        self.darks = {}
-        self.constant_md = constant_md
         self.dark_subtract = dark_subtract
+        self.data_collected_after_mar2021 = data_collected_after_mar2021
+        self.constant_md = constant_md
+        self.darks = {}
     
+    @requires_optional('astropy')
     def loadDarks(self,basepath,dark_base_name):
         '''
         Load a series of dark images as a function of exposure time, to be subtracted from subsequently-loaded data.
@@ -81,6 +87,7 @@ class ALS11012RSoXSLoader(FileLoader):
                 self.darks[exptime] = darkimage[2].data
 
                 
+    @requires_optional('astropy')
     def loadSampleSpecificDarks(self,basepath,file_filter='',file_skip='donotskip',md_filter={}):
         '''
         load darks matching a specific sample metadata
@@ -118,6 +125,8 @@ class ALS11012RSoXSLoader(FileLoader):
                     print(f'Loading dark for {md["EXPOSURE"]} from {file}')
                     exptime = md['EXPOSURE']
                     self.darks[exptime] = img
+
+    @requires_optional('astropy')
     def loadSingleImage(self,filepath,coords=None,return_q=False,**kwargs):
         '''
         THIS IS A HELPER FUNCTION, mostly - should not be called directly unless you know what you are doing
@@ -177,6 +186,7 @@ class ALS11012RSoXSLoader(FileLoader):
             return xr.DataArray(img,dims=['qy','qx'],coords={'qy':qy,'qx':qx},attrs=headerdict)
         return xr.DataArray(img,dims=['pix_x','pix_y'],attrs=headerdict)
         
+    @requires_optional('astropy')
     def peekAtMd(self,file):
         '''
         load the header/metadata without opening the corresponding image
@@ -211,4 +221,3 @@ class ALS11012RSoXSLoader(FileLoader):
         headerdict['det_th'] = round(headerdict['CCD Theta'],2)
         headerdict.update(self.constant_md)
         return headerdict
-        

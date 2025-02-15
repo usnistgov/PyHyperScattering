@@ -3,9 +3,18 @@ import xarray as xr
 import numpy as np
 import math
 import pathlib
-import h5py
-import pathlib
-'''
+from .optional_dependencies import requires_optional, check_optional_dependency, warn_if_missing
+
+# Check for optional dependencies
+HAS_H5PY = check_optional_dependency('h5py')
+
+if HAS_H5PY:
+    import h5py
+else:
+    warn_if_missing('h5py')
+
+
+@requires_optional('h5py')
 def save(xr,fileName):
     
     # figure out if xr is a raw or integrated array
@@ -218,6 +227,3 @@ def save(xr,fileName):
 def load(path):
     if type(path) is str:
         raise NotImplementedError
-
-'''
-            

@@ -2,17 +2,21 @@ from PyHyperScattering.FileLoader import FileLoader
 from scipy.interpolate import RectBivariateSpline
 import os
 import xarray as xr
-import pandas as pd
 import numpy as np
-import warnings
-import os
-import datetime
 import fabio
+import pandas as pd
+import warnings
+import time
+import h5py
+from PyHyperScattering.optional_dependencies import requires_optional, check_optional_dependency
+
+# Import optional dependencies
 try:
     import dask.array as da
     import dask
 except ImportError:
-    warnings.warn('Failed to import Dask, if Dask reduction desired install pyhyperscattering[performance]',stacklevel=2)
+    da = None
+    dask = None
 
 class SMIRSoXSLoader(FileLoader):
     '''
@@ -27,7 +31,13 @@ class SMIRSoXSLoader(FileLoader):
             profile_time (bool, default True): print time/profiling data to console
         '''
         self.profile_time = profile_time
-        
+        self.use_chunked_loading = use_chunked_loading
+
+    @requires_optional('dask')
+    def _load_with_dask(self, data):
+        """Load data using dask for chunked processing"""
+        return da.from_array(data)
+
     def list_files(self,file_path,include_str):
         files = []
         new_files = []
@@ -102,7 +112,7 @@ class SMIRSoXSLoader(FileLoader):
             remove_strs (list of strings): list of substrings to be removed from file name which is then pushed to sample_name and sampleid attributes returned.
         '''
         if self.profile_time:
-            start = datetime.datetime.now()
+            start = time.time()
             
         config = {}
 
@@ -160,8 +170,13 @@ class SMIRSoXSLoader(FileLoader):
             interpolator = RectBivariateSpline(Qx, Qy, image)
             img = interpolator(qx_new, qy_new)
 
+            if self.use_chunked_loading:
+                img = self._load_with_dask(img)
             outlist.append(img)
-        data = da.stack(outlist,axis=2)
+        if self.use_chunked_loading:
+            data = da.stack(outlist,axis=2)
+        else:
+            data = np.stack(outlist,axis=2)
 
         config['sample_name'] = files[0][:-len(remove_tail)]
         for remove_str in remove_strs:
@@ -181,6 +196,6 @@ class SMIRSoXSLoader(FileLoader):
             config['rsoxs_config'] = 'saxs'
         
         if self.profile_time: 
-             print(f'Finished reading ' + str(num_energies) + ' energies. Time required: ' + str(datetime.datetime.now()-start))
+             print(f'Finished reading ' + str(num_energies) + ' energies. Time required: ' + str(time.time()-start))
 
         return xr.DataArray(data, dims=("qx", "qy", "energy"), coords={"qy":max_range_Qy, "qx":max_range_Qx, "energy":elist},attrs=config).rename(config['sample_name'])

@@ -3,23 +3,36 @@ import xarray as xr
 import numpy as np
 import pickle
 import math
-import h5py
 import pathlib
 import datetime
 import six
 import PyHyperScattering
 import pandas
 import json
-
 from collections import defaultdict
 from . import _version
-phs_version = _version.get_versions()['version']
+from .optional_dependencies import requires_optional, check_optional_dependency, warn_if_missing
 
+# Check for optional dependencies
+HAS_H5PY = check_optional_dependency('h5py')
+
+if HAS_H5PY:
+    import h5py
+else:
+    warn_if_missing('h5py')
+
+phs_version = _version.get_versions()['version']
 
 
 @xr.register_dataset_accessor('fileio')
 @xr.register_dataarray_accessor('fileio')
 class FileIO:
+    """
+    File I/O accessor for xarray DataArrays and Datasets.
+
+    Note: Some methods in this class require optional dependencies:
+    - 'h5py': Required for HDF5/NEXUS file operations
+    """
     def __init__(self,xr_obj):
         self._obj=xr_obj
         
@@ -32,27 +45,22 @@ class FileIO:
             self._pyhyper_type = 'raw'
         
     def savePickle(self,filename):
+        """Save the DataArray/Dataset as a pickle file."""
         with open(filename, 'wb') as file:
             pickle.dump(self._obj, file)
      
+    def saveZarr(self, filename, mode: str = 'w'):
+        """
+        Save the DataArray as a .zarr file.
 
-    # - This was copied from the Toney group contribution for GIWAXS.
-    def saveZarr(self,  filename, mode: str = 'w'):
-         """
-         Save the DataArray as a .zarr file in a specific path, with a file name constructed from a prefix and suffix.
+        Parameters:
+            filename (Union[str, pathlib.Path]): Path to save the .zarr file
+            mode (str): The mode to use when saving the file. Default is 'w'
+        """
+        da = self._obj
+        da.to_zarr(filename, mode=mode)
 
-         Parameters:
-             da (xr.DataArray): The DataArray to be saved.
-             base_path (Union[str, pathlib.Path]): The base path to save the .zarr file.
-             prefix (str): The prefix to use for the file name.
-             suffix (str): The suffix to use for the file name.
-             mode (str): The mode to use when saving the file. Default is 'w'.
-         """
-         da = self._obj
-         ds = da.to_dataset(name='DA')
-         file_path = pathlib.Path(filename)
-         ds.to_zarr(file_path, mode=mode)
-       
+    @requires_optional('h5py')
     def saveNexus(self,fileName,compression=5):
         data = self._obj
         timestamp = datetime.datetime.now()
@@ -266,7 +274,7 @@ def _unserialize_attrs(hdf,attrdict):
                                                        encoding.replace('strftime-',''))
             else:
                 warnings.warn(f'Unknown phs_encoding {encoding} while loading {entry}.  Possible version mismatch.  Loading as string.',stacklevel=2)
-                attrdict[entry] = hdf[entry][()]
+                attrdict[entry] = hdf[entry][()]        
         except KeyError:
             attrdict[entry] = hdf[entry][()]        
     return attrdict

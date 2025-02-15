@@ -3,25 +3,27 @@ import xarray as xr
 import numpy as np
 import math
 from tqdm.auto import tqdm
+import pandas as pd
+import json
+from PyHyperScattering.optional_dependencies import requires_optional, check_optional_dependency
 
+# Import optional dependencies
 try:
     import matplotlib.pyplot as plt
     from matplotlib.colors import LogNorm,Normalize
     import holoviews as hv
     import hvplot.xarray
     import skimage.draw
-    
-except (ModuleNotFoundError,ImportError):
-    warnings.warn('Could not import a dependency for interactive integration utils.  Install pyhyperscattering[ui] or pyhyperscattering[all].',stacklevel=2)
-import pandas as pd
-
-import json
+except ImportError:
+    plt = None
+    hv = None
 
 class Check:
     '''
     Quick Utility to display a mask next to an image, to sanity check the orientation of e.g. an imported mask
     
     '''
+    @requires_optional('matplotlib')
     def checkMask(integrator,img,img_min=1,img_max=10000,img_scaling='log',alpha=1):
         '''
             draw an overlay of the mask and an image
@@ -44,6 +46,7 @@ class Check:
         img.plot(norm=norm,ax=ax)
         ax.set_aspect(1)
         ax.imshow(integrator.mask,origin='lower',alpha=alpha)
+    @requires_optional('matplotlib')
     def checkCenter(integrator,img,img_min=1,img_max=10000,img_scaling='log'):
         '''
             draw the beamcenter on an image
@@ -71,6 +74,7 @@ class Check:
         ax.add_patch(beamcenter)
         ax.add_patch(guide1)
         ax.add_patch(guide2)
+    @requires_optional('matplotlib')
     def checkAll(integrator,img,img_min=1,img_max=10000,img_scaling='log',alpha=1,d_inner=50,d_outer=150):
         '''
             draw the beamcenter and overlay mask on an image
@@ -137,6 +141,7 @@ class DrawMask:
         self.poly = hv.Polygons([])
         self.path_annotator = hv.annotate.instance()
 
+    @requires_optional('holoviews')
     def ui(self):
         '''
         Draw the DrawMask UI in a Jupyter notebook.

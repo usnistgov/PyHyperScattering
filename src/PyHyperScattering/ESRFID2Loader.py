@@ -1,4 +1,3 @@
-from PIL import Image
 from PyHyperScattering.FileLoader import FileLoader
 import os
 import pathlib
@@ -7,17 +6,33 @@ import pandas as pd
 import datetime
 import warnings
 import json
-#from pyFAI import azimuthalIntegrator
 import numpy as np
-import h5py
 import copy
-
 import re
+from .optional_dependencies import requires_optional, check_optional_dependency, warn_if_missing
+
+# Check for optional dependencies
+HAS_PIL = check_optional_dependency('PIL')
+HAS_H5PY = check_optional_dependency('h5py')
+
+if HAS_PIL:
+    from PIL import Image
+else:
+    warn_if_missing('PIL')
+
+if HAS_H5PY:
+    import h5py
+else:
+    warn_if_missing('h5py')
+
 
 class ESRFID2Loader(FileLoader):
     '''
     Loader for NEXUS files from the ID2 beamline at the ESRF 
 
+    Note: This loader requires the following optional packages:
+    - 'h5py': Required for reading HDF5/NEXUS files
+    - 'PIL': Required for image processing
     '''
     file_ext = '(.*)eiger2(.*).h5'
     md_loading_is_quick = True
@@ -28,8 +43,10 @@ class ESRFID2Loader(FileLoader):
                 md_parse_dict (dict): keys should be names of underscore separated paramters in title. values should be regex to parse values
                 pedestal_value: value to add to image in order to deal with zero_counts
                 masked_pixel_fill: If None, pixels with value -10 will be converted to NaN. Otherwise, will be converted to this value
-
         '''
+        if not HAS_H5PY:
+            raise ImportError("The 'h5py' package is required for this loader to function. Please install it first.")
+
         if md_parse_dict is None:
             self.md_regex = None
             self.md_keys=None
@@ -44,11 +61,12 @@ class ESRFID2Loader(FileLoader):
         self.pedestal_value=pedestal_value
         self.masked_pixel_fill = masked_pixel_fill
         self.cached_md = None
-        
 
+    @requires_optional('h5py')
     def loadMd(self,filepath,split_on='_',keys=None):
         return self.peekAtMd(filepath,split_on='_')
 
+    @requires_optional('h5py')
     def peekAtMd(self,filepath,split_on='_',keys=None):
         ## Open h5 file and grab attributes
         with h5py.File(str(filepath),'r') as h5:
@@ -105,6 +123,7 @@ class ESRFID2Loader(FileLoader):
         return params
             
         
+    @requires_optional('h5py')
     def loadSingleImage(self,filepath,coords=None,return_q=True,image_slice=None,use_cached_md=False,**kwargs):
         '''
         HELPER FUNCTION that loads a single image and returns an xarray with either pix_x / pix_y dimensions (if return_q == False) or qx / qy (if return_q == True)
@@ -171,4 +190,3 @@ class ESRFID2Loader(FileLoader):
         img += self.pedestal_value
 
         return img
-                                         

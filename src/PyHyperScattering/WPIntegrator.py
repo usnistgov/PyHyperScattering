@@ -1,49 +1,46 @@
-MACHINE_HAS_CUDA = True
 from PyHyperScattering.FileLoader import FileLoader
 import os
 import xarray as xr
-import pandas as pd
 import numpy as np
+import pandas as pd
 import warnings
-import re
-import os
-import datetime
 import time
 import h5py
 import skimage
+from PyHyperScattering.optional_dependencies import requires_optional, check_optional_dependency
+
+# Import optional dependencies - these will be None if not available
 try:
     import cupy as cp
     import cupyx.scipy.ndimage as ndigpu
 except ImportError:
-    MACHINE_HAS_CUDA=False
-    warnings.warn('Could not import CuPy or ndigpu.  If you expect this machine to support CuPy, check dependencies.  Falling back to scikit-image/numpy CPU integration.',stacklevel=2)
+    cp = None
+    ndigpu = None
+
 try:
     import dask.array as da
     import dask
 except ImportError:
-    warnings.warn('Failed to import Dask, if Dask reduction is desired install pyhyperscattering[performance]',stacklevel=2)
-
+    da = None
+    dask = None
 
 class WPIntegrator():
     '''
     Integrator for qx/qy format xarrays using skimage.transform.warp_polar or a custom cuda-accelerated version, warp_polar_gpu
     '''
     
-    def __init__(self,return_cupy=False,force_np_backend=False,use_chunked_processing=False):
+    def __init__(self, return_cupy=False, force_np_backend=False, use_chunked_processing=False):
         '''
         Args:
             return_cupy (bool, default False): return arrays as cupy rather than numpy, for further GPU processing
             force_np_backend (bool, default False): if true, use numpy backend regardless of whether CuPy is available. 
         '''
-        if MACHINE_HAS_CUDA and not force_np_backend:
-            self.MACHINE_HAS_CUDA = True
-        else:
-            self.MACHINE_HAS_CUDA = False
-            
+        self.MACHINE_HAS_CUDA = check_optional_dependency('cupy') and not force_np_backend
         self.return_cupy = return_cupy
-        self.use_chunked_processing=use_chunked_processing
-    
-    def warp_polar_gpu(self,image, center=None, radius=None, output_shape=None, **kwargs):
+        self.use_chunked_processing = use_chunked_processing
+
+    @requires_optional('cupy')
+    def warp_polar_gpu(self, image, center=None, radius=None, output_shape=None, **kwargs):
         """
         Function to emulate warp_polar in skimage.transform on the GPU. Not all
         parameters are supported
@@ -63,7 +60,6 @@ class WPIntegrator():
         Returns
         -------
         polar: numpy.ndarray or cupy.ndarray depending on value of return_cupy
-            polar image
         """
         image = cp.asarray(image)
         if radius is None:
@@ -175,6 +171,7 @@ class WPIntegrator():
         return data_int
     
     
+    @requires_optional('dask')
     def integrateImageStack_dask(self,data,chunksize=5):
         #int_stack = img_stack.groupby('system').map(self.integrateSingleImage)   
         #return int_stack
@@ -225,4 +222,3 @@ class WPIntegrator():
         template = template.chunk({indexes[0]:chunksize})
         integ_fly = data.map_blocks(self.integrateImageStack_legacy,template=template)#integ_traditional.chunk({'energy':5}))
         return integ_fly 
-            
