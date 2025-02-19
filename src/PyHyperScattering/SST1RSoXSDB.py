@@ -53,6 +53,8 @@ class SST1RSoXSDB:
     }
     md_secondary_lookup = {
         "energy": "en_monoen_setpoint",
+        "sam_x": "manipulator_x",
+        "sam_y": "manipulator_y",
     }
 
     def __init__(
