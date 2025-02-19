@@ -762,7 +762,8 @@ class SST1RSoXSDB:
         # handle the edge case of a partly-finished scan
         if len(index) != len(data["time"]):
             index = index[: len(data["time"])]
-        actual_exposure = md["exposure"] * len(data.dim_0)
+        ## This is a short-term deletion for troubleshooting purposes
+        #actual_exposure = md["exposure"] * len(data.dim_0)
         mindex_coords = xr.Coordinates.from_pandas_multiindex(index, 'system')
         retxr = (
             data.sum("dim_0")
