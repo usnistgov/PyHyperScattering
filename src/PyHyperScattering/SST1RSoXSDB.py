@@ -42,6 +42,7 @@ class SST1RSoXSDB:
     pix_size_1 = 0.06
     pix_size_2 = 0.06
 
+    """
     md_lookup = {
         "sam_x": "RSoXS Sample Outboard-Inboard",
         "sam_y": "RSoXS Sample Up-Down",
@@ -51,6 +52,17 @@ class SST1RSoXSDB:
         "energy": "en_energy_setpoint",
         "exposure": "RSoXS Shutter Opening Time (ms)",  # md['detector']+'_cam_acquire_time'
     }
+    """
+    md_lookup = {
+        "sam_x": "manipulator_x",
+        "sam_y": "manipulator_y",
+        "sam_z": "manipulator_z",
+        "sam_th": "manipulator_r",
+        "polarization": "en_polarization_setpoint",
+        "energy": "en_energy_setpoint",
+        "exposure": "RSoXS Shutter Opening Time (ms)",  # md['detector']+'_cam_acquire_time'
+    }
+    
     md_secondary_lookup = {
         "energy": "en_monoen_setpoint",
         "sam_x": "manipulator_x",
