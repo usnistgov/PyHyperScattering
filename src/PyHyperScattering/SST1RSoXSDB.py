@@ -603,7 +603,7 @@ class SST1RSoXSDB:
             )
 
         md = self.loadMd(run)
-        md["exposure"] = exposure_manual ## TODO: short-term troubleshooting
+        md["exposure"] = exposure_manual ## TODO: short-term troubleshooting.  This is exposure time
 
         monitors = self.loadMonitors(run)
 
@@ -764,7 +764,6 @@ class SST1RSoXSDB:
         # handle the edge case of a partly-finished scan
         if len(index) != len(data["time"]):
             index = index[: len(data["time"])]
-        ## This is a short-term deletion for troubleshooting purposes
         actual_exposure = md["exposure"] * len(data.dim_0)
         mindex_coords = xr.Coordinates.from_pandas_multiindex(index, 'system')
         retxr = (
