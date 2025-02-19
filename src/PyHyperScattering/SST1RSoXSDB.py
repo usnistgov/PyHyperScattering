@@ -53,6 +53,7 @@ class SST1RSoXSDB:
         "exposure": "RSoXS Shutter Opening Time (ms)",  # md['detector']+'_cam_acquire_time'
     }
     """
+    ## TODO: This is a temporary fix.  Need to understand better how this is being used to see if there is a more organized try/except script I can use to handle the different metadata key names over time.
     md_lookup = {
         "sam_x": "manipulator_x",
         "sam_y": "manipulator_y",
