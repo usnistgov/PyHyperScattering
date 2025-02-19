@@ -572,6 +572,7 @@ class SST1RSoXSDB:
         coords={},
         return_dataset=False,
         useMonitorShutterThinning=True,
+        exposure_manual = 1, ## TODO:  Short-term addition for troubleshooting
     ):
         """
         Loads a run entry from a catalog result into a raw xarray.
@@ -602,6 +603,7 @@ class SST1RSoXSDB:
             )
 
         md = self.loadMd(run)
+        md["exposure"] = exposure_manual ## TODO: short-term troubleshooting
 
         monitors = self.loadMonitors(run)
 
@@ -763,7 +765,7 @@ class SST1RSoXSDB:
         if len(index) != len(data["time"]):
             index = index[: len(data["time"])]
         ## This is a short-term deletion for troubleshooting purposes
-        #actual_exposure = md["exposure"] * len(data.dim_0)
+        actual_exposure = md["exposure"] * len(data.dim_0)
         mindex_coords = xr.Coordinates.from_pandas_multiindex(index, 'system')
         retxr = (
             data.sum("dim_0")
