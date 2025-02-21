@@ -572,7 +572,7 @@ class SST1RSoXSDB:
         coords={},
         return_dataset=False,
         useMonitorShutterThinning=True,
-        exposure_manual = 1, ## TODO:  Short-term addition for troubleshooting
+        mdManual = {}, ## In case certain metadata were not written out during a scan
     ):
         """
         Loads a run entry from a catalog result into a raw xarray.
@@ -603,7 +603,11 @@ class SST1RSoXSDB:
             )
 
         md = self.loadMd(run)
-        md["exposure"] = exposure_manual ## TODO: short-term troubleshooting.  This is exposure time
+        ## TODO: This is possibly duplicating something that already exists, but it is a temporary fix for now
+        for mdKey in md:
+            if md[mdKey] is None:
+                try: md[mdKey] = mdManual[mdKey]
+                except KeyError: pass
 
         monitors = self.loadMonitors(run)
 
