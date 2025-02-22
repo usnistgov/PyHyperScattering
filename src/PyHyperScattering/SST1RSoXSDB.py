@@ -62,6 +62,7 @@ class SST1RSoXSDB:
         "polarization": "en_polarization_setpoint",
         "energy": "en_energy_setpoint",
         "exposure": "RSoXS Shutter Opening Time (ms)",  # md['detector']+'_cam_acquire_time'
+        "image_time": "time" ## Modification so that each image has a distinct time
     }
     
     md_secondary_lookup = {
@@ -1152,7 +1153,8 @@ class SST1RSoXSDB:
             warnings.warn(
                 "'Wide Angle CCD Detector_saturated' not found in stream."
             )
-        md["epoch"] = md["meas_time"].timestamp()
+       ## Modification so that each image has a distinct time
+       md["epoch"] = md["image_time"].timestamp()  #md["epoch"] = md["meas_time"].timestamp()
 
         try:
             md["wavelength"] = 1.239842e-6 / md["energy"]
