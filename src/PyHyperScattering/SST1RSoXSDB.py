@@ -1113,7 +1113,7 @@ class SST1RSoXSDB:
                             )
                             md[phs] = None
         ## Modification so that each image has a distinct time
-        md["epoch"] = md["image_time"].timestamp() 
+        md["epoch"] = md["image_time"]
         #md["epoch"] = md["meas_time"].timestamp()
 
         # looking at exposure tests in the stream and issuing warnings
@@ -1155,9 +1155,6 @@ class SST1RSoXSDB:
             warnings.warn(
                 "'Wide Angle CCD Detector_saturated' not found in stream."
             )
-        ## Modification so that each image has a distinct time
-        md["epoch"] = md["image_time"].timestamp()
-        #md["epoch"] = md["meas_time"].timestamp()
 
         try:
             md["wavelength"] = 1.239842e-6 / md["energy"]
