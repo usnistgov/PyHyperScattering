@@ -1071,7 +1071,7 @@ class SST1RSoXSDB:
                         ):
                             baselineValue = baselineValue.read() ## For tiled_client.array data types, need to use .read() to get the values
                         md[keyName_PHS] = baselineValue.mean()
-                        if baselineValue.var() > 0:
+                        if baselineValue.var() > 0: ## Might need to increase tolerance, so that it does not throw unnecessary warnings for small variations
                             warnings.warn(
                                 (
                                     f"While loading {keyName_Beamline} to infill metadata entry for {keyName_PHS}, found beginning and end values unequal: {baselineValue}.  It is possible something is messed up."
