@@ -742,18 +742,13 @@ If the data is becoming too sparse, try fewer iterations</p></li>
 </dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="PyHyperScattering.load.SST1RSoXSDB.mdLookup">
+<span class="sig-name descname"><span class="pre">mdLookup</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'energy':</span> <span class="pre">['en_energy_setpoint'],</span> <span class="pre">'exposure':</span> <span class="pre">['RSoXS</span> <span class="pre">Shutter</span> <span class="pre">Opening</span> <span class="pre">Time</span> <span class="pre">(ms)'],</span> <span class="pre">'polarization':</span> <span class="pre">['en_polarization_setpoint'],</span> <span class="pre">'sam_th':</span> <span class="pre">['manipulator_r',</span> <span class="pre">'RSoXS</span> <span class="pre">Sample</span> <span class="pre">Rotation'],</span> <span class="pre">'sam_x':</span> <span class="pre">['manipulator_x',</span> <span class="pre">'RSoXS</span> <span class="pre">Sample</span> <span class="pre">Outboard-Inboard'],</span> <span class="pre">'sam_y':</span> <span class="pre">['manipulator_y',</span> <span class="pre">'RSoXS</span> <span class="pre">Sample</span> <span class="pre">Up-Down'],</span> <span class="pre">'sam_z':</span> <span class="pre">['manipulator_z',</span> <span class="pre">'RSoXS</span> <span class="pre">Sample</span> <span class="pre">Downstream-Upstream'],</span> <span class="pre">'timestamp':</span> <span class="pre">['time']}</span></em><a class="headerlink" href="#PyHyperScattering.load.SST1RSoXSDB.mdLookup" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="PyHyperScattering.load.SST1RSoXSDB.md_loading_is_quick">
 <span class="sig-name descname"><span class="pre">md_loading_is_quick</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#PyHyperScattering.load.SST1RSoXSDB.md_loading_is_quick" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="PyHyperScattering.load.SST1RSoXSDB.md_lookup">
-<span class="sig-name descname"><span class="pre">md_lookup</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'energy':</span> <span class="pre">'en_energy_setpoint',</span> <span class="pre">'exposure':</span> <span class="pre">'RSoXS</span> <span class="pre">Shutter</span> <span class="pre">Opening</span> <span class="pre">Time</span> <span class="pre">(ms)',</span> <span class="pre">'image_time':</span> <span class="pre">'time',</span> <span class="pre">'polarization':</span> <span class="pre">'en_polarization_setpoint',</span> <span class="pre">'sam_th':</span> <span class="pre">'manipulator_r',</span> <span class="pre">'sam_x':</span> <span class="pre">'manipulator_x',</span> <span class="pre">'sam_y':</span> <span class="pre">'manipulator_y',</span> <span class="pre">'sam_z':</span> <span class="pre">'manipulator_z'}</span></em><a class="headerlink" href="#PyHyperScattering.load.SST1RSoXSDB.md_lookup" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="PyHyperScattering.load.SST1RSoXSDB.md_secondary_lookup">
-<span class="sig-name descname"><span class="pre">md_secondary_lookup</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'energy':</span> <span class="pre">'en_monoen_setpoint',</span> <span class="pre">'sam_x':</span> <span class="pre">'manipulator_x',</span> <span class="pre">'sam_y':</span> <span class="pre">'manipulator_y'}</span></em><a class="headerlink" href="#PyHyperScattering.load.SST1RSoXSDB.md_secondary_lookup" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -769,18 +764,7 @@ If the data is becoming too sparse, try fewer iterations</p></li>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="PyHyperScattering.load.SST1RSoXSDB.pix_size_2">
 <span class="sig-name descname"><span class="pre">pix_size_2</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.06</span></em><a class="headerlink" href="#PyHyperScattering.load.SST1RSoXSDB.pix_size_2" title="Permalink to this definition">#</a></dt>
-<dd><dl class="simple">
-<dt>md_lookup = {</dt><dd><p>“sam_x”: “RSoXS Sample Outboard-Inboard”,
-“sam_y”: “RSoXS Sample Up-Down”,
-“sam_z”: “RSoXS Sample Downstream-Upstream”,
-“sam_th”: “RSoXS Sample Rotation”,
-“polarization”: “en_polarization_setpoint”,
-“energy”: “en_energy_setpoint”,
-“exposure”: “RSoXS Shutter Opening Time (ms)”,  # md[‘detector’]+’_cam_acquire_time’</p>
-</dd>
-</dl>
-<p>}</p>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="PyHyperScattering.load.SST1RSoXSDB.runSearch">
@@ -1357,9 +1341,8 @@ for creating an empty mask if necessary</p></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSDB.loadRun"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSDB.loadRun()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSDB.loadSeries"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSDB.loadSeries()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSDB.loadSingleImage"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSDB.loadSingleImage()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSDB.mdLookup"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSDB.mdLookup</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSDB.md_loading_is_quick"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSDB.md_loading_is_quick</span></code></a></li>
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSDB.md_lookup"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSDB.md_lookup</span></code></a></li>
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSDB.md_secondary_lookup"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSDB.md_secondary_lookup</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSDB.peekAtMd"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSDB.peekAtMd()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSDB.pix_size_1"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSDB.pix_size_1</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSDB.pix_size_2"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSDB.pix_size_2</span></code></a></li>
