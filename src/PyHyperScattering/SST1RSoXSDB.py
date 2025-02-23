@@ -62,7 +62,7 @@ class SST1RSoXSDB:
                   ],
         "exposure": ["RSoXS Shutter Opening Time (ms)", 
                     ],
-        "timestamp": ["time",
+        "time": ["time",
                      ],
     }
     
@@ -1044,8 +1044,7 @@ class SST1RSoXSDB:
             primary = run["primary"]["data"]
         except (KeyError, HTTPStatusError):
             raise Exception(
-                "No primary stream --> probably you caught run before image was written.  Try"
-                " again."
+                "No primary stream --> probably you caught run before image was written.  Try again."
             )
 
         mdLookup = copy.deepcopy(self.mdLookup)
@@ -1075,18 +1074,18 @@ class SST1RSoXSDB:
                         if baselineValue.var() > 0:
                             warnings.warn(
                                 (
-                                    f"While loading {keyNames_Beamline} to infill metadata entry for {keyName_PHS}, found beginning and end values unequal: {baseline[keyName_Beamline]}.  It is possible something is messed up."
+                                    f"While loading {keyName_Beamline} to infill metadata entry for {keyName_PHS}, found beginning and end values unequal: {baselineValue}.  It is possible something is messed up."
                                 ),
                                 stacklevel=2,
                             )
                     except (KeyError, HTTPStatusError): md[keyName_PHS] = None
-                if md[keyName_PHS] is None:
-                    warnings.warn(
-                        (
-                            f"Could not find {keyNames_Beamline} in either baseline or primary. Setting {keyName_PHS} to None.  Can be entered manually."
-                        ),
-                        stacklevel=2,
-                    )
+            if md[keyName_PHS] is None:
+                warnings.warn(
+                    (
+                        f"Could not find {keyNames_Beamline} in either baseline or primary. Setting {keyName_PHS} to None.  Can be entered manually."
+                    ),
+                    stacklevel=2,
+                )
                         
         md["epoch"] = md["meas_time"].timestamp() ## Intended to classify all data that belongs to a single scan
 
