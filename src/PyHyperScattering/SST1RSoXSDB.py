@@ -1053,7 +1053,7 @@ class SST1RSoXSDB:
         mdKeyNames_Beamline = []
         for key in mdLookup.keys(): mdKeyNames_Beamline = mdKeyNames_Beamline + mdLookup[key] ## Making single list with all historical keys to check if they are in primary
         for key in primary.keys():
-            if key not in mdKeyNames_Beamline.values():
+            if key not in mdKeyNames_Beamline:
                 if "_image" not in key:
                     mdLookup[key] = [key]
         ## Find metadata from Tiled and store in PyHyperScattering metadata dictionary
