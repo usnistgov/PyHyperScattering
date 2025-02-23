@@ -42,34 +42,30 @@ class SST1RSoXSDB:
     pix_size_1 = 0.06
     pix_size_2 = 0.06
 
-    """
-    md_lookup = {
-        "sam_x": "RSoXS Sample Outboard-Inboard",
-        "sam_y": "RSoXS Sample Up-Down",
-        "sam_z": "RSoXS Sample Downstream-Upstream",
-        "sam_th": "RSoXS Sample Rotation",
-        "polarization": "en_polarization_setpoint",
-        "energy": "en_energy_setpoint",
-        "exposure": "RSoXS Shutter Opening Time (ms)",  # md['detector']+'_cam_acquire_time'
-    }
-    """
-    ## TODO: This is a temporary fix.  Need to understand better how this is being used to see if there is a more organized try/except script I can use to handle the different metadata key names over time.
-    md_lookup = {
-        "sam_x": "manipulator_x",
-        "sam_y": "manipulator_y",
-        "sam_z": "manipulator_z",
-        "sam_th": "manipulator_r",
-        "polarization": "en_polarization_setpoint",
-        "energy": "en_energy_setpoint",
-        "exposure": "RSoXS Shutter Opening Time (ms)",  # md['detector']+'_cam_acquire_time'
-        "image_time": "time" ## Modification so that each image has a distinct time
+    ## List of metadata key names used historically at SST1 RSoXS
+    mdLookup = {
+        "sam_x": ["manipulator_x", ## Started using ~January 2025
+                 "RSoXS Sample Outboard-Inboard",
+                 ],
+        "sam_y": ["manipulator_y", ## Started using ~January 2025
+                  "RSoXS Sample Up-Down",
+                 ],
+        "sam_z": ["manipulator_z", ## Started using ~January 2025
+                  "RSoXS Sample Downstream-Upstream",
+                 ],
+        "sam_th": ["manipulator_r", ## Started using ~January 2025
+                   "RSoXS Sample Rotation",
+                  ],
+        "polarization": ["en_polarization_setpoint",
+                        ],
+        "energy": ["en_energy_setpoint",
+                  ],
+        "exposure": ["RSoXS Shutter Opening Time (ms)", 
+                    ],
+        "timestamp": ["time",
+                     ],
     }
     
-    md_secondary_lookup = {
-        "energy": "en_monoen_setpoint",
-        "sam_x": "manipulator_x",
-        "sam_y": "manipulator_y",
-    }
 
     def __init__(
         self,
@@ -573,7 +569,7 @@ class SST1RSoXSDB:
         coords={},
         return_dataset=False,
         useMonitorShutterThinning=True,
-        mdManual = {}, ## In case certain metadata were not written out during a scan
+        mdManual = {}, ## Manually enter metadata in case it were not written out during a scan or saved to Tiled
     ):
         """
         Loads a run entry from a catalog result into a raw xarray.
@@ -604,7 +600,7 @@ class SST1RSoXSDB:
             )
 
         md = self.loadMd(run)
-        ## TODO: This is possibly duplicating something that already exists, but it is a temporary fix for now
+        ## Add manually added metadata to the md dictionary
         for mdKey in md:
             if md[mdKey] is None:
                 try: md[mdKey] = mdManual[mdKey]
@@ -671,9 +667,10 @@ class SST1RSoXSDB:
 
                 # next, construct the reverse lookup table - best mapping we can make of key to pyhyper word
                 # we start with the lookup table used by loadMd()
-                reverse_lut = {v: k for k, v in self.md_lookup.items()}
-                reverse_lut_secondary = {v: k for k, v in self.md_secondary_lookup.items()}
-                reverse_lut.update(reverse_lut_secondary)
+                reverse_lut = {}
+                for mdKey_PHS in self.mdLookup.keys():
+                    for mdKey_Beamline in self.mdLookup[mdKey_PHS]:
+                        reverse_lut[mdKey_Beamline] = mdKey_PHS
 
                 # here, we broaden the table to make a value that default sources from '_setpoint' actually match on either
                 # the bare value or the readback value.
@@ -1051,70 +1048,47 @@ class SST1RSoXSDB:
                 " again."
             )
 
-        md_lookup = copy.deepcopy(self.md_lookup)
-        md_secondary_lookup = copy.deepcopy(self.md_secondary_lookup)
-
+        mdLookup = copy.deepcopy(self.mdLookup)
+        ## Add additional metadata not included in lookup dictionary
+        mdKeyNames_Beamline = []
+        for key in mdLookup.keys(): mdKeyNames_Beamline = mdKeyNames_Beamline + mdLookup[key] ## Making single list with all historical keys to check if they are in primary
         for key in primary.keys():
-            if key not in md_lookup.values():
+            if key not in mdKeyNames_Beamline.values():
                 if "_image" not in key:
-                    md_lookup[key] = key
-
-        for phs, rsoxs in md_lookup.items():
-            try:
-                md[phs] = primary[rsoxs].read()
-                # print(f'Loading from primary: {phs}, value {primary[rsoxs].values}')
-            except (KeyError, HTTPStatusError):
-                try:
-                    blval = baseline[rsoxs]
-                    if (
-                        type(blval) == tiled.client.array.ArrayClient
-                        or type(blval) == tiled.client.array.DaskArrayClient
-                    ):
-                        blval = blval.read()
-                    md[phs] = blval.mean().round(4)
-                    if blval.var() > 0:
+                    mdLookup[key] = [key]
+        ## Find metadata from Tiled and store in PyHyperScattering metadata dictionary
+        for keyName_PHS, keyNames_Beamline in mdLookup.items()
+            for keyName_Beamline in keyNames_Beamline:
+                if ((copy.deepcopy(md).get(keyName_PHS, "Key does not exist") != "Key does not exist")
+                    and (md[keyName_PHS] is not None)): 
+                    continue ## If the md is already filled in, no need to try other beamline keys
+                try: md[keyName_PHS] = primary[keyName_Beamline].read() ## First try finding metadata in primary stream
+                except (KeyError, HTTPStatusError):
+                    try:
+                        baselineValue = baseline[keyName_Beamline] ## Next, try finding metadata in baseline
+                        if (
+                            type(baselineValue) == tiled.client.array.ArrayClient
+                            or type(baselineValue) == tiled.client.array.DaskArrayClient
+                        ):
+                            baselineValue = baselineValue.read() ## For tiled_client.array data types, need to use .read() to get the values
+                        md[keyName_PHS] = baselineValue.mean()
+                        if baselineValue.var() > 0:
                         warnings.warn(
                             (
-                                f"While loading {rsoxs} to infill metadata entry for {phs}, found"
-                                f" beginning and end values unequal: {baseline[rsoxs]}.  It is"
-                                " possible something is messed up."
+                                f"While loading {keyNames_Beamline} to infill metadata entry for {keyName_PHS}, found beginning and end values unequal: {baseline[keyName_Beamline]}.  It is possible something is messed up."
                             ),
                             stacklevel=2,
                         )
-                except (KeyError, HTTPStatusError):
-                    try:
-                        md[phs] = primary[md_secondary_lookup[phs]].read()
-                    except (KeyError, HTTPStatusError):
-                        try:
-                            blval = baseline[md_secondary_lookup[phs]]
-                            if (
-                                type(blval) == tiled.client.array.ArrayClient
-                                or type(blval) == tiled.client.array.DaskArrayClient
-                            ):
-                                blval = blval.read()
-                            md[phs] = blval.mean().round(4)
-                            if blval.var() > 0:
-                                warnings.warn(
-                                    (
-                                        f"While loading {md_secondary_lookup[phs]} to infill"
-                                        f" metadata entry for {phs}, found beginning and end"
-                                        f" values unequal: {baseline[rsoxs]}.  It is possible"
-                                        " something is messed up."
-                                    ),
-                                    stacklevel=2,
-                                )
-                        except (KeyError, HTTPStatusError):
-                            warnings.warn(
-                                (
-                                    f"Could not find {rsoxs} in either baseline or primary. "
-                                    f" Needed to infill value {phs}.  Setting to None."
-                                ),
-                                stacklevel=2,
-                            )
-                            md[phs] = None
-        ## Modification so that each image has a distinct time
-        md["epoch"] = md["image_time"]
-        #md["epoch"] = md["meas_time"].timestamp()
+                    except (KeyError, HTTPStatusError): md[keyName_PHS] = None
+                if md[keyName_PHS] is None:
+                    warnings.warn(
+                        (
+                            f"Could not find {keyNames_Beamline} in either baseline or primary. Setting {keyName_PHS} to None.  Can be entered manually."
+                        ),
+                        stacklevel=2,
+                    )
+                        
+        md["epoch"] = md["meas_time"].timestamp() ## Intended to classify all data that belongs to a single scan
 
         # looking at exposure tests in the stream and issuing warnings
         if "Wide Angle CCD Detector_under_exposed" in md:
