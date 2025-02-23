@@ -1057,7 +1057,7 @@ class SST1RSoXSDB:
                 if "_image" not in key:
                     mdLookup[key] = [key]
         ## Find metadata from Tiled and store in PyHyperScattering metadata dictionary
-        for keyName_PHS, keyNames_Beamline in mdLookup.items()
+        for keyName_PHS, keyNames_Beamline in mdLookup.items():
             for keyName_Beamline in keyNames_Beamline:
                 if ((copy.deepcopy(md).get(keyName_PHS, "Key does not exist") != "Key does not exist")
                     and (md[keyName_PHS] is not None)): 
