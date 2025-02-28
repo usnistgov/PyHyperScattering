@@ -1058,8 +1058,8 @@ class SST1RSoXSDB:
         ## Find metadata from Tiled and store in PyHyperScattering metadata dictionary
         for keyName_PHS, keyNames_Beamline in mdLookup.items():
             for keyName_Beamline in keyNames_Beamline:
-                if ((copy.deepcopy(md).get(keyName_PHS, "Key does not exist") != "Key does not exist")
-                    and (md[keyName_PHS] is not None)): 
+                if (keyName_PHS in md
+                    and md[keyName_PHS] is not None): 
                     continue ## If the md is already filled in, no need to try other beamline keys
                 try: md[keyName_PHS] = primary[keyName_Beamline].read() ## First try finding metadata in primary stream
                 except (KeyError, HTTPStatusError):
