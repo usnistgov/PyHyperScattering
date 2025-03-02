@@ -46,8 +46,6 @@ These instructions have been tested for the use of PyHyperScattering in a local 
     - ```pip install "git+https://github.com/usnistgov/PyHyperScattering.git@6657973#egg=PyHyperScattering[bluesky]"``` installs commit ```6657973```.
   - ```pip install pyhyperscattering[ui]``` installs the necessary dependencies to draw a mask.  Make sure to install the ```[ui]``` dependencies of the same version/branch/commit of PyHyperScattering used to install the ```[bluesky]``` dependencies.
   - ```pip install jupyterlab``` is required if using the anaconda distribution but might not be necessary in other cases (e.g., NSLS II JupyterHub, Google Colab)
-  - If planning to test/edit spreadsheet, install the following packages:
-    - ```pip install "git+https://github.com/NSLS-II-SST/rsoxs_scans.git@rsoxsIssue18_SimplifyScans"``` installs the local RSoXS codebase used to set up spreadsheets.
   
   If there are errors during installation or later on, it might be necessary to install additional packages and then retry the pip installs.  Below is a list of what might be needed.
     - Microsoft C++ Build Tools (https://visualstudio.microsoft.com/visual-cpp-build-tools/).  This is installed outside the Anaconda prompt.  Computer should be restarted after this installation.
@@ -60,6 +58,8 @@ These instructions have been tested for the use of PyHyperScattering in a local 
   ```
 
 - When prompted to select a kernel, choose the desired environment.  If not prompted, ensure that the kernel on the top right-hand corner of the page is set to the correct environment name.
+
+
 
 
 Additional resources:
