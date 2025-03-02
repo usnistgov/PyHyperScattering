@@ -61,6 +61,8 @@ These instructions have been tested for the use of PyHyperScattering in a local 
 
 - When prompted to select a kernel, choose the desired environment.  If not prompted, ensure that the kernel on the top right-hand corner of the page is set to the correct environment name.
 
+- Proceed to using a Jupyter notebook of choice to reduce and analyze data.
+
 
 
 <br>
