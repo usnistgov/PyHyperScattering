@@ -47,7 +47,7 @@ These instructions have been tested for the use of PyHyperScattering in a local 
     - ```pip install "git+https://github.com/usnistgov/PyHyperScattering.git@Issue170_UpdateDatabrokerImports#egg=PyHyperScattering[bluesky]"``` installs the latest commit on the branch named ```Issue170_UpdateDatabrokerImports```.
     - ```pip install "git+https://github.com/usnistgov/PyHyperScattering.git@6657973#egg=PyHyperScattering[bluesky]"``` installs commit ```6657973```.
   - ```pip install pyhyperscattering[ui]``` installs the necessary dependencies to draw a mask.  Make sure to install the ```[ui]``` dependencies of the same version/branch/commit of PyHyperScattering used to install the ```[bluesky]``` dependencies.
-  - ```pip install jupyterlab``` is required if using the anaconda distribution but might not be necessary in other cases (e.g., NSLS II JupyterHub, Google Colab)
+  - ```pip install jupyterlab``` is required if using the Anaconda distribution but might not be necessary in other cases (e.g., NSLS II JupyterHub, Google Colab)
   
   If there are errors during installation or later on, it might be necessary to install additional packages and then retry the pip installs.  Below is a list of what might be needed.
     - Microsoft C++ Build Tools (https://visualstudio.microsoft.com/visual-cpp-build-tools/).  This is installed outside the Anaconda prompt.  Computer should be restarted after this installation.
