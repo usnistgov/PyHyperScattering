@@ -49,10 +49,10 @@ These instructions have been tested for the use of PyHyperScattering in a local 
   - If planning to test/edit spreadsheet, install the following packages:
     - ```pip install "git+https://github.com/NSLS-II-SST/rsoxs_scans.git@rsoxsIssue18_SimplifyScans"``` installs the local RSoXS codebase used to set up spreadsheets.
   
-If there are errors during installation or later on, it might be necessary to install additional packages and then retry the pip installs.  Below is a list of what might be needed.
-  - Microsoft C++ Build Tools (https://visualstudio.microsoft.com/visual-cpp-build-tools/).  This is installed outside the Anaconda prompt.  Computer should be restarted after this installation.
-  - ```pip install --upgrade holoviews```  This may be necessary if mask drawing is not working.  The ```--upgrade``` is necessary to ensure that the package will get upgraded even if some version of it is currently installed.
-  - ```pip install natsort``` allows use of the natsort package, but is not necessary for the main functioning of PyHyperScattering.
+  If there are errors during installation or later on, it might be necessary to install additional packages and then retry the pip installs.  Below is a list of what might be needed.
+    - Microsoft C++ Build Tools (https://visualstudio.microsoft.com/visual-cpp-build-tools/).  This is installed outside the Anaconda prompt.  Computer should be restarted after this installation.
+    - ```pip install --upgrade holoviews```  This may be necessary if mask drawing is not working.  The ```--upgrade``` is necessary to ensure that the package will get upgraded even if some version of it is currently installed.
+    - ```pip install natsort``` allows use of the natsort package, but is not necessary for the main functioning of PyHyperScattering.
 
 - Start up JupyterLab from the Anaconda command prompt.  Do not open JupyterLab using Anaconda's GUI menu.
   ```
