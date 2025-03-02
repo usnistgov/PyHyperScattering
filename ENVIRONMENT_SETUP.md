@@ -39,7 +39,6 @@ These instructions have been tested for the use of PyHyperScattering in a local 
   ```
   conda install python==3.11
   ```
-  This step may be possible to run prior to creating and activating the environment, but this notebook was tested with Python installed after activating the new environment.
   If a CondaSSL error is encountered during this step, the following solution can be run, and then Python installation can be retried: https://github.com/conda/conda/issues/8273
 
 - Inside the selected environment, install PyHyperScattering and any other necessary packages.
