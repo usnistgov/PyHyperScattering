@@ -2,6 +2,9 @@ Please follow the instructions below to set up an appropriate environment to use
 
 These instructions have been tested for the use of PyHyperScattering in a local JupyterLab notebook using the Anaconda distribution (https://www.anaconda.com/download) on a Windows computer.  The instructions below *might* work for other platforms (e.g., NSLS II Jupyterhub, Google Colab), but there are no guarantees; recently, the NSLS II Jupyterhub has been especially incompatible PyHyperScattering.
 
+<br>
+<br>
+
 - To aid this workflow, download Git (https://git-scm.com/download/win).  Then in the command prompt (not Anaconda Prompt), run ```winget install --id Git.Git -e --source winget```.  After this, if you are able to run ```git --version``` and have a version number outputted, the installation was successful.  If Anaconda Prompt was open, it may need to be restarted.
 
 - Open the Anaconda Prompt.  Do not use the terminal feature after opening JupyterLab.
@@ -63,6 +66,7 @@ These instructions have been tested for the use of PyHyperScattering in a local 
 
 <br>
 <br>
+
 Additional resources:
 - Full list of PyHyperScattering dependencies: https://github.com/usnistgov/PyHyperScattering/blob/main/pyproject.toml
 - Further guidance on creating and managing environments: https://jupyter.nsls2.bnl.gov/hub/guide
