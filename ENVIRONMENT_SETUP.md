@@ -61,7 +61,8 @@ These instructions have been tested for the use of PyHyperScattering in a local 
 
 
 
-
+<br>
+<br>
 Additional resources:
 - Full list of PyHyperScattering dependencies: https://github.com/usnistgov/PyHyperScattering/blob/main/pyproject.toml
 - Further guidance on creating and managing environments: https://jupyter.nsls2.bnl.gov/hub/guide
