@@ -387,10 +387,38 @@
                   
   <section id="set-up-python">
 <span id="id1"></span><h1>Set up Python<a class="headerlink" href="#set-up-python" title="Permalink to this heading">#</a></h1>
-<p>Please follow the instructions below to set up an appropriate environment to use PyHyperScattering.  All of these setup steps should be run in a terminal, not a Jupyter notebook.</p>
-<p>These instructions have been tested for the use of PyHyperScattering in a local JupyterLab notebook using the Anaconda distribution (<a class="reference external" href="https://www.anaconda.com/download">https://www.anaconda.com/download</a>) on a Windows computer.  The instructions below <em>might</em> work for other platforms (e.g., NSLS II Jupyterhub, Google Colab), but there are no guarantees; recently, the NSLS II Jupyterhub has been especially incompatible PyHyperScattering.</p>
+<p>Please follow the instructions below to set up an appropriate environment to use PyHyperScattering. All of these setup steps should be run in a terminal, not a Jupyter notebook.</p>
+<p>These instructions have been tested for the use of PyHyperScattering in a local JupyterLab notebook using the Anaconda distribution (<a class="reference external" href="https://www.anaconda.com/download">https://www.anaconda.com/download</a>) on a Windows computer. The instructions below <em>might</em> work for other platforms (e.g., NSLS II Jupyterhub, Google Colab), but there are no guarantees; recently, the NSLS II Jupyterhub has been especially incompatible PyHyperScattering.</p>
+<section id="download-git">
+<h2>Download Git<a class="headerlink" href="#download-git" title="Permalink to this heading">#</a></h2>
+<p>To aid this workflow, download Git (<a class="reference external" href="https://git-scm.com/download/win">https://git-scm.com/download/win</a>).  Then in the command prompt (not Anaconda Prompt), run <code class="docutils literal notranslate"><span class="pre">winget</span> <span class="pre">install</span> <span class="pre">--id</span> <span class="pre">Git.Git</span> <span class="pre">-e</span> <span class="pre">--source</span> <span class="pre">winget</span></code>.  After this, if you are able to run <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">--version</span></code> and have a version number outputted, the installation was successful.  If Anaconda Prompt was open, it may need to be restarted.</p>
+</section>
+<section id="create-and-activate-an-environment">
+<h2>Create and activate an environment<a class="headerlink" href="#create-and-activate-an-environment" title="Permalink to this heading">#</a></h2>
+<ul>
+<li><p>Open the Anaconda Prompt.  Do not use the terminal feature after opening JupyterLab.</p></li>
+<li><p>Identify the current conda environment, which appears in parenthases at the beginning of the command prompt.  If a conda environment that is not base and is not the desired environment is active, deactivate the conda environment.  Do not deactivate the base environment.
+.. code-block:: bash</p>
 <blockquote>
-<div></div></blockquote>
+<div><p>conda deactivate</p>
+</div></blockquote>
+</li>
+<li><p>Create a new environment if a suitable one does not exist.  Replace <code class="docutils literal notranslate"><span class="pre">YOUR_ENVIRONMENT_NAME</span></code> with a an environment name of choice that does not contain any spaces.  If needed, the <code class="docutils literal notranslate"><span class="pre">...</span></code> can be replaced with other conda packages to be installed in this environment.  The current notebook was run with the <code class="docutils literal notranslate"><span class="pre">...</span></code> omitted.  After loading some packages, you will be asked if you want to proceed.  Enter y (yes).
+.. code-block:: bash</p>
+<p>conda create -n YOUR_ENVIRONMENT_NAME ipykernel …</p>
+<p>If there already is an appropriate environment, skip this step.  The purpose of the conda environment is to contain the necessary package versions that will enable data reduction and not conflict with other packages.</p>
+</li>
+<li><p>Activate the desired environment.  After running this command, the selected environment name should appear in parentheses in the command prompt.
+.. code-block:: bash</p>
+<p>conda activate YOUR_ENVIRONMENT_NAME</p>
+<p>If you do not remember your environment name, you can run <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">env</span> <span class="pre">list</span></code> to display a list of environments that currently exist.  If there is an environment you want to delete, first ensure it is not active, and then run <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">remove</span> <span class="pre">-n</span> <span class="pre">YOUR_ENVIRONMENT_NAME</span> <span class="pre">--all</span></code>.  The flat <code class="docutils literal notranslate"><span class="pre">--all</span></code> removes the entire environment.</p>
+</li>
+<li><p>Run the following to add the environment to your Jupyter notebook selection.  The display name and environment name do not have to be the same.
+.. code-block:: bash</p>
+<p>python -m ipykernel install –user –name YOUR_ENVIRONMENT_NAME –display-name YOUR_ENVIRONMENT_NAME</p>
+</li>
+</ul>
+</section>
 </section>
 
 
@@ -413,6 +441,19 @@
                 <dialog id="pst-secondary-sidebar-modal"></dialog>
                 <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#download-git">Download Git</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#create-and-activate-an-environment">Create and activate an environment</a></li>
+</ul>
+  </nav></div>
 
   <div class="sidebar-secondary-item">
   <div role="note" aria-label="source link">
