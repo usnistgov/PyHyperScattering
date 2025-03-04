@@ -1,3 +1,5 @@
+.. _Set_up_Python:
+
 Set up Python
 ================
 
