@@ -397,26 +397,89 @@
 <h2>Create and activate an environment<a class="headerlink" href="#create-and-activate-an-environment" title="Permalink to this heading">#</a></h2>
 <ul>
 <li><p>Open the Anaconda Prompt.  Do not use the terminal feature after opening JupyterLab.</p></li>
-<li><p>Identify the current conda environment, which appears in parenthases at the beginning of the command prompt.  If a conda environment that is not base and is not the desired environment is active, deactivate the conda environment.  Do not deactivate the base environment.
-.. code-block:: bash</p>
-<blockquote>
-<div><p>conda deactivate</p>
-</div></blockquote>
+<li><p>Identify the current conda environment, which appears in parentheses at the beginning of the command prompt. If a conda environment that is not base and is not the desired environment is active, deactivate the conda environment. Do not deactivate the base environment.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>deactivate
+</pre></div>
+</div>
 </li>
-<li><p>Create a new environment if a suitable one does not exist.  Replace <code class="docutils literal notranslate"><span class="pre">YOUR_ENVIRONMENT_NAME</span></code> with a an environment name of choice that does not contain any spaces.  If needed, the <code class="docutils literal notranslate"><span class="pre">...</span></code> can be replaced with other conda packages to be installed in this environment.  The current notebook was run with the <code class="docutils literal notranslate"><span class="pre">...</span></code> omitted.  After loading some packages, you will be asked if you want to proceed.  Enter y (yes).
-.. code-block:: bash</p>
-<p>conda create -n YOUR_ENVIRONMENT_NAME ipykernel …</p>
+<li><p>Create a new environment if a suitable one does not exist.  Replace <code class="docutils literal notranslate"><span class="pre">YOUR_ENVIRONMENT_NAME</span></code> with a an environment name of choice that does not contain any spaces.  If needed, the <code class="docutils literal notranslate"><span class="pre">...</span></code> can be replaced with other conda packages to be installed in this environment.  The current notebook was run with the <code class="docutils literal notranslate"><span class="pre">...</span></code> omitted.  After loading some packages, you will be asked if you want to proceed.  Enter y (yes).</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>create<span class="w"> </span>-n<span class="w"> </span>YOUR_ENVIRONMENT_NAME<span class="w"> </span>ipykernel<span class="w"> </span>...
+</pre></div>
+</div>
 <p>If there already is an appropriate environment, skip this step.  The purpose of the conda environment is to contain the necessary package versions that will enable data reduction and not conflict with other packages.</p>
 </li>
-<li><p>Activate the desired environment.  After running this command, the selected environment name should appear in parentheses in the command prompt.
-.. code-block:: bash</p>
-<p>conda activate YOUR_ENVIRONMENT_NAME</p>
+<li><p>Activate the desired environment.  After running this command, the selected environment name should appear in parentheses in the command prompt.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>activate<span class="w"> </span>YOUR_ENVIRONMENT_NAME
+</pre></div>
+</div>
 <p>If you do not remember your environment name, you can run <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">env</span> <span class="pre">list</span></code> to display a list of environments that currently exist.  If there is an environment you want to delete, first ensure it is not active, and then run <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">remove</span> <span class="pre">-n</span> <span class="pre">YOUR_ENVIRONMENT_NAME</span> <span class="pre">--all</span></code>.  The flat <code class="docutils literal notranslate"><span class="pre">--all</span></code> removes the entire environment.</p>
 </li>
-<li><p>Run the following to add the environment to your Jupyter notebook selection.  The display name and environment name do not have to be the same.
-.. code-block:: bash</p>
-<p>python -m ipykernel install –user –name YOUR_ENVIRONMENT_NAME –display-name YOUR_ENVIRONMENT_NAME</p>
+<li><p>Run the following to add the environment to your Jupyter notebook selection.  The display name and environment name do not have to be the same.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>ipykernel<span class="w"> </span>install<span class="w"> </span>--user<span class="w"> </span>--name<span class="w"> </span>YOUR_ENVIRONMENT_NAME<span class="w"> </span>--display-name<span class="w"> </span>YOUR_ENVIRONMENT_NAME
+</pre></div>
+</div>
 </li>
+</ul>
+</section>
+<section id="install-packages-and-dependencies">
+<h2>Install packages and dependencies<a class="headerlink" href="#install-packages-and-dependencies" title="Permalink to this heading">#</a></h2>
+<section id="install-python">
+<h3>Install Python<a class="headerlink" href="#install-python" title="Permalink to this heading">#</a></h3>
+<p>Check the Python version.  Use version 3.11 or lower for PyHyperScattering to work.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>--version
+</pre></div>
+</div>
+<p>If needed, install the correct Python version.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>install<span class="w"> </span><span class="nv">python</span><span class="o">==</span><span class="m">3</span>.11
+</pre></div>
+</div>
+<p>If a CondaSSL error is encountered during this step, the following solution can be run, and then Python installation can be retried: <a class="github reference external" href="https://github.com/conda/conda/issues/8273">conda/conda#8273</a></p>
+</section>
+<section id="install-pyhyperscattering">
+<h3>Install PyHyperScattering<a class="headerlink" href="#install-pyhyperscattering" title="Permalink to this heading">#</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">pyhyperscattering[bluesky]</span></code> installs PyHyperScattering along with Bluesky-related dependencies needed to access the NSLS II Tiled database. In some cases, it may be necessary to clone and check out a later PyHyperScattering commit or branch instead of the default version. Below are some examples.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">&quot;git+https://github.com/usnistgov/PyHyperScattering.git#egg=PyHyperScattering[bluesky]&quot;</span></code> installs the latest commit on the main branch.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">&quot;git+https://github.com/usnistgov/PyHyperScattering.git&#64;Issue170_UpdateDatabrokerImports#egg=PyHyperScattering[bluesky]&quot;</span></code> installs the latest commit on the branch named <code class="docutils literal notranslate"><span class="pre">Issue170_UpdateDatabrokerImports</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">&quot;git+https://github.com/usnistgov/PyHyperScattering.git&#64;6657973#egg=PyHyperScattering[bluesky]&quot;</span></code> installs commit <code class="docutils literal notranslate"><span class="pre">6657973</span></code>.</p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">pyhyperscattering[ui]</span></code> installs the necessary dependencies to draw a mask.  Make sure to install the <code class="docutils literal notranslate"><span class="pre">[ui]</span></code> dependencies of the same version/branch/commit of PyHyperScattering used to install the <code class="docutils literal notranslate"><span class="pre">[bluesky]</span></code> dependencies.</p>
+</section>
+<section id="install-jupyterlab">
+<h3>Install JupyterLab<a class="headerlink" href="#install-jupyterlab" title="Permalink to this heading">#</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">jupyterlab</span></code> is required if using the Anaconda distribution but might not be necessary in other cases (e.g., NSLS II JupyterHub, Google Colab)</p>
+</section>
+<section id="other-installs">
+<h3>Other installs<a class="headerlink" href="#other-installs" title="Permalink to this heading">#</a></h3>
+<p>If there are errors during installation or later on, it might be necessary to install additional packages and then retry the pip installs.  Below is a list of what might be needed.</p>
+<ul class="simple">
+<li><p>Microsoft C++ Build Tools (<a class="reference external" href="https://visualstudio.microsoft.com/visual-cpp-build-tools/">https://visualstudio.microsoft.com/visual-cpp-build-tools/</a>).  This is installed outside the Anaconda prompt.  Computer should be restarted after this installation.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">--upgrade</span> <span class="pre">holoviews</span></code>  This may be necessary if mask drawing is not working.  The <code class="docutils literal notranslate"><span class="pre">--upgrade</span></code> is necessary to ensure that the package will get upgraded even if some version of it is currently installed.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">natsort</span></code> allows use of the natsort package, but is not necessary for the main functioning of PyHyperScattering.</p></li>
+</ul>
+</section>
+</section>
+<section id="open-jupyterlab">
+<h2>Open JupyterLab<a class="headerlink" href="#open-jupyterlab" title="Permalink to this heading">#</a></h2>
+<ul>
+<li><p>Start up JupyterLab from the Anaconda command prompt.  Do not open JupyterLab using Anaconda’s GUI menu.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>jupyter-lab
+</pre></div>
+</div>
+</li>
+<li><p>When prompted to select a kernel, choose the desired environment.  If not prompted, ensure that the kernel on the top right-hand corner of the page is set to the correct environment name.</p></li>
+<li><p>Proceed to using a Jupyter notebook of choice to reduce and analyze data.</p></li>
+</ul>
+</section>
+<section id="additional-resources">
+<h2>Additional resources<a class="headerlink" href="#additional-resources" title="Permalink to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Full list of PyHyperScattering dependencies: <a class="github reference external" href="https://github.com/usnistgov/PyHyperScattering/blob/main/pyproject.toml">usnistgov/PyHyperScattering</a></p></li>
+<li><p>Further guidance on creating and managing environments: <a class="reference external" href="https://jupyter.nsls2.bnl.gov/hub/guide">https://jupyter.nsls2.bnl.gov/hub/guide</a></p></li>
+<li><p>Conda documentation: <a class="reference external" href="https://docs.conda.io/projects/conda/en/stable/">https://docs.conda.io/projects/conda/en/stable/</a></p></li>
+<li><p>Xarray documentation: <a class="reference external" href="https://docs.xarray.dev/en/stable/">https://docs.xarray.dev/en/stable/</a></p></li>
+<li><p>Numpy documentation: <a class="reference external" href="https://numpy.org/doc/2.1/">https://numpy.org/doc/2.1/</a></p></li>
+<li><p>MatPlotLib documentation: <a class="reference external" href="https://matplotlib.org/stable/index.html">https://matplotlib.org/stable/index.html</a></p></li>
 </ul>
 </section>
 </section>
@@ -452,6 +515,15 @@
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#download-git">Download Git</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#create-and-activate-an-environment">Create and activate an environment</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#install-packages-and-dependencies">Install packages and dependencies</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#install-python">Install Python</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#install-pyhyperscattering">Install PyHyperScattering</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#install-jupyterlab">Install JupyterLab</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#other-installs">Other installs</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#open-jupyterlab">Open JupyterLab</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#additional-resources">Additional resources</a></li>
 </ul>
   </nav></div>
 
