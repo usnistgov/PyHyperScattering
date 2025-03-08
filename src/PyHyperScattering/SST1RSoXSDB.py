@@ -44,10 +44,12 @@ class SST1RSoXSDB:
 
     ## List of metadata key names used historically at SST1 RSoXS
     mdLookup = {
-        "sam_x": ["manipulator_x", ## Started using ~January 2025
+        "sam_x": ["solid_sample_x",
+                  "manipulator_x", ## Started using ~January 2025
                  "RSoXS Sample Outboard-Inboard",
                  ],
-        "sam_y": ["manipulator_y", ## Started using ~January 2025
+        "sam_y": ["solid_sample_y",
+                  "manipulator_y", ## Started using ~January 2025
                   "RSoXS Sample Up-Down",
                  ],
         "sam_z": ["manipulator_z", ## Started using ~January 2025
