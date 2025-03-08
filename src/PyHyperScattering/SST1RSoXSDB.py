@@ -52,10 +52,12 @@ class SST1RSoXSDB:
                   "manipulator_y", ## Started using ~January 2025
                   "RSoXS Sample Up-Down",
                  ],
-        "sam_z": ["manipulator_z", ## Started using ~January 2025
+        "sam_z": ["solid_sample_z",
+                  "manipulator_z", ## Started using ~January 2025
                   "RSoXS Sample Downstream-Upstream",
                  ],
-        "sam_th": ["manipulator_r", ## Started using ~January 2025
+        "sam_th": ["solid_sample_r",
+                   "manipulator_r", ## Started using ~January 2025
                    "RSoXS Sample Rotation",
                   ],
         "polarization": ["en_polarization_setpoint",
