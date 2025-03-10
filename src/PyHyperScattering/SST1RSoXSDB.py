@@ -605,10 +605,7 @@ class SST1RSoXSDB:
 
         md = self.loadMd(run)
         ## Add manually added metadata to the md dictionary
-        for mdKey in md:
-            if md[mdKey] is None:
-                try: md[mdKey] = mdManual[mdKey]
-                except KeyError: pass
+        for mdKey in mdManual: md[mdKey] = mdManual[mdKey]
 
         monitors = self.loadMonitors(run)
 
@@ -1019,9 +1016,9 @@ class SST1RSoXSDB:
                 md["beamcenter_y"] = 549.76
                 md["sdd"] = 34.5  # GUESS; SOMEONE SHOULD CONFIRM WITH A BCP MAYBE??
             else:
-                md["beamcenter_x"] = run.start["RSoXS_WAXS_BCX"]  # 399 #
-                md["beamcenter_y"] = run.start["RSoXS_WAXS_BCY"]  # 526
-                md["sdd"] = run.start["RSoXS_WAXS_SDD"]
+                md["beamcenter_x"] = 467.5#run.start["RSoXS_WAXS_BCX"]  # 399 #
+                md["beamcenter_y"] = 513.4 #run.start["RSoXS_WAXS_BCY"]  # 526
+                md["sdd"] = 39.19#run.start["RSoXS_WAXS_SDD"]
 
         else:
             md["rsoxs_config"] = "unknown"
