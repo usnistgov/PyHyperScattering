@@ -118,14 +118,14 @@ class SST1RSoXSDB:
         self.use_precise_positions = use_precise_positions
         self.suppress_time_dimension = suppress_time_dimension
         dask.config.set(num_workers=min(12,multiprocessing.cpu_count()))
-'''        
+        '''        
         self.client = Client(n_workers = 1, 
                              threads_per_worker = min(12,multiprocessing.cpu_count()), 
                              processes = False)
 
     def __del__(self):
         self.client.close()
-'''    
+        '''    
     def runSearch(self, **kwargs):
         """
         Search the catalog using given commands.
