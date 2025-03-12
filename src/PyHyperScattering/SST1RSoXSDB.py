@@ -21,13 +21,11 @@ try:
     from httpx import HTTPStatusError
     import tiled
     import dask
-    from dask.distributed import Client
+    # from dask.distributed import Client
     try: from bluesky_tiled_plugins.queries import RawMongo, Key, FullText, Contains, Regex ## Intended to handle database navigation for 2025 onwards
     except ImportError: from databroker.queries import RawMongo, Key, FullText, Contains, Regex
 except Exception:
-    print(
-        "Imports of some libraries needed for SST-1 RSoXS failed.  If you are trying to use SST-1 RSoXS, install pyhyperscattering[bluesky].
-    )
+    print("Imports of some libraries needed for SST-1 RSoXS failed.  If you are trying to use SST-1 RSoXS, install pyhyperscattering[bluesky].")
 
 import copy
 
