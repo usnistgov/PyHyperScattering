@@ -13,6 +13,8 @@ import scipy.ndimage
 import asyncio
 import time
 import copy
+from dask.distributed import Client
+import multiprocessing
 
 try:
     os.environ["TILED_SITE_PROFILES"] = "/nsls2/software/etc/tiled/profiles"
@@ -117,22 +119,13 @@ class SST1RSoXSDB:
         self.exposure_offset = exposure_offset
         self.use_precise_positions = use_precise_positions
         self.suppress_time_dimension = suppress_time_dimension
+        self.client = Client(n_workers = 1, 
+                             threads_per_worker = min(12,multiprocessing.cpu_count()), 
+                             processes = False)
 
-    # def loadFileSeries(self,basepath):
-    #     try:
-    #         flist = list(basepath.glob('*primary*.tiff'))
-    #     except AttributeError:
-    #         basepath = pathlib.Path(basepath)
-    #         flist = list(basepath.glob('*primary*.tiff'))
-    #     print(f'Found {str(len(flist))} files.')
-    #
-    #     out = xr.DataArray()
-    #     for file in flist:
-    #         single_img = self.loadSingleImage(file)
-    #         out = xr.concat(out,single_img)
-    #
-    #     return out
-
+    def __del__(self):
+        self.client.close()
+    
     def runSearch(self, **kwargs):
         """
         Search the catalog using given commands.
