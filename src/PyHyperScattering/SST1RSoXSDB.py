@@ -669,9 +669,9 @@ class SST1RSoXSDB:
                 # next, construct the reverse lookup table - best mapping we can make of key to pyhyper word
                 # we start with the lookup table used by loadMd()
                 reverse_lut = {}
-                for mdKey_PHS in self.md_lookup.keys():
-                    for mdKey_Beamline in self.md_lookup[mdKey_PHS]:
-                        reverse_lut[mdKey_Beamline] = mdKey_PHS
+                reverse_lut = {md_key_beamline: md_key_PHS 
+                               for md_key_PHS, md_key_beamline_list in self.md_lookup.items() 
+                               for md_key_beamline in md_key_beamline_list}
 
                 # here, we broaden the table to make a value that default sources from '_setpoint' actually match on either
                 # the bare value or the readback value.
