@@ -605,8 +605,7 @@ class SST1RSoXSDB:
             )
 
         md = self.loadMd(run)
-        ## Add manually added metadata to the md dictionary
-        for md_key in md_manual: md[md_key] = md_manual[md_key]
+        md.update(md_manual) ## Add manually added metadata to the md dictionary
 
         monitors = self.loadMonitors(run)
 
