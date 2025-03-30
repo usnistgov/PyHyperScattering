@@ -63,6 +63,7 @@ class SST1RSoXSDB:
         "polarization": ["en_polarization_setpoint",
                         ],
         "energy": ["en_energy_setpoint",
+                   "en_monoen_setpoint",
                   ],
         "exposure": ["RSoXS Shutter Opening Time (ms)", 
                     ],
