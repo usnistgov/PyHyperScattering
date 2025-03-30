@@ -43,7 +43,7 @@ class SST1RSoXSDB:
     pix_size_2 = 0.06
 
     ## List of metadata key names used historically at SST1 RSoXS
-    mdLookup = {
+    md_lookup = {
         "sam_x": ["solid_sample_x",
                   "manipulator_x", ## Started using ~January 2025
                  "RSoXS Sample Outboard-Inboard",
@@ -573,7 +573,7 @@ class SST1RSoXSDB:
         coords={},
         return_dataset=False,
         useMonitorShutterThinning=True,
-        mdManual = {}, ## Manually enter metadata in case it were not written out during a scan or saved to Tiled
+        md_manual = {}, ## Manually enter metadata in case it were not written out during a scan or saved to Tiled
     ):
         """
         Loads a run entry from a catalog result into a raw xarray.
@@ -605,7 +605,7 @@ class SST1RSoXSDB:
 
         md = self.loadMd(run)
         ## Add manually added metadata to the md dictionary
-        for mdKey in mdManual: md[mdKey] = mdManual[mdKey]
+        for md_key in md_manual: md[md_key] = md_manual[md_key]
 
         monitors = self.loadMonitors(run)
 
@@ -669,8 +669,8 @@ class SST1RSoXSDB:
                 # next, construct the reverse lookup table - best mapping we can make of key to pyhyper word
                 # we start with the lookup table used by loadMd()
                 reverse_lut = {}
-                for mdKey_PHS in self.mdLookup.keys():
-                    for mdKey_Beamline in self.mdLookup[mdKey_PHS]:
+                for mdKey_PHS in self.md_lookup.keys():
+                    for mdKey_Beamline in self.md_lookup[mdKey_PHS]:
                         reverse_lut[mdKey_Beamline] = mdKey_PHS
 
                 # here, we broaden the table to make a value that default sources from '_setpoint' actually match on either
@@ -1048,42 +1048,42 @@ class SST1RSoXSDB:
                 "No primary stream --> probably you caught run before image was written.  Try again."
             )
 
-        mdLookup = copy.deepcopy(self.mdLookup)
+        md_lookup = copy.deepcopy(self.md_lookup)
         ## Add additional metadata not included in lookup dictionary
-        mdKeyNames_Beamline = []
-        for key in mdLookup.keys(): mdKeyNames_Beamline = mdKeyNames_Beamline + mdLookup[key] ## Making single list with all historical keys to check if they are in primary
+        md_key_names_beamline = []
+        for key in md_lookup.keys(): md_key_names_beamline = md_key_names_beamline + md_lookup[key] ## Making single list with all historical keys to check if they are in primary
         for key in primary.keys():
-            if key not in mdKeyNames_Beamline:
+            if key not in md_key_names_beamline:
                 if "_image" not in key:
-                    mdLookup[key] = [key]
+                    md_lookup[key] = [key]
         ## Find metadata from Tiled and store in PyHyperScattering metadata dictionary
-        for keyName_PHS, keyNames_Beamline in mdLookup.items():
-            for keyName_Beamline in keyNames_Beamline:
-                if (keyName_PHS in md
-                    and md[keyName_PHS] is not None): 
+        for key_name_PHS, key_names_beamline in md_lookup.items():
+            for key_name_beamline in key_names_beamline:
+                if (key_name_PHS in md
+                    and md[key_name_PHS] is not None): 
                     continue ## If the md is already filled in, no need to try other beamline keys
-                try: md[keyName_PHS] = primary[keyName_Beamline].read() ## First try finding metadata in primary stream
+                try: md[key_name_PHS] = primary[key_name_beamline].read() ## First try finding metadata in primary stream
                 except (KeyError, HTTPStatusError):
                     try:
-                        baselineValue = baseline[keyName_Beamline] ## Next, try finding metadata in baseline
+                        baseline_value = baseline[key_name_beamline] ## Next, try finding metadata in baseline
                         if (
-                            type(baselineValue) == tiled.client.array.ArrayClient
-                            or type(baselineValue) == tiled.client.array.DaskArrayClient
+                            type(baseline_value) == tiled.client.array.ArrayClient
+                            or type(baseline_value) == tiled.client.array.DaskArrayClient
                         ):
-                            baselineValue = baselineValue.read() ## For tiled_client.array data types, need to use .read() to get the values
-                        md[keyName_PHS] = baselineValue.mean()
-                        if baselineValue.var() > 0: ## Might need to increase tolerance, so that it does not throw unnecessary warnings for small variations
+                            baseline_value = baseline_value.read() ## For tiled_client.array data types, need to use .read() to get the values
+                        md[key_name_PHS] = baseline_value.mean()
+                        if baseline_value.var() > 0: ## Might need to increase tolerance, so that it does not throw unnecessary warnings for small variations
                             warnings.warn(
                                 (
-                                    f"While loading {keyName_Beamline} to infill metadata entry for {keyName_PHS}, found beginning and end values unequal: {baselineValue}.  It is possible something is messed up."
+                                    f"While loading {key_name_beamline} to infill metadata entry for {key_name_PHS}, found beginning and end values unequal: {baseline_value}.  It is possible something is messed up."
                                 ),
                                 stacklevel=2,
                             )
-                    except (KeyError, HTTPStatusError): md[keyName_PHS] = None
-            if md[keyName_PHS] is None:
+                    except (KeyError, HTTPStatusError): md[key_name_PHS] = None
+            if md[key_name_PHS] is None:
                 warnings.warn(
                     (
-                        f"Could not find {keyNames_Beamline} in either baseline or primary. Setting {keyName_PHS} to None.  Can be entered manually."
+                        f"Could not find {key_names_beamline} in either baseline or primary. Setting {key_name_PHS} to None.  Can be entered manually."
                     ),
                     stacklevel=2,
                 )
