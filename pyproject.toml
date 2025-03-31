@@ -36,12 +36,14 @@ dependencies = [
     "fabio",
     "nodejs",
     "silx==2.0.0",
-    "pygix",
     "pydata_sphinx_theme",
     "numexpr<2.8.5",
 ]
 
 [project.optional-dependencies]
+grazing = [
+    "pygix"
+    ]
 bluesky = [
     "tiled[all]>=0.1.0a74",
     "databroker[all]>=2.0.0b10",
