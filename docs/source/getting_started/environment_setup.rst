@@ -70,11 +70,11 @@ Install PyHyperScattering
 
 ``pip install pyhyperscattering[bluesky, ui]`` installs PyHyperScattering.  The ``bluesky`` portion installs Bluesky-related dependencies needed to access the NSLS II Tiled database. The ``ui`` portion installs the necessary dependencies to draw a mask.  In some cases, it may be necessary to clone and check out a later PyHyperScattering commit or branch instead of the default version. Below are some examples.
 
-- ``pip install "git+https://github.com/usnistgov/PyHyperScattering.git#egg=PyHyperScattering[bluesky]"`` installs the latest commit on the main branch.
+- ``pip install "git+https://github.com/usnistgov/PyHyperScattering.git#egg=PyHyperScattering[bluesky, ui]"`` installs the latest commit on the main branch.
 
-- ``pip install "git+https://github.com/usnistgov/PyHyperScattering.git@Issue170_UpdateDatabrokerImports#egg=PyHyperScattering[bluesky]"`` installs the latest commit on the branch named ``Issue170_UpdateDatabrokerImports``.
+- ``pip install "git+https://github.com/usnistgov/PyHyperScattering.git@Issue170_UpdateDatabrokerImports#egg=PyHyperScattering[bluesky, ui]"`` installs the latest commit on the branch named ``Issue170_UpdateDatabrokerImports``.
 
-- ``pip install "git+https://github.com/usnistgov/PyHyperScattering.git@6657973#egg=PyHyperScattering[bluesky]"`` installs commit ``6657973``.
+- ``pip install "git+https://github.com/usnistgov/PyHyperScattering.git@6657973#egg=PyHyperScattering[bluesky, ui]"`` installs commit ``6657973``.
 
 
 Install JupyterLab
