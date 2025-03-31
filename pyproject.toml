@@ -75,6 +75,7 @@ all = [
     "databroker[all]>=2.0.0b10",
     "bluesky-tiled-plugins",
     "bottleneck",
+    "pygix",
     "pyopencl",
     "dask",
     "cupy",
