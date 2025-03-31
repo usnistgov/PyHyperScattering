@@ -1051,7 +1051,8 @@ class SST1RSoXSDB:
         md_lookup = copy.deepcopy(self.md_lookup)
         ## Add additional metadata not included in lookup dictionary
         md_key_names_beamline = []
-        for key in md_lookup.keys(): md_key_names_beamline = md_key_names_beamline + md_lookup[key] ## Making single list with all historical keys to check if they are in primary
+        for key in md_lookup.keys(): # Make a single list with all historical keys, in the order to check for them.
+            md_key_names_beamline = md_key_names_beamline + md_lookup[key] 
         for key in primary.keys():
             if key not in md_key_names_beamline:
                 if "_image" not in key:
