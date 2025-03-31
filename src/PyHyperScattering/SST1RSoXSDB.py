@@ -1075,7 +1075,7 @@ class SST1RSoXSDB:
                         if baseline_value.var() > 0: ## Might need to increase tolerance, so that it does not throw unnecessary warnings for small variations
                             warnings.warn(
                                 (
-                                    f"While loading {key_name_beamline} to infill metadata entry for {key_name_PHS}, found beginning and end values unequal: {baseline_value}.  It is possible something is messed up."
+                                    f"While loading {key_name_beamline} to infill metadata entry for {key_name_PHS}, found values before and after measurement unequal: {baseline_value}.  This might be a problem for data reliability."
                                 ),
                                 stacklevel=2,
                             )
