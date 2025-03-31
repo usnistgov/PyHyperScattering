@@ -1088,7 +1088,7 @@ class SST1RSoXSDB:
                     stacklevel=2,
                 )
                         
-        md["epoch"] = md["meas_time"].timestamp() ## Intended to classify all data that belongs to a single scan
+        md["epoch"] = md["meas_time"].timestamp() # Epoch = the time the entire run started, used for multi-scan stacking
 
         # looking at exposure tests in the stream and issuing warnings
         if "Wide Angle CCD Detector_under_exposed" in md:
