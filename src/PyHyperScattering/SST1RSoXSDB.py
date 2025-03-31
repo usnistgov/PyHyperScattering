@@ -1066,11 +1066,7 @@ class SST1RSoXSDB:
                 except (KeyError, HTTPStatusError):
                     try:
                         baseline_value = baseline[key_name_beamline] ## Next, try finding metadata in baseline
-                        if (
-                            type(baseline_value) == tiled.client.array.ArrayClient
-                            or type(baseline_value) == tiled.client.array.DaskArrayClient
-                        ):
-                            baseline_value = baseline_value.read() ## For tiled_client.array data types, need to use .read() to get the values
+                        if isinstance(baseline_value, (tiled.client.array.ArrayClient, tiled.client.array.DaskArrayClient)): baseline_value = baseline_value.read() ## For tiled_client.array data types, need to use .read() to get the values
                         md[key_name_PHS] = baseline_value.mean()
                         if baseline_value.var() > 0: ## Might need to increase tolerance, so that it does not throw unnecessary warnings for small variations
                             warnings.warn(
