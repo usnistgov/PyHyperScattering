@@ -672,7 +672,7 @@ class SST1RSoXSDB:
                 reverse_lut = {md_key_beamline: md_key_PHS 
                                for md_key_PHS, md_key_beamline_list in self.md_lookup.items() 
                                for md_key_beamline in md_key_beamline_list}
-
+# this creates a reverse mapping where the keys are the possible names in 'beamline language' of a parameter, and the values are the name in 'PyHyper language'.  This exploits the fact that dicts are ordered to provide rank-sorted mapping of parameters.
                 # here, we broaden the table to make a value that default sources from '_setpoint' actually match on either
                 # the bare value or the readback value.
                 reverse_lut_adds = {}
