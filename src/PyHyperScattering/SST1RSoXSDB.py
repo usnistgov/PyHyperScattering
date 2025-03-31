@@ -1067,7 +1067,7 @@ class SST1RSoXSDB:
                     try:
                         baseline_value = baseline[key_name_beamline] ## Next, try finding metadata in baseline
                         if isinstance(baseline_value, (tiled.client.array.ArrayClient, tiled.client.array.DaskArrayClient)): baseline_value = baseline_value.read() ## For tiled_client.array data types, need to use .read() to get the values
-                        md[key_name_PHS] = baseline_value.mean()
+                        md[key_name_PHS] = baseline_value.mean().round(4) ## Rounded for stacking purposes.  The EPICS values recorded in bluesky are read back from encoders, and are not 100% reproducible. If you try to load a spiral scan for instance, and you don't round, the scan will be massive because it won't be on a regular grid - because one frame was taken at sam_x = 128.0000034 and the next one up was taken at sam_x = 128.0000055.
                         if baseline_value.var() > 0: ## Might need to increase tolerance, so that it does not throw unnecessary warnings for small variations
                             warnings.warn(
                                 (
