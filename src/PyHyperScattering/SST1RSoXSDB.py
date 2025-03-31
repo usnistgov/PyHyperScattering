@@ -1057,13 +1057,14 @@ class SST1RSoXSDB:
             if key not in md_key_names_beamline:
                 if "_image" not in key:
                     md_lookup[key] = [key]
-        ## Find metadata from Tiled and store in PyHyperScattering metadata dictionary
-        for key_name_PHS, key_names_beamline in md_lookup.items():
-            for key_name_beamline in key_names_beamline:
+        # Find metadata from Tiled primary and store in PyHyperScattering metadata dictionary
+        for key_name_PHS, key_names_beamline in md_lookup.items(): # first iterate over PyHyper 'words' and ordered lists to check
+            for key_name_beamline in key_names_beamline: # next, go through that list in order
                 if (key_name_PHS in md
                     and md[key_name_PHS] is not None): 
-                    continue ## If the md is already filled in, no need to try other beamline keys
-                try: md[key_name_PHS] = primary[key_name_beamline].read() ## First try finding metadata in primary stream
+                    break # If the pyhyper key is already filled in, no need to try other beamline keys, so stop processing this PyHyper key.
+                try: 
+                    md[key_name_PHS] = primary[key_name_beamline].read() # first try finding metadata in primary stream
                 except (KeyError, HTTPStatusError):
                     try:
                         baseline_value = baseline[key_name_beamline] ## Next, try finding metadata in baseline
