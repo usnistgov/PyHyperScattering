@@ -9,12 +9,15 @@ File to:
 # Imports
 import xarray as xr
 import numpy as np
-import pygix  # type: ignore
 import pathlib
 from typing import Union, Tuple
 from tqdm.auto import tqdm 
 import warnings
 from PyHyperScattering.PFGeneralIntegrator import PFGeneralIntegrator
+try:
+    import pygix  # type: ignore
+except ImportError:
+    warnings.warn('Unable to load optional dependency pygix, needed for grazing.  Install with pyhyperscattering[grazing] if needed.',stacklevel=2)
 
 class PGGeneralIntegrator(PFGeneralIntegrator):
     """ 
