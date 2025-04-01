@@ -35,13 +35,13 @@ dependencies = [
     "astropy",
     "fabio",
     "nodejs",
-    "silx==2.0.0",
     "pydata_sphinx_theme",
     "numexpr<2.8.5",
 ]
 
 [project.optional-dependencies]
-grazing = [
+grazing = [    
+    "silx==2.0.0",
     "pygix"
     ]
 bluesky = [
