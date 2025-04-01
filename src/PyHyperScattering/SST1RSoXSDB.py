@@ -574,8 +574,7 @@ class SST1RSoXSDB:
         coords={},
         return_dataset=False,
         useMonitorShutterThinning=True,
-        md_manual = {}, ## Manually enter metadata in case it were not written out during a scan or saved to Tiled
-    ):
+     ):
         """
         Loads a run entry from a catalog result into a raw xarray.
 
@@ -689,32 +688,6 @@ class SST1RSoXSDB:
                     except KeyError:
                         pyhyper_axes_to_use.append(x)
                 dims = pyhyper_axes_to_use
-
-        """
-        elif dims == None:
-            # use the dim tols to define the dimensions
-            # dims = []
-            # dim_tols = {'en_polarization': 0.5, 'sam_x': 0.05, 'sam_y':0.05, 'en_energy':0.05, 'exposure': 1., 'sam_th': 0.05} # set the amount dims are allowed to change; could make this user-chosen in the future
-            dims = ['en_energy','time'] # I think this always needs to be an axis due to the way that the integrator is set up
-            dim_tols = {'en_polarization': 0.5, 'sam_x': 0.05, 'sam_y':0.05, 'exposure': 1., 'sam_th': 0.05} # set the amount dims are allowed to change; could make this user-chosen in the future
-            if 'spiral' in md['start']['plan_name']:
-                dims = ['energy','time']
-                dim_tols = {'polarization': 0.5, 'sam_x': 0.05, 'sam_y':0.05, 'exposure': 1., 'sam_th': 0.05} # set the amount dims are allowed to change; could make this user-chosen in the future
-            for k in dim_tols.keys():
-                dim = md[k]
-                dim_std = np.std(dim)
-                if dim_std > dim_tols[k]:
-                    dims.append(k)
-        else: # if the user has already specified the dims; user may frequently specify 'energy' or 'polarization', so just changing that so it's readable to access correct metadata (without en_, they are just setpoints)
-            dims = dims
-            for i in range(0,len(dims)):
-                if dims[i] == 'polarization':
-                    dims[i] = 'en_polarization'
-                if dims[i] == 'energy':
-                    dims[i] = 'en_energy'
-            if len(dims) == 0:
-                raise NotImplementedError('You have not entered any dimensions; please enter at least one, or use None rather than an empty list')
-        """
 
         data = run["primary"]["data"][md["detector"] + "_image"]
         if isinstance(data,tiled.client.array.ArrayClient):
