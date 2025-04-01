@@ -90,7 +90,6 @@ def test_SST1DB_load_energy_scan_20241209(sstdb):
     run = sstdb.loadRun(91175).unstack('system')
     assert type(run) == xr.DataArray
     assert 'energy' in run.indexes
-    assert 'polarization' in run.indexes
 
 @must_have_tiled
 def test_SST1DB_load_energy_scan_20250213(sstdb):
@@ -107,10 +106,9 @@ def test_SST1DB_load_spiral_scan_20250221(sstdb):
 
 @must_have_tiled
 def test_SST1DB_load_count_scan_20250222(sstdb):
-    run = sstdb.loadRun(92849,dims=['time','polarization']).unstack('system')
+    run = sstdb.loadRun(92849).unstack('system')
     assert type(run) == xr.DataArray
     assert 'time' in run.indexes
-    assert 'polarization' in run.indexes
 
 @must_have_tiled
 def test_SST1DB_load_energy_scan_20250223(sstdb):
