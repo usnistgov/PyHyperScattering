@@ -1,0 +1,1505 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>PyHyperScattering package &#8212; PyHyperScattering 0+unknown documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/ntd2d.css?v=525a25f0" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js?v=f0cffefe"></script>
+    <script src="../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'source/reference_API/PyHyperScattering';</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Development and Contributing Info: TODO" href="../development/idx_development.html" />
+    <link rel="prev" title="API Reference" href="idx_reference_API.html" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+
+  <link rel="stylesheet" href="https://pages.nist.gov/nist-header-footer/css/nist-combined.css">
+  <script src="https://code.jquery.com/jquery-3.6.2.min.js" type="text/javascript" defer="defer"></script>
+  <script src="https://pages.nist.gov/nist-header-footer/js/nist-header-footer.js" type="text/javascript" defer="defer"></script>
+
+
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/Logo_PyHyperO9_Light.svg" class="logo__image only-light" alt="PyHyperScattering 0+unknown documentation - Home"/>
+    <img src="../../_static/Logo_PyHyperO10_Dark.svg" class="logo__image only-dark pst-js-only" alt="PyHyperScattering 0+unknown documentation - Home"/>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../getting_started/idx_getting_started.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../user_guide/idx_user_guide.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="idx_reference_API.html">
+    API Reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../development/idx_development.html">
+    Development
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../release_notes/idx_release_notes.html">
+    Release notes
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/usnistgov/PyHyperScattering" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../getting_started/idx_getting_started.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../user_guide/idx_user_guide.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="idx_reference_API.html">
+    API Reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../development/idx_development.html">
+    Development
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../release_notes/idx_release_notes.html">
+    Release notes
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/usnistgov/PyHyperScattering" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">PyHyperScattering package</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="idx_reference_API.html" class="nav-link">API Reference</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">PyHyperScattering package</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="pyhyperscattering-package">
+<h1>PyHyperScattering package<a class="headerlink" href="#pyhyperscattering-package" title="Permalink to this heading">#</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading">#</a></h2>
+</section>
+<section id="module-PyHyperScattering.load">
+<span id="pyhyperscattering-load-module"></span><h2>PyHyperScattering.load module<a class="headerlink" href="#module-PyHyperScattering.load" title="Permalink to this heading">#</a></h2>
+<section id="pyhyperscattering-load-fileloader-module">
+<h3>PyHyperScattering.load.FileLoader module<a class="headerlink" href="#pyhyperscattering-load-fileloader-module" title="Permalink to this heading">#</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="PyHyperScattering.load.FileLoader">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">PyHyperScattering.load.</span></span><span class="sig-name descname"><span class="pre">FileLoader</span></span><a class="headerlink" href="#PyHyperScattering.load.FileLoader" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Abstract class defining a generic scattering file loader.  Input is a (or multiple) filename/s and output is a
+xarray I(pix_x,pix_y,dims,coords) where dims and coords are loaded by user request.</p>
+<p>Difference: all coords are dims but not all dims are coords.  Dims can also be auto-hinted using the following
+standard names: energy,exposure,pos_x,pos_y,pos_z,theta.</p>
+<p>Individual loaders can try searching metadata for other dim names but this is not guaranteed.
+Coords can be used to provide a list of values for a dimension when that dimension cannot be hinted, e.g. where vals
+come from external data.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="PyHyperScattering.load.FileLoader.file_ext">
+<span class="sig-name descname"><span class="pre">file_ext</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">''</span></em><a class="headerlink" href="#PyHyperScattering.load.FileLoader.file_ext" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyHyperScattering.load.FileLoader.loadFileSeries">
+<span class="sig-name descname"><span class="pre">loadFileSeries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">basepath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dims</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_filter_regex</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_skip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">md_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quiet</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_qxy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dest_qx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dest_qy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_raw</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.load.FileLoader.loadFileSeries" title="Permalink to this definition">#</a></dt>
+<dd><p>Load a series into a single xarray.</p>
+<ul class="simple">
+<li><p>= not implemented yet</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>basepath</strong> (<em>str</em><em> or </em><em>Path</em>) – path to the directory to load</p></li>
+<li><p><strong>dims</strong> (<em>list</em>) – dimensions of the resulting xarray (excluding ‘pix_x’ and ‘pix_y’), as list of str</p></li>
+<li><p><strong>coords</strong> (<em>dict</em>) – dictionary of any dims that are <em>not</em> present in metadata</p></li>
+<li><p><strong>file_filter</strong> (<em>str</em>) – string that must be in each file name</p></li>
+<li><p><strong>*file_filer_regex</strong> (<em>str</em>) – regex string that must match in each file name</p></li>
+<li><p><strong>*file_skip</strong> (<em>str</em>) – string that, if present in file name, means file should be skipped.</p></li>
+<li><p><strong>md_filter</strong> (<em>dict</em>) – dict of <em>required</em> metadata values; points without these metadata values will be dropped</p></li>
+<li><p><strong>md_filter_regex</strong> (<em>dict</em>) – dict of <em>required</em> metadata regex; points without these metadata values will be dropped</p></li>
+<li><p><strong>quiet</strong> (<em>bool</em>) – skip printing most intermediate output if true.</p></li>
+<li><p><strong>output_qxy</strong> (<em>bool</em>) – output a qx/qy stack rather than a pix_x/pix_y stack.  This is a lossy operation, the array will be remeshed.  Not recommended.</p></li>
+<li><p><strong>output_raw</strong> (<em>bool</em>) – Do not apply pixel or q coordinates to the final stack.</p></li>
+<li><p><strong>dest_qx</strong> (<em>array-like</em><em> or </em><em>None</em>) – set of qx points that you would like the final stack to have.  If None, will take the middle image and remesh to that.</p></li>
+<li><p><strong>dest_qy</strong> (<em>array-like</em><em> or </em><em>None</em>) – set of qy points that you would like the final stack to have.  If None, will take the middle image and remesh to that.</p></li>
+<li><p><strong>image_slice</strong> (<em>tuple</em><em> of </em><em>slices</em>) – If provided, all images will be reduced according to these slice objects</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyHyperScattering.load.FileLoader.loadSingleImage">
+<span class="sig-name descname"><span class="pre">loadSingleImage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_q</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.load.FileLoader.loadSingleImage" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="PyHyperScattering.load.FileLoader.md_loading_is_quick">
+<span class="sig-name descname"><span class="pre">md_loading_is_quick</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#PyHyperScattering.load.FileLoader.md_loading_is_quick" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyHyperScattering.load.FileLoader.peekAtMd">
+<span class="sig-name descname"><span class="pre">peekAtMd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.load.FileLoader.peekAtMd" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="pyhyperscattering-load-als11012rsoxsloader-module">
+<h3>PyHyperScattering.load.ALS11012RSoXSLoader module<a class="headerlink" href="#pyhyperscattering-load-als11012rsoxsloader-module" title="Permalink to this heading">#</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="PyHyperScattering.load.ALS11012RSoXSLoader">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">PyHyperScattering.load.</span></span><span class="sig-name descname"><span class="pre">ALS11012RSoXSLoader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">corr_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user_corr_func</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dark_pedestal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exposure_offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.002</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dark_subtract</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_collected_after_mar2021</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constant_md</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.load.ALS11012RSoXSLoader" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#PyHyperScattering.load.FileLoader" title="PyHyperScattering.FileLoader.FileLoader"><code class="xref py py-class docutils literal notranslate"><span class="pre">FileLoader</span></code></a></p>
+<p>Loader for FITS files from the ALS 11.0.1.2 RSoXS instrument</p>
+<p>Additional requirement: astropy, for FITS file loader</p>
+<p>Usage is mainly via the inherited function integrateImageStack from FileLoader</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="PyHyperScattering.load.ALS11012RSoXSLoader.file_ext">
+<span class="sig-name descname"><span class="pre">file_ext</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'(.*?).fits'</span></em><a class="headerlink" href="#PyHyperScattering.load.ALS11012RSoXSLoader.file_ext" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyHyperScattering.load.ALS11012RSoXSLoader.loadDarks">
+<span class="sig-name descname"><span class="pre">loadDarks</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">basepath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dark_base_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.load.ALS11012RSoXSLoader.loadDarks" title="Permalink to this definition">#</a></dt>
+<dd><p>Load a series of dark images as a function of exposure time, to be subtracted from subsequently-loaded data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>basepath</strong> (<em>str</em><em> or </em><em>Path</em>) – path to load images from</p></li>
+<li><p><strong>dark_base_name</strong> (<em>str</em>) – str that must be in file for file to be a dark</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyHyperScattering.load.ALS11012RSoXSLoader.loadSampleSpecificDarks">
+<span class="sig-name descname"><span class="pre">loadSampleSpecificDarks</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">basepath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_skip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'donotskip'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">md_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.load.ALS11012RSoXSLoader.loadSampleSpecificDarks" title="Permalink to this definition">#</a></dt>
+<dd><p>load darks matching a specific sample metadata</p>
+<p>Used, e.g., to load darks taken at a time of measurement in order to improve the connection between the dark and sample data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>basepath</strong> (<em>str</em>) – path to load darks from</p></li>
+<li><p><strong>file_filter</strong> (<em>str</em>) – string that must be in each file name</p></li>
+<li><p><strong>file_skip</strong> (<em>str</em>) – string that, if in file name, means file should be skipped.</p></li>
+<li><p><strong>md_filter</strong> (<em>dict</em>) – dict of required metadata values.  this will be appended with dark images only, no need to put that here.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyHyperScattering.load.ALS11012RSoXSLoader.loadSingleImage">
+<span class="sig-name descname"><span class="pre">loadSingleImage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_q</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.load.ALS11012RSoXSLoader.loadSingleImage" title="Permalink to this definition">#</a></dt>
+<dd><p>THIS IS A HELPER FUNCTION, mostly - should not be called directly unless you know what you are doing</p>
+<p>Load a single image from filepath and return a single-image, raw xarray, performing dark subtraction if so configured.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="PyHyperScattering.load.ALS11012RSoXSLoader.md_loading_is_quick">
+<span class="sig-name descname"><span class="pre">md_loading_is_quick</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#PyHyperScattering.load.ALS11012RSoXSLoader.md_loading_is_quick" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyHyperScattering.load.ALS11012RSoXSLoader.normalizeMetadata">
+<span class="sig-name descname"><span class="pre">normalizeMetadata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">headerdict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.load.ALS11012RSoXSLoader.normalizeMetadata" title="Permalink to this definition">#</a></dt>
+<dd><p>convert the local metadata terms in headerdict to standard nomenclature</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>headerdict</strong> (<em>dict</em>) – the header returned by the file loader</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyHyperScattering.load.ALS11012RSoXSLoader.peekAtMd">
+<span class="sig-name descname"><span class="pre">peekAtMd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.load.ALS11012RSoXSLoader.peekAtMd" title="Permalink to this definition">#</a></dt>
+<dd><p>load the header/metadata without opening the corresponding image</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>file</strong> (<em>str</em>) – fits file from which to load metadata</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="pyhyperscattering-load-sst1rsoxsloader-module">
+<h3>PyHyperScattering.load.SST1RSoXSLoader module<a class="headerlink" href="#pyhyperscattering-load-sst1rsoxsloader-module" title="Permalink to this heading">#</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="PyHyperScattering.load.SST1RSoXSLoader">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">PyHyperScattering.load.</span></span><span class="sig-name descname"><span class="pre">SST1RSoXSLoader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">corr_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user_corr_func</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dark_pedestal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exposure_offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constant_md</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_chunked_loading</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.load.SST1RSoXSLoader" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#PyHyperScattering.load.FileLoader" title="PyHyperScattering.FileLoader.FileLoader"><code class="xref py py-class docutils literal notranslate"><span class="pre">FileLoader</span></code></a></p>
+<p>Loader for TIFF files from NSLS-II SST1 RSoXS instrument</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="PyHyperScattering.load.SST1RSoXSLoader.file_ext">
+<span class="sig-name descname"><span class="pre">file_ext</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'(.*?)primary(.*?).tiff'</span></em><a class="headerlink" href="#PyHyperScattering.load.SST1RSoXSLoader.file_ext" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyHyperScattering.load.SST1RSoXSLoader.loadMd">
+<span class="sig-name descname"><span class="pre">loadMd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.load.SST1RSoXSLoader.loadMd" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyHyperScattering.load.SST1RSoXSLoader.loadSingleImage">
+<span class="sig-name descname"><span class="pre">loadSingleImage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_q</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_cached_md</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.load.SST1RSoXSLoader.loadSingleImage" title="Permalink to this definition">#</a></dt>
+<dd><p>HELPER FUNCTION that loads a single image and returns an xarray with either pix_x / pix_y dimensions (if return_q == False) or qx / qy (if return_q == True)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filepath</strong> (<em>Pathlib.path</em>) – path of the file to load</p></li>
+<li><p><strong>coords</strong> (<em>dict-like</em>) – coordinate values to inject into the metadata</p></li>
+<li><p><strong>return_q</strong> (<em>bool</em>) – return qx / qy coords.  If false, returns pixel coords.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="PyHyperScattering.load.SST1RSoXSLoader.md_loading_is_quick">
+<span class="sig-name descname"><span class="pre">md_loading_is_quick</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#PyHyperScattering.load.SST1RSoXSLoader.md_loading_is_quick" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyHyperScattering.load.SST1RSoXSLoader.peekAtMd">
+<span class="sig-name descname"><span class="pre">peekAtMd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.load.SST1RSoXSLoader.peekAtMd" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="PyHyperScattering.load.SST1RSoXSLoader.pix_size_1">
+<span class="sig-name descname"><span class="pre">pix_size_1</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.06</span></em><a class="headerlink" href="#PyHyperScattering.load.SST1RSoXSLoader.pix_size_1" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="PyHyperScattering.load.SST1RSoXSLoader.pix_size_2">
+<span class="sig-name descname"><span class="pre">pix_size_2</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.06</span></em><a class="headerlink" href="#PyHyperScattering.load.SST1RSoXSLoader.pix_size_2" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyHyperScattering.load.SST1RSoXSLoader.read_baseline">
+<span class="sig-name descname"><span class="pre">read_baseline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">baseline_csv</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.load.SST1RSoXSLoader.read_baseline" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyHyperScattering.load.SST1RSoXSLoader.read_json">
+<span class="sig-name descname"><span class="pre">read_json</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">jsonfile</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.load.SST1RSoXSLoader.read_json" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyHyperScattering.load.SST1RSoXSLoader.read_primary">
+<span class="sig-name descname"><span class="pre">read_primary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">primary_csv</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seq_num</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cwd</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.load.SST1RSoXSLoader.read_primary" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyHyperScattering.load.SST1RSoXSLoader.read_shutter_toggle">
+<span class="sig-name descname"><span class="pre">read_shutter_toggle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shutter_csv</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.load.SST1RSoXSLoader.read_shutter_toggle" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="pyhyperscattering-load-sst1rsoxsdb-module">
+<h3>PyHyperScattering.load.SST1RSoXSDB module<a class="headerlink" href="#pyhyperscattering-load-sst1rsoxsdb-module" title="Permalink to this heading">#</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="PyHyperScattering.load.SST1RSoXSDB">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">PyHyperScattering.load.</span></span><span class="sig-name descname"><span class="pre">SST1RSoXSDB</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">corr_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user_corr_fun</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dark_subtract</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dark_pedestal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exposure_offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">catalog</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">catalog_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_precise_positions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_chunked_loading</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">suppress_time_dimension</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.load.SST1RSoXSDB" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Loader for bluesky run xarrays form NSLS-II SST1 RSoXS instrument</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="PyHyperScattering.load.SST1RSoXSDB.background">
+<span class="sig-name descname"><span class="pre">background</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.load.SST1RSoXSDB.background" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyHyperScattering.load.SST1RSoXSDB.do_list_append">
+<span class="sig-name descname"><span class="pre">do_list_append</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.load.SST1RSoXSDB.do_list_append" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="PyHyperScattering.load.SST1RSoXSDB.file_ext">
+<span class="sig-name descname"><span class="pre">file_ext</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">''</span></em><a class="headerlink" href="#PyHyperScattering.load.SST1RSoXSDB.file_ext" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyHyperScattering.load.SST1RSoXSDB.loadMd">
+<span class="sig-name descname"><span class="pre">loadMd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">run</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.load.SST1RSoXSDB.loadMd" title="Permalink to this definition">#</a></dt>
+<dd><p>return a dict of metadata entries from the databroker run xarray</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyHyperScattering.load.SST1RSoXSDB.loadMonitors">
+<span class="sig-name descname"><span class="pre">loadMonitors</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">entry</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integrate_onto_images</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">useShutterThinning</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_thinning_iters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">directLoadPulsedMonitors</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.load.SST1RSoXSDB.loadMonitors" title="Permalink to this definition">#</a></dt>
+<dd><p>Load the monitor streams for entry.</p>
+<p>Creates a dataset containing all monitor streams (e.g., Mesh Current, Shutter Timing, etc.) as data variables mapped
+against time. Optionally, all streams can be indexed against the primary measurement time for the images using
+integrate_onto_images. Whether or not time integration attempts to account for shutter opening/closing is controlled
+by useShutterThinning. Warning: for exposure times &lt; 0.5 seconds at SST (as of 9 Feb 2023), useShutterThinning=True
+may excessively cull data points.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>entry</strong> (<em>databroker.client.BlueskyRun</em>) – Bluesky Document containing run information.
+ex: phs.load.SST1RSoXSDB.c[scanID] or databroker.client.CatalogOfBlueskyRuns[scanID]</p></li>
+<li><p><strong>integrate_onto_images</strong> (<em>bool</em><em>, </em><em>optional</em>) – whether or not to map timepoints to the image measurement times (as held by the ‘primary’ stream), by default True
+Presently bins are averaged between measurements intervals.</p></li>
+<li><p><strong>useShutterThinning</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether or not to attempt to thin (filter) the raw time streams to remove data collected during shutter opening/closing, by default False
+As of 9 Feb 2023 at NSLS2 SST1, using useShutterThinning= True for exposure times of &lt; 0.5s is
+not recommended because the shutter data is unreliable and too many points will be removed</p></li>
+<li><p><strong>n_thinning_iters</strong> (<em>int</em><em>, </em><em>optional</em>) – how many iterations of thinning to perform, by default 1
+(former default was 5 before gated monitor loading was added)
+If you receive errors in assigning image timepoints to counters, try fewer iterations</p></li>
+<li><p><strong>directLoadPulsedMonitors</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether or not to load the pulsed monitors using direct reading, by default True
+This only applies if integrate_onto_images is True; otherwise you’ll get very raw data.
+If False, the pulsed monitors will be loaded using a shutter-thinning and masking approach as with continuous counters</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>xarray dataset containing all monitor streams as data variables mapped against the dimension “time”</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>xr.Dataset</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyHyperScattering.load.SST1RSoXSDB.loadRun">
+<span class="sig-name descname"><span class="pre">loadRun</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">run</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dims</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_dataset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">useMonitorShutterThinning</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.load.SST1RSoXSDB.loadRun" title="Permalink to this definition">#</a></dt>
+<dd><p>Loads a run entry from a catalog result into a raw xarray.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>run</strong> (<em>DataBroker result</em><em>, </em><em>int</em><em> of </em><em>a scan id</em><em>, </em><em>list</em><em> of </em><em>scan ids</em><em>, </em><em>list</em><em> of </em><em>DataBroker runs</em>) – a single run from BlueSky</p></li>
+<li><p><strong>dims</strong> (<em>list</em>) – list of dimensions you’d like in the resulting xarray.  See list of allowed dimensions in documentation.  If not set or None, tries to auto-hint the dims from the RSoXS plan_name.</p></li>
+<li><p><strong>CHANGE</strong> – List of dimensions you’d like. If not set, will set all possibilities as dimensions (x, y, theta, energy, polarization)</p></li>
+<li><p><strong>coords</strong> (<em>dict</em>) – user-supplied dimensions, see syntax examples in documentation.</p></li>
+<li><p><strong>return_dataset</strong> (<em>bool</em><em>,</em><em>default False</em>) – return both the data and the monitors as a xr.dataset.  If false (default), just returns the data.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>raw xarray containing your scan in PyHyper-compliant format</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>raw (xarray)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyHyperScattering.load.SST1RSoXSDB.loadSeries">
+<span class="sig-name descname"><span class="pre">loadSeries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">run_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">meta_dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loadrun_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.load.SST1RSoXSDB.loadSeries" title="Permalink to this definition">#</a></dt>
+<dd><p>Loads a series of runs into a single xarray object, stacking along meta_dim.</p>
+<p>Useful for a set of samples, or a set of polarizations, etc., taken in different scans.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>run_list</strong> (<em>list</em>) – list of scan ids to load</p></li>
+<li><p><strong>meta_dim</strong> (<em>str</em>) – dimension to stack along.  must be a valid attribute/metadata value, such as polarization or sample_name</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>xarray.Dataset with all scans stacked</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>raw</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyHyperScattering.load.SST1RSoXSDB.loadSingleImage">
+<span class="sig-name descname"><span class="pre">loadSingleImage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_q</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.load.SST1RSoXSDB.loadSingleImage" title="Permalink to this definition">#</a></dt>
+<dd><p>DO NOT USE</p>
+<p>This function is preserved as reference for the qx/qy loading conventions.</p>
+<p>NOT FOR ACTIVE USE.  DOES NOT WORK.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="PyHyperScattering.load.SST1RSoXSDB.md_loading_is_quick">
+<span class="sig-name descname"><span class="pre">md_loading_is_quick</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#PyHyperScattering.load.SST1RSoXSDB.md_loading_is_quick" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="PyHyperScattering.load.SST1RSoXSDB.md_lookup">
+<span class="sig-name descname"><span class="pre">md_lookup</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'energy':</span> <span class="pre">['en_energy_setpoint',</span> <span class="pre">'en_monoen_setpoint'],</span> <span class="pre">'exposure':</span> <span class="pre">['RSoXS</span> <span class="pre">Shutter</span> <span class="pre">Opening</span> <span class="pre">Time</span> <span class="pre">(ms)'],</span> <span class="pre">'polarization':</span> <span class="pre">['en_polarization_setpoint'],</span> <span class="pre">'sam_th':</span> <span class="pre">['solid_sample_r',</span> <span class="pre">'manipulator_r',</span> <span class="pre">'RSoXS</span> <span class="pre">Sample</span> <span class="pre">Rotation'],</span> <span class="pre">'sam_x':</span> <span class="pre">['solid_sample_x',</span> <span class="pre">'manipulator_x',</span> <span class="pre">'RSoXS</span> <span class="pre">Sample</span> <span class="pre">Outboard-Inboard'],</span> <span class="pre">'sam_y':</span> <span class="pre">['solid_sample_y',</span> <span class="pre">'manipulator_y',</span> <span class="pre">'RSoXS</span> <span class="pre">Sample</span> <span class="pre">Up-Down'],</span> <span class="pre">'sam_z':</span> <span class="pre">['solid_sample_z',</span> <span class="pre">'manipulator_z',</span> <span class="pre">'RSoXS</span> <span class="pre">Sample</span> <span class="pre">Downstream-Upstream'],</span> <span class="pre">'time':</span> <span class="pre">['time']}</span></em><a class="headerlink" href="#PyHyperScattering.load.SST1RSoXSDB.md_lookup" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyHyperScattering.load.SST1RSoXSDB.peekAtMd">
+<span class="sig-name descname"><span class="pre">peekAtMd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">run</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.load.SST1RSoXSDB.peekAtMd" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="PyHyperScattering.load.SST1RSoXSDB.pix_size_1">
+<span class="sig-name descname"><span class="pre">pix_size_1</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.06</span></em><a class="headerlink" href="#PyHyperScattering.load.SST1RSoXSDB.pix_size_1" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="PyHyperScattering.load.SST1RSoXSDB.pix_size_2">
+<span class="sig-name descname"><span class="pre">pix_size_2</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.06</span></em><a class="headerlink" href="#PyHyperScattering.load.SST1RSoXSDB.pix_size_2" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyHyperScattering.load.SST1RSoXSDB.runSearch">
+<span class="sig-name descname"><span class="pre">runSearch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.load.SST1RSoXSDB.runSearch" title="Permalink to this definition">#</a></dt>
+<dd><p>Search the catalog using given commands.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>**kwargs</strong> – passed through to the RawMongo search method of the catalog.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>a catalog result object</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>result (obj)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyHyperScattering.load.SST1RSoXSDB.searchCatalog">
+<span class="sig-name descname"><span class="pre">searchCatalog</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outputType</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'default'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cycle</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proposal</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">saf</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">institution</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">project</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampleID</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plan</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">userOutputs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debugWarnings</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="headerlink" href="#PyHyperScattering.load.SST1RSoXSDB.searchCatalog" title="Permalink to this definition">#</a></dt>
+<dd><p>Search the Bluesky catalog for scans matching all provided keywords and return metadata as a dataframe.</p>
+<p>Matches are made based on the values in the top level of the ‘start’ dict within the metadata of each
+entry in the Bluesky Catalog (databroker.client.CatalogOfBlueskyRuns). Based on the search arguments provided,
+a pandas dataframe is returned where rows correspond to catalog entries (scans) and columns contain  metadata.
+Several presets are provided for choosing which columns are generated, along with an interface for
+user-provided search arguments and additional metadata. Fails gracefully on bad user input/ changes to
+underlying metadata scheme.</p>
+<dl class="simple">
+<dt>Ex1: All of the carbon,fluorine,or oxygen scans for a single sample series in the most recent cycle:</dt><dd><p>bsCatalogReduced4 = db_loader.searchCatalog(sample=”<a href="#id3"><span class="problematic" id="id4">bBP_</span></a>”, institution=”NIST”, cycle = “2022-2”, plan=”carbon|fluorine|oxygen”)</p>
+</dd>
+<dt>Ex2: Just all of the scan Ids for a particular sample:</dt><dd><p>bsCatalogReduced4 = db_loader.searchCatalog(sample=”BBP_PFP09A”, outputType=’scans’)</p>
+</dd>
+<dt>Ex3: Complex Search with custom parameters</dt><dd><p>bsCatalogReduced3 = db_loader.searchCatalog([‘angle’, ‘-1.6’, ‘numeric’], outputType=’all’,sample=”<a href="#id5"><span class="problematic" id="id6">BBP_</span></a>”, cycle = “2022-2”,
+institution=”NIST”,plan=”carbon”, userOutputs = [[“Exposure Multiplier”, “exptime”, r’catalog.start’], [“Stop
+Time”,”time”,r’catalog.stop’]])</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>outputType</strong> (<em>str</em><em>, </em><em>optional</em>) – modulates the content of output columns in the returned dataframe
+‘default’ returns scan_id, start time, cycle, institution, project, sample_name, sample_id, plan name, detector,
+polarization, exit_status, and num_images
+‘scans’ returns only the scan_ids (1-column dataframe)
+‘ext_msmt’ returns default columns AND bar_spot, sample_rotation
+‘ext_bio’ returns default columns AND uid, saf, user_name
+‘all’ is equivalent to ‘default’ and all other additive choices</p></li>
+<li><p><strong>cycle</strong> (<em>str</em><em>, </em><em>optional</em>) – NSLS2 beamtime cycle, regex search e.g., “2022” matches “2022-2”, “2022-1”</p></li>
+<li><p><strong>proposal</strong> (<em>str</em><em>, </em><em>optional</em>) – NSLS2 PASS proposal ID, case-insensitive, exact match, e.g., “GU-310176”</p></li>
+<li><p><strong>saf</strong> (<em>str</em><em>, </em><em>optional</em>) – Safety Approval Form (SAF) number, exact match, e.g., “309441”</p></li>
+<li><p><strong>user</strong> (<em>str</em><em>, </em><em>optional</em>) – User name, case-insensitive, regex search e.g., “eliot” matches “Eliot”, “Eliot Gann”</p></li>
+<li><p><strong>institution</strong> (<em>str</em><em>, </em><em>optional</em>) – Research Institution, case-insensitive, exact match, e.g., “NIST”</p></li>
+<li><p><strong>project</strong> (<em>str</em><em>, </em><em>optional</em>) – Project code, case-insensitive, regex search,
+e.g., “liquid” matches “Liquids”, “Liquid-RSoXS”</p></li>
+<li><p><strong>sample</strong> (<em>str</em><em>, </em><em>optional</em>) – Sample name, case-insensitive, regex search, e.g., “<a href="#id7"><span class="problematic" id="id8">BBP_</span></a>” matches “BBP_PF902A”</p></li>
+<li><p><strong>sampleID</strong> (<em>str</em><em>, </em><em>optional</em>) – Sample ID, case-insensitive, regex search, e.g., “<a href="#id9"><span class="problematic" id="id10">BBP_</span></a>” matches “BBP_PF902A”</p></li>
+<li><p><strong>plan</strong> (<em>str</em><em>, </em><em>optional</em>) – Measurement Plan, case-insensitive, regex search,
+e.g., “Full” matches “full_carbon_scan_nd”, “full_fluorine_scan_nd”
+e.g., “carbon|oxygen|fluorine” matches carbon OR oxygen OR fluorine scans</p></li>
+<li><p><strong>**kwargs</strong> – <p>Additional search terms can be provided as keyword args and will further filter
+the catalog Valid input follows metadataLabel=’searchTerm’ or metadataLavel = [‘searchTerm’,’matchType’].
+Metadata labels must match an entry in the ‘start’ dictionary of the catalog. Supported match types are
+combinations of ‘case-insensitive’, ‘case-sensitive’, and ‘exact’ OR ‘numeric’. Default behavior is to
+do a case-sensitive regex match. For metadata labels that are not valid python names, create the kwarg
+dict before passing into the function (see example 3). Additional search terms will appear in the
+output data columns.
+Ex1: passing in cycle=’2022’ would match ‘cycle’=’2022-2’ AND ‘cycle=’2022-1’
+Ex2: passing in grazing=[0,’numeric’] would match grazing==0
+Ex3: create kwargs first, then pass it into the function.</p>
+<blockquote>
+<div><p>kwargs = {‘2weird metadata label’: “Bob”, ‘grazing’: 0, ‘angle’:-1.6}
+db_loader.searchCatalog(sample=”BBP_PFP09A”, outputType=’scans’, <a href="#id1"><span class="problematic" id="id2">**</span></a>kwargs)</p>
+</div></blockquote>
+</p></li>
+<li><p><strong>userOutputs</strong> (<em>list</em><em> of </em><em>lists</em><em>, </em><em>optional</em>) – Additional metadata to be added to output can be specified as a list of lists. Each
+sub-list specifies a metadata field as a 3 element list of format:
+[Output column title (str), Metadata label (str), Metadata Source (raw str)],
+Valid options for the Metadata Source are any of [r’catalog.start’, r’catalog.start[“plan_args”], r’catalog.stop’,
+r’catalog.stop[“num_events”]’]
+e.g., userOutputs = [[“Exposure Multiplier”,”exptime”, r’catalog.start’], [“Stop Time”,”time”,r’catalog.stop’]]</p></li>
+<li><p><strong>debugWarnings</strong> (<em>bool</em><em>, </em><em>optional</em>) – if True, raises a warning with debugging information whenever a key can’t be found.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Pandas dataframe containing the results of the search, or an empty dataframe if the search fails</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyHyperScattering.load.SST1RSoXSDB.summarize_run">
+<span class="sig-name descname"><span class="pre">summarize_run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.load.SST1RSoXSDB.summarize_run" title="Permalink to this definition">#</a></dt>
+<dd><p>Deprecated function for searching the bluesky catalog for a run. Replaced by searchCatalog()</p>
+<p>To be removed in PyHyperScattering 1.0.0+.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="pyhyperscattering-load-cyrsoxsloader-module">
+<h3>PyHyperScattering.load.cyrsoxsLoader module<a class="headerlink" href="#pyhyperscattering-load-cyrsoxsloader-module" title="Permalink to this heading">#</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="PyHyperScattering.load.cyrsoxsLoader">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">PyHyperScattering.load.</span></span><span class="sig-name descname"><span class="pre">cyrsoxsLoader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">eager_load</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">profile_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_chunked_loading</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.load.cyrsoxsLoader" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Loader for cyrsoxs simulation files</p>
+<p>This code is modified from Dean Delongchamp.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="PyHyperScattering.load.cyrsoxsLoader.file_ext">
+<span class="sig-name descname"><span class="pre">file_ext</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'config.txt'</span></em><a class="headerlink" href="#PyHyperScattering.load.cyrsoxsLoader.file_ext" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyHyperScattering.load.cyrsoxsLoader.loadDirectory">
+<span class="sig-name descname"><span class="pre">loadDirectory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">directory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.load.cyrsoxsLoader.loadDirectory" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyHyperScattering.load.cyrsoxsLoader.loadDirectoryDask">
+<span class="sig-name descname"><span class="pre">loadDirectoryDask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">directory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'HDF5'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">morphology_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PhysSize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.load.cyrsoxsLoader.loadDirectoryDask" title="Permalink to this definition">#</a></dt>
+<dd><p>Loads a CyRSoXS simulation output directory into a Dask-backed qx/qy xarray.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>directory</strong> (<em>string</em><em> or </em><em>Path</em>) – root simulation directory</p></li>
+<li><p><strong>output_dir</strong> (<em>string</em><em> or </em><em>Path</em><em>, </em><em>default /HDF5</em>) – directory relative to the base to look for hdf5 files in.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyHyperScattering.load.cyrsoxsLoader.loadDirectoryLegacy">
+<span class="sig-name descname"><span class="pre">loadDirectoryLegacy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">directory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'HDF5'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">morphology_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PhysSize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.load.cyrsoxsLoader.loadDirectoryLegacy" title="Permalink to this definition">#</a></dt>
+<dd><p>Loads a CyRSoXS simulation output directory into a qx/qy xarray.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>directory</strong> (<em>string</em><em> or </em><em>Path</em>) – root simulation directory</p></li>
+<li><p><strong>output_dir</strong> (<em>string</em><em> or </em><em>Path</em><em>, </em><em>default /HDF5</em>) – directory relative to the base to look for hdf5 files in.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="PyHyperScattering.load.cyrsoxsLoader.md_loading_is_quick">
+<span class="sig-name descname"><span class="pre">md_loading_is_quick</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#PyHyperScattering.load.cyrsoxsLoader.md_loading_is_quick" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyHyperScattering.load.cyrsoxsLoader.read_config">
+<span class="sig-name descname"><span class="pre">read_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.load.cyrsoxsLoader.read_config" title="Permalink to this definition">#</a></dt>
+<dd><p>Reads config.txt from a CyRSoXS simulation and produces a dictionary of values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>fname</strong> (<em>string</em><em> or </em><em>Path</em>) – path to file</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict representation of config file</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>config</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+<section id="module-PyHyperScattering.integrate">
+<span id="pyhyperscattering-integrate-module"></span><h2>PyHyperScattering.integrate module<a class="headerlink" href="#module-PyHyperScattering.integrate" title="Permalink to this heading">#</a></h2>
+<section id="module-PyHyperScattering.PFEnergySeriesIntegrator">
+<span id="pyhyperscattering-integrate-pfenergyseriesintegrator-module"></span><h3>PyHyperScattering.integrate.PFEnergySeriesIntegrator module<a class="headerlink" href="#module-PyHyperScattering.PFEnergySeriesIntegrator" title="Permalink to this heading">#</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="PyHyperScattering.PFEnergySeriesIntegrator.PFEnergySeriesIntegrator">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">PyHyperScattering.PFEnergySeriesIntegrator.</span></span><span class="sig-name descname"><span class="pre">PFEnergySeriesIntegrator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.PFEnergySeriesIntegrator.PFEnergySeriesIntegrator" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator" title="PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator"><code class="xref py py-class docutils literal notranslate"><span class="pre">PFGeneralIntegrator</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="PyHyperScattering.PFEnergySeriesIntegrator.PFEnergySeriesIntegrator.createIntegrator">
+<span class="sig-name descname"><span class="pre">createIntegrator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">en</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recreate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.PFEnergySeriesIntegrator.PFEnergySeriesIntegrator.createIntegrator" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyHyperScattering.PFEnergySeriesIntegrator.PFEnergySeriesIntegrator.integrateImageStack">
+<span class="sig-name descname"><span class="pre">integrateImageStack</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img_stack</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunksize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.PFEnergySeriesIntegrator.PFEnergySeriesIntegrator.integrateImageStack" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyHyperScattering.PFEnergySeriesIntegrator.PFEnergySeriesIntegrator.integrateImageStack_dask">
+<span class="sig-name descname"><span class="pre">integrateImageStack_dask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img_stack</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunksize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.PFEnergySeriesIntegrator.PFEnergySeriesIntegrator.integrateImageStack_dask" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyHyperScattering.PFEnergySeriesIntegrator.PFEnergySeriesIntegrator.integrateImageStack_legacy">
+<span class="sig-name descname"><span class="pre">integrateImageStack_legacy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img_stack</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.PFEnergySeriesIntegrator.PFEnergySeriesIntegrator.integrateImageStack_legacy" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyHyperScattering.PFEnergySeriesIntegrator.PFEnergySeriesIntegrator.integrateSingleImage">
+<span class="sig-name descname"><span class="pre">integrateSingleImage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.PFEnergySeriesIntegrator.PFEnergySeriesIntegrator.integrateSingleImage" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyHyperScattering.PFEnergySeriesIntegrator.PFEnergySeriesIntegrator.recreateIntegrator">
+<span class="sig-name descname"><span class="pre">recreateIntegrator</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.PFEnergySeriesIntegrator.PFEnergySeriesIntegrator.recreateIntegrator" title="Permalink to this definition">#</a></dt>
+<dd><p>recreate the integrator, after geometry change</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyHyperScattering.PFEnergySeriesIntegrator.PFEnergySeriesIntegrator.setupDestQ">
+<span class="sig-name descname"><span class="pre">setupDestQ</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">energies</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.PFEnergySeriesIntegrator.PFEnergySeriesIntegrator.setupDestQ" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyHyperScattering.PFEnergySeriesIntegrator.PFEnergySeriesIntegrator.setupIntegrators">
+<span class="sig-name descname"><span class="pre">setupIntegrators</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">energies</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.PFEnergySeriesIntegrator.PFEnergySeriesIntegrator.setupIntegrators" title="Permalink to this definition">#</a></dt>
+<dd><blockquote>
+<div><p>Sets up the integrator stack as a function of energy.</p>
+<p>The final statement ensures that the integrator for the median of the set is created.  This integrator is used to set
+the output q-binning.</p>
+<p>Details: (copied from a message)</p>
+<p>The fact that energy is changing during reduction means that if not forced to something, the output q bins of the integrator will move as well (since the pixel to q mappings are moving with energy). Because sparse data in q is a nightmare, we pick a given set of q bins corresponding to the median of the energies in the scan. That is a compromise between a few approaches. This line manually creates that integrator with default q binning settings so we can take those bins and tell all the other integrators to use that output q grid.</p>
+</div></blockquote>
+<p>It would cosmically be better (for things like resolution calculation) to have the q bins actually move, but sparse arrays are computationally hard. Eventually (2-3 years of high performance Python evolution) I think that will be the right way to do it, this is an intermediate.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="PyHyperScattering.PFEnergySeriesIntegrator.inner_generator">
+<span class="sig-prename descclassname"><span class="pre">PyHyperScattering.PFEnergySeriesIntegrator.</span></span><span class="sig-name descname"><span class="pre">inner_generator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df_function</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'apply'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.PFEnergySeriesIntegrator.inner_generator" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-PyHyperScattering.PFGeneralIntegrator">
+<span id="pyhyperscattering-integrate-pfgeneralintegrator-module"></span><h3>PyHyperScattering.integrate.PFGeneralIntegrator module<a class="headerlink" href="#module-PyHyperScattering.PFGeneralIntegrator" title="Permalink to this heading">#</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">PyHyperScattering.PFGeneralIntegrator.</span></span><span class="sig-name descname"><span class="pre">PFGeneralIntegrator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">maskmethod</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'none'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maskrotate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">geomethod</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'none'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">NIdistance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">NIbcx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">NIbcy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">NItiltx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">NItilty</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">NIpixsizex</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">NIpixsizey</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">template_xr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ponifile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integration_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'csr_ocl'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">correctSolidAngle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maskToNan</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">npts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">500</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_log_ish_binning</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">do_1d_integration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_chunked_processing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>PyFAI general integrator wrapper</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.calibrationFromNikaParams">
+<span class="sig-name descname"><span class="pre">calibrationFromNikaParams</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">distance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bcx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bcy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tiltx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tilty</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pixsizex</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pixsizey</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.calibrationFromNikaParams" title="Permalink to this definition">#</a></dt>
+<dd><blockquote>
+<div><p>DEPRECATED as of 0.2</p>
+</div></blockquote>
+<dl>
+<dt>Set the local calibrations using Nika parameters.</dt><dd><blockquote>
+<div><p>this will probably only support rotations in the SAXS limit (i.e., where sin(x) ~ x, i.e., a couple degrees)
+since it assumes the PyFAI and Nika rotations are about the same origin point (which I think isn’t true).</p>
+</div></blockquote>
+<dl class="simple">
+<dt>Args:</dt><dd><p>distance: sample-detector distance in mm
+bcx: beam center x in pixels
+bcy: beam center y in pixels
+tiltx: detector x tilt in deg, see note above
+tilty: detector y tilt in deg, see note above
+pixsizex: pixel size in x, microns
+pixsizey: pixel size in y, microns</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.calibrationFromPoniFile">
+<span class="sig-name descname"><span class="pre">calibrationFromPoniFile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ponifile</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.calibrationFromPoniFile" title="Permalink to this definition">#</a></dt>
+<dd><p>Sets calibration from a pyFAI poni-file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ponifile</strong> (<em>str</em><em> or </em><em>Pathlib.path</em>) – a pyFAI poni file containing the geometry</p></li>
+<li><p><strong>raw_xr</strong> (<em>raw format xarray</em>) – optional, raw xr with correct pixel dimensions
+for creating an empty mask if necessary</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.calibrationFromTemplateXRParams">
+<span class="sig-name descname"><span class="pre">calibrationFromTemplateXRParams</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">raw_xr</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.calibrationFromTemplateXRParams" title="Permalink to this definition">#</a></dt>
+<dd><p>Sets calibration from a pyFAI values in a template xarray</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>raw_xr</strong> (<em>raw format xarray</em>) – a raw_xr bearing the metadata in members</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.energy">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">energy</span></span><a class="headerlink" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.energy" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.integrateImageStack">
+<span class="sig-name descname"><span class="pre">integrateImageStack</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img_stack</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunksize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.integrateImageStack" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.integrateImageStack_dask">
+<span class="sig-name descname"><span class="pre">integrateImageStack_dask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunksize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.integrateImageStack_dask" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.integrateImageStack_legacy">
+<span class="sig-name descname"><span class="pre">integrateImageStack_legacy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.integrateImageStack_legacy" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.integrateSingleImage">
+<span class="sig-name descname"><span class="pre">integrateSingleImage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.integrateSingleImage" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.loadEdfMask">
+<span class="sig-name descname"><span class="pre">loadEdfMask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.loadEdfMask" title="Permalink to this definition">#</a></dt>
+<dd><p>Loads an edf-format mask (probably from pyFAI.calib2?).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>filetoload</strong> (<em>pathlib.Path</em><em> or </em><em>string</em>) – path to edf format mask</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.loadImageMask">
+<span class="sig-name descname"><span class="pre">loadImageMask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.loadImageMask" title="Permalink to this definition">#</a></dt>
+<dd><p>loads a mask from a generic image</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>maskpath</strong> (<em>(</em><em>pathlib.Path</em><em> or </em><em>String</em><em>)</em>) – path to load</p></li>
+<li><p><strong>maskrotate</strong> (<em>(</em><em>bool</em><em>)</em>) – rotate mask using np.flipud(np.rot90(mask))</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.loadNikaMask">
+<span class="sig-name descname"><span class="pre">loadNikaMask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rotate_image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.loadNikaMask" title="Permalink to this definition">#</a></dt>
+<dd><p>Loads a Nika-generated HDF5 or tiff mask and converts it to an array that matches the local conventions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filetoload</strong> (<em>pathlib.Path</em><em> or </em><em>string</em>) – path to hdf5/tiff format mask from Nika.</p></li>
+<li><p><strong>rotate_image</strong> (<em>bool</em><em>, </em><em>default True</em>) – rotate image as should work</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.loadPolyMask">
+<span class="sig-name descname"><span class="pre">loadPolyMask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">maskpoints</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.loadPolyMask" title="Permalink to this definition">#</a></dt>
+<dd><p>loads a polygon mask from a list of polygon points</p>
+<p>Args:
+(list) maskpoints: a list of lists of points, e.g.</p>
+<blockquote>
+<div><dl>
+<dt>[</dt><dd><dl class="simple">
+<dt>[ #begin polygon 1</dt><dd><p>[0,0],[0,10],[10,10],[10,0]</p>
+</dd>
+</dl>
+<p>],
+[ #later polygons]</p>
+</dd>
+</dl>
+<p>]</p>
+</div></blockquote>
+<dl class="simple">
+<dt>(tuple) maskshape: (x,y) dimensions of mask to create</dt><dd><p>if not passed, will assume that the maximum point is included in the mask</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.loadPyHyperMask">
+<span class="sig-name descname"><span class="pre">loadPyHyperMask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.loadPyHyperMask" title="Permalink to this definition">#</a></dt>
+<dd><p>Loads a mask json file saved by PyHyper’s drawMask routines.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>maskpath</strong> (<em>(</em><em>pathlib.Path</em><em> or </em><em>string</em><em>)</em>) – path to load json file from</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.ni_beamcenter_x">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ni_beamcenter_x</span></span><a class="headerlink" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.ni_beamcenter_x" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.ni_beamcenter_y">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ni_beamcenter_y</span></span><a class="headerlink" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.ni_beamcenter_y" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.ni_distance">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ni_distance</span></span><a class="headerlink" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.ni_distance" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.ni_pixel_x">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ni_pixel_x</span></span><a class="headerlink" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.ni_pixel_x" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.ni_pixel_y">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ni_pixel_y</span></span><a class="headerlink" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.ni_pixel_y" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.ni_tilt_x">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ni_tilt_x</span></span><a class="headerlink" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.ni_tilt_x" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.ni_tilt_y">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ni_tilt_y</span></span><a class="headerlink" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.ni_tilt_y" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.recreateIntegrator">
+<span class="sig-name descname"><span class="pre">recreateIntegrator</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.recreateIntegrator" title="Permalink to this definition">#</a></dt>
+<dd><p>recreate the integrator, after geometry change</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.wavelength">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">wavelength</span></span><a class="headerlink" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.wavelength" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="PyHyperScattering.PFGeneralIntegrator.inner_generator">
+<span class="sig-prename descclassname"><span class="pre">PyHyperScattering.PFGeneralIntegrator.</span></span><span class="sig-name descname"><span class="pre">inner_generator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df_function</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'apply'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.PFGeneralIntegrator.inner_generator" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-PyHyperScattering.integrate.WPIntegrator">
+<span id="pyhyperscattering-integrate-wpintegrator-module"></span><h3>PyHyperScattering.integrate.WPIntegrator module<a class="headerlink" href="#module-PyHyperScattering.integrate.WPIntegrator" title="Permalink to this heading">#</a></h3>
+<p>Integrator for qx/qy format xarrays using skimage.transform.warp_polar or a custom cuda-accelerated version, warp_polar_gpu</p>
+</section>
+</section>
+<section id="module-PyHyperScattering.util">
+<span id="pyhyperscattering-util-module"></span><h2>PyHyperScattering.util module<a class="headerlink" href="#module-PyHyperScattering.util" title="Permalink to this heading">#</a></h2>
+<section id="module-PyHyperScattering.util.Fitting">
+<span id="pyhyperscattering-util-fitting-module"></span><h3>PyHyperScattering.util.Fitting module<a class="headerlink" href="#module-PyHyperScattering.util.Fitting" title="Permalink to this heading">#</a></h3>
+</section>
+<section id="module-PyHyperScattering.util.HDR">
+<span id="pyhyperscattering-util-hdr-module"></span><h3>PyHyperScattering.util.HDR module<a class="headerlink" href="#module-PyHyperScattering.util.HDR" title="Permalink to this heading">#</a></h3>
+</section>
+<section id="module-PyHyperScattering.util.IntegrationUtils">
+<span id="pyhyperscattering-util-integrationutils-module"></span><h3>PyHyperScattering.util.IntegrationUtils module<a class="headerlink" href="#module-PyHyperScattering.util.IntegrationUtils" title="Permalink to this heading">#</a></h3>
+</section>
+<section id="module-PyHyperScattering.util.FileIO">
+<span id="pyhyperscattering-util-fileio-module"></span><h3>PyHyperScattering.util.FileIO module<a class="headerlink" href="#module-PyHyperScattering.util.FileIO" title="Permalink to this heading">#</a></h3>
+</section>
+<section id="module-PyHyperScattering.util.RSoXS">
+<span id="pyhyperscattering-util-rsoxs-module"></span><h3>PyHyperScattering.util.RSoXS module<a class="headerlink" href="#module-PyHyperScattering.util.RSoXS" title="Permalink to this heading">#</a></h3>
+</section>
+</section>
+<section id="module-PyHyperScattering">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-PyHyperScattering" title="Permalink to this heading">#</a></h2>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="idx_reference_API.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">API Reference</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../development/idx_development.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Development and Contributing Info: TODO</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#submodules">Submodules</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-PyHyperScattering.load">PyHyperScattering.load module</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyhyperscattering-load-fileloader-module">PyHyperScattering.load.FileLoader module</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.FileLoader"><code class="docutils literal notranslate"><span class="pre">FileLoader</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.FileLoader.file_ext"><code class="docutils literal notranslate"><span class="pre">FileLoader.file_ext</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.FileLoader.loadFileSeries"><code class="docutils literal notranslate"><span class="pre">FileLoader.loadFileSeries()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.FileLoader.loadSingleImage"><code class="docutils literal notranslate"><span class="pre">FileLoader.loadSingleImage()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.FileLoader.md_loading_is_quick"><code class="docutils literal notranslate"><span class="pre">FileLoader.md_loading_is_quick</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.FileLoader.peekAtMd"><code class="docutils literal notranslate"><span class="pre">FileLoader.peekAtMd()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyhyperscattering-load-als11012rsoxsloader-module">PyHyperScattering.load.ALS11012RSoXSLoader module</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.ALS11012RSoXSLoader"><code class="docutils literal notranslate"><span class="pre">ALS11012RSoXSLoader</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.ALS11012RSoXSLoader.file_ext"><code class="docutils literal notranslate"><span class="pre">ALS11012RSoXSLoader.file_ext</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.ALS11012RSoXSLoader.loadDarks"><code class="docutils literal notranslate"><span class="pre">ALS11012RSoXSLoader.loadDarks()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.ALS11012RSoXSLoader.loadSampleSpecificDarks"><code class="docutils literal notranslate"><span class="pre">ALS11012RSoXSLoader.loadSampleSpecificDarks()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.ALS11012RSoXSLoader.loadSingleImage"><code class="docutils literal notranslate"><span class="pre">ALS11012RSoXSLoader.loadSingleImage()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.ALS11012RSoXSLoader.md_loading_is_quick"><code class="docutils literal notranslate"><span class="pre">ALS11012RSoXSLoader.md_loading_is_quick</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.ALS11012RSoXSLoader.normalizeMetadata"><code class="docutils literal notranslate"><span class="pre">ALS11012RSoXSLoader.normalizeMetadata()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.ALS11012RSoXSLoader.peekAtMd"><code class="docutils literal notranslate"><span class="pre">ALS11012RSoXSLoader.peekAtMd()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyhyperscattering-load-sst1rsoxsloader-module">PyHyperScattering.load.SST1RSoXSLoader module</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSLoader"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSLoader</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSLoader.file_ext"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSLoader.file_ext</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSLoader.loadMd"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSLoader.loadMd()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSLoader.loadSingleImage"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSLoader.loadSingleImage()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSLoader.md_loading_is_quick"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSLoader.md_loading_is_quick</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSLoader.peekAtMd"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSLoader.peekAtMd()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSLoader.pix_size_1"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSLoader.pix_size_1</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSLoader.pix_size_2"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSLoader.pix_size_2</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSLoader.read_baseline"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSLoader.read_baseline()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSLoader.read_json"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSLoader.read_json()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSLoader.read_primary"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSLoader.read_primary()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSLoader.read_shutter_toggle"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSLoader.read_shutter_toggle()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyhyperscattering-load-sst1rsoxsdb-module">PyHyperScattering.load.SST1RSoXSDB module</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSDB"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSDB</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSDB.background"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSDB.background()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSDB.do_list_append"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSDB.do_list_append()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSDB.file_ext"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSDB.file_ext</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSDB.loadMd"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSDB.loadMd()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSDB.loadMonitors"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSDB.loadMonitors()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSDB.loadRun"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSDB.loadRun()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSDB.loadSeries"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSDB.loadSeries()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSDB.loadSingleImage"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSDB.loadSingleImage()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSDB.md_loading_is_quick"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSDB.md_loading_is_quick</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSDB.md_lookup"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSDB.md_lookup</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSDB.peekAtMd"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSDB.peekAtMd()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSDB.pix_size_1"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSDB.pix_size_1</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSDB.pix_size_2"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSDB.pix_size_2</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSDB.runSearch"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSDB.runSearch()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSDB.searchCatalog"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSDB.searchCatalog()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSDB.summarize_run"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSDB.summarize_run()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyhyperscattering-load-cyrsoxsloader-module">PyHyperScattering.load.cyrsoxsLoader module</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.cyrsoxsLoader"><code class="docutils literal notranslate"><span class="pre">cyrsoxsLoader</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.cyrsoxsLoader.file_ext"><code class="docutils literal notranslate"><span class="pre">cyrsoxsLoader.file_ext</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.cyrsoxsLoader.loadDirectory"><code class="docutils literal notranslate"><span class="pre">cyrsoxsLoader.loadDirectory()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.cyrsoxsLoader.loadDirectoryDask"><code class="docutils literal notranslate"><span class="pre">cyrsoxsLoader.loadDirectoryDask()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.cyrsoxsLoader.loadDirectoryLegacy"><code class="docutils literal notranslate"><span class="pre">cyrsoxsLoader.loadDirectoryLegacy()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.cyrsoxsLoader.md_loading_is_quick"><code class="docutils literal notranslate"><span class="pre">cyrsoxsLoader.md_loading_is_quick</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.cyrsoxsLoader.read_config"><code class="docutils literal notranslate"><span class="pre">cyrsoxsLoader.read_config()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-PyHyperScattering.integrate">PyHyperScattering.integrate module</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#module-PyHyperScattering.PFEnergySeriesIntegrator">PyHyperScattering.integrate.PFEnergySeriesIntegrator module</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.PFEnergySeriesIntegrator.PFEnergySeriesIntegrator"><code class="docutils literal notranslate"><span class="pre">PFEnergySeriesIntegrator</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.PFEnergySeriesIntegrator.PFEnergySeriesIntegrator.createIntegrator"><code class="docutils literal notranslate"><span class="pre">PFEnergySeriesIntegrator.createIntegrator()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.PFEnergySeriesIntegrator.PFEnergySeriesIntegrator.integrateImageStack"><code class="docutils literal notranslate"><span class="pre">PFEnergySeriesIntegrator.integrateImageStack()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.PFEnergySeriesIntegrator.PFEnergySeriesIntegrator.integrateImageStack_dask"><code class="docutils literal notranslate"><span class="pre">PFEnergySeriesIntegrator.integrateImageStack_dask()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.PFEnergySeriesIntegrator.PFEnergySeriesIntegrator.integrateImageStack_legacy"><code class="docutils literal notranslate"><span class="pre">PFEnergySeriesIntegrator.integrateImageStack_legacy()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.PFEnergySeriesIntegrator.PFEnergySeriesIntegrator.integrateSingleImage"><code class="docutils literal notranslate"><span class="pre">PFEnergySeriesIntegrator.integrateSingleImage()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.PFEnergySeriesIntegrator.PFEnergySeriesIntegrator.recreateIntegrator"><code class="docutils literal notranslate"><span class="pre">PFEnergySeriesIntegrator.recreateIntegrator()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.PFEnergySeriesIntegrator.PFEnergySeriesIntegrator.setupDestQ"><code class="docutils literal notranslate"><span class="pre">PFEnergySeriesIntegrator.setupDestQ()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.PFEnergySeriesIntegrator.PFEnergySeriesIntegrator.setupIntegrators"><code class="docutils literal notranslate"><span class="pre">PFEnergySeriesIntegrator.setupIntegrators()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.PFEnergySeriesIntegrator.inner_generator"><code class="docutils literal notranslate"><span class="pre">inner_generator()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#module-PyHyperScattering.PFGeneralIntegrator">PyHyperScattering.integrate.PFGeneralIntegrator module</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator"><code class="docutils literal notranslate"><span class="pre">PFGeneralIntegrator</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.calibrationFromNikaParams"><code class="docutils literal notranslate"><span class="pre">PFGeneralIntegrator.calibrationFromNikaParams()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.calibrationFromPoniFile"><code class="docutils literal notranslate"><span class="pre">PFGeneralIntegrator.calibrationFromPoniFile()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.calibrationFromTemplateXRParams"><code class="docutils literal notranslate"><span class="pre">PFGeneralIntegrator.calibrationFromTemplateXRParams()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.energy"><code class="docutils literal notranslate"><span class="pre">PFGeneralIntegrator.energy</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.integrateImageStack"><code class="docutils literal notranslate"><span class="pre">PFGeneralIntegrator.integrateImageStack()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.integrateImageStack_dask"><code class="docutils literal notranslate"><span class="pre">PFGeneralIntegrator.integrateImageStack_dask()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.integrateImageStack_legacy"><code class="docutils literal notranslate"><span class="pre">PFGeneralIntegrator.integrateImageStack_legacy()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.integrateSingleImage"><code class="docutils literal notranslate"><span class="pre">PFGeneralIntegrator.integrateSingleImage()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.loadEdfMask"><code class="docutils literal notranslate"><span class="pre">PFGeneralIntegrator.loadEdfMask()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.loadImageMask"><code class="docutils literal notranslate"><span class="pre">PFGeneralIntegrator.loadImageMask()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.loadNikaMask"><code class="docutils literal notranslate"><span class="pre">PFGeneralIntegrator.loadNikaMask()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.loadPolyMask"><code class="docutils literal notranslate"><span class="pre">PFGeneralIntegrator.loadPolyMask()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.loadPyHyperMask"><code class="docutils literal notranslate"><span class="pre">PFGeneralIntegrator.loadPyHyperMask()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.ni_beamcenter_x"><code class="docutils literal notranslate"><span class="pre">PFGeneralIntegrator.ni_beamcenter_x</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.ni_beamcenter_y"><code class="docutils literal notranslate"><span class="pre">PFGeneralIntegrator.ni_beamcenter_y</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.ni_distance"><code class="docutils literal notranslate"><span class="pre">PFGeneralIntegrator.ni_distance</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.ni_pixel_x"><code class="docutils literal notranslate"><span class="pre">PFGeneralIntegrator.ni_pixel_x</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.ni_pixel_y"><code class="docutils literal notranslate"><span class="pre">PFGeneralIntegrator.ni_pixel_y</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.ni_tilt_x"><code class="docutils literal notranslate"><span class="pre">PFGeneralIntegrator.ni_tilt_x</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.ni_tilt_y"><code class="docutils literal notranslate"><span class="pre">PFGeneralIntegrator.ni_tilt_y</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.recreateIntegrator"><code class="docutils literal notranslate"><span class="pre">PFGeneralIntegrator.recreateIntegrator()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.wavelength"><code class="docutils literal notranslate"><span class="pre">PFGeneralIntegrator.wavelength</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.PFGeneralIntegrator.inner_generator"><code class="docutils literal notranslate"><span class="pre">inner_generator()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#module-PyHyperScattering.integrate.WPIntegrator">PyHyperScattering.integrate.WPIntegrator module</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-PyHyperScattering.util">PyHyperScattering.util module</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#module-PyHyperScattering.util.Fitting">PyHyperScattering.util.Fitting module</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#module-PyHyperScattering.util.HDR">PyHyperScattering.util.HDR module</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#module-PyHyperScattering.util.IntegrationUtils">PyHyperScattering.util.IntegrationUtils module</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#module-PyHyperScattering.util.FileIO">PyHyperScattering.util.FileIO module</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#module-PyHyperScattering.util.RSoXS">PyHyperScattering.util.RSoXS module</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-PyHyperScattering">Module contents</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/source/reference_API/PyHyperScattering.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+
+  
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright : Official Contribution of the US Government.  Not subject to copyright in the United States..
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.1.2.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+
+  <!-- Taken from https://www.filamentgroup.com/lab/html-includes/#another-demo%3A-including-another-html-file -->
+  <iframe src="../../_static/ntd2d_menu.html" onload="this.before((this.contentDocument.body||this.contentDocument).children[0]);this.remove()"></iframe>
+  </body>
+</html>
