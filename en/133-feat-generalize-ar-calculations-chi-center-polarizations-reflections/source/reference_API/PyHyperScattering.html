@@ -16,25 +16,28 @@
     document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
     document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
   </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-
-  
-  <link href="../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+  <link href="../../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=a746c00c" />
     <link rel="stylesheet" type="text/css" href="../../_static/ntd2d.css?v=525a25f0" />
   
+  <!-- So that users can add custom icons -->
+  <script src="../../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
-<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
-  <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js?v=f0cffefe"></script>
     <script src="../../_static/doctools.js?v=888ff710"></script>
@@ -47,6 +50,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
 
   <link rel="stylesheet" href="https://pages.nist.gov/nist-header-footer/css/nist-combined.css">
   <script src="https://code.jquery.com/jquery-3.6.2.min.js" type="text/javascript" defer="defer"></script>
@@ -68,19 +72,8 @@
     <i class="fa-solid fa-arrow-up"></i>Back to top</button>
 
   
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-primary-sidebar-checkbox"/>
-  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
-  
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-secondary-sidebar-checkbox"/>
-  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
-  
-  <div class="search-button__wrapper">
-    <div class="search-button__overlay"></div>
-    <div class="search-button__search-container">
+  <dialog id="pst-search-dialog">
+    
 <form class="bd-search d-flex align-items-center"
       action="../../search.html"
       method="get">
@@ -88,7 +81,6 @@
   <input type="search"
          class="form-control"
          name="q"
-         id="search-input"
          placeholder="Search the docs ..."
          aria-label="Search the docs ..."
          autocomplete="off"
@@ -96,8 +88,8 @@
          autocapitalize="off"
          spellcheck="false"/>
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
-</form></div>
-  </div>
+</form>
+  </dialog>
 
   <div class="pst-async-banner-revealer d-none">
   <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
@@ -131,7 +123,7 @@
     
     
     <img src="../../_static/Logo_PyHyperO9_Light.svg" class="logo__image only-light" alt="PyHyperScattering 0+unknown documentation - Home"/>
-    <script>document.write(`<img src="../../_static/Logo_PyHyperO10_Dark.svg" class="logo__image only-dark" alt="PyHyperScattering 0+unknown documentation - Home"/>`);</script>
+    <img src="../../_static/Logo_PyHyperO10_Dark.svg" class="logo__image only-dark pst-js-only" alt="PyHyperScattering 0+unknown documentation - Home"/>
   
   
 </a></div>
@@ -191,29 +183,21 @@
         <div class="navbar-item navbar-persistent--container">
           
 
- <script>
- document.write(`
-   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <span class="search-button__default-text">Search</span>
-    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-   </button>
- `);
- </script>
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
         </div>
       
       
         <div class="navbar-item">
 
-<script>
-document.write(`
-  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
-    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
-    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
-  </button>
-`);
-</script></div>
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
       
         <div class="navbar-item"><ul class="navbar-icon-links"
     aria-label="Icon Links">
@@ -238,15 +222,11 @@ document.write(`
   
     <div class="navbar-persistent--mobile">
 
- <script>
- document.write(`
-   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <span class="search-button__default-text">Search</span>
-    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-   </button>
- `);
- </script>
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
     </div>
   
 
@@ -265,7 +245,8 @@ document.write(`
       
       
       
-      <div class="bd-sidebar-primary bd-sidebar">
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
         
 
   
@@ -326,15 +307,11 @@ document.write(`
         
           <div class="navbar-item">
 
-<script>
-document.write(`
-  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
-    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
-    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
-  </button>
-`);
-</script></div>
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
         
           <div class="navbar-item"><ul class="navbar-icon-links"
     aria-label="Icon Links">
@@ -370,9 +347,14 @@ document.write(`
   
   
   <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
   </div>
-  
-  <div id="rtd-footer-container"></div>
 
 
       </div>
@@ -390,8 +372,6 @@ document.write(`
       
         <div class="header-article-item">
 
-
-
 <nav aria-label="Breadcrumb" class="d-print-none">
   <ul class="bd-breadcrumbs">
     
@@ -403,7 +383,7 @@ document.write(`
     
     <li class="breadcrumb-item"><a href="idx_reference_API.html" class="nav-link">API Reference</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page">PyHyperScatt...</li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">PyHyperScattering package</span></li>
   </ul>
 </nav>
 </div>
@@ -435,13 +415,11 @@ document.write(`
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Abstract class defining a generic scattering file loader.  Input is a (or multiple) filename/s and output is a
 xarray I(pix_x,pix_y,dims,coords) where dims and coords are loaded by user request.</p>
-<blockquote>
-<div><p>Difference: all coords are dims but not all dims are coords.  Dims can also be auto-hinted using the following
+<p>Difference: all coords are dims but not all dims are coords.  Dims can also be auto-hinted using the following
 standard names: energy,exposure,pos_x,pos_y,pos_z,theta.</p>
 <p>Individual loaders can try searching metadata for other dim names but this is not guaranteed.
 Coords can be used to provide a list of values for a dimension when that dimension cannot be hinted, e.g. where vals
 come from external data.</p>
-</div></blockquote>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="PyHyperScattering.load.FileLoader.file_ext">
 <span class="sig-name descname"><span class="pre">file_ext</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">''</span></em><a class="headerlink" href="#PyHyperScattering.load.FileLoader.file_ext" title="Permalink to this definition">#</a></dt>
@@ -451,15 +429,18 @@ come from external data.</p>
 <dt class="sig sig-object py" id="PyHyperScattering.load.FileLoader.loadFileSeries">
 <span class="sig-name descname"><span class="pre">loadFileSeries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">basepath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dims</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_filter_regex</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_skip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">md_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quiet</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_qxy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dest_qx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dest_qy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_raw</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.load.FileLoader.loadFileSeries" title="Permalink to this definition">#</a></dt>
 <dd><p>Load a series into a single xarray.</p>
+<ul class="simple">
+<li><p>= not implemented yet</p></li>
+</ul>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>basepath</strong> (<em>str</em><em> or </em><em>Path</em>) – path to the directory to load</p></li>
-<li><p><strong>dims</strong> (<em>list</em>) – dimensions of the resulting xarray, as list of str</p></li>
+<li><p><strong>dims</strong> (<em>list</em>) – dimensions of the resulting xarray (excluding ‘pix_x’ and ‘pix_y’), as list of str</p></li>
 <li><p><strong>coords</strong> (<em>dict</em>) – dictionary of any dims that are <em>not</em> present in metadata</p></li>
 <li><p><strong>file_filter</strong> (<em>str</em>) – string that must be in each file name</p></li>
-<li><p><strong>file_filer_regex</strong> (<em>str</em>) – regex string that must match in each file name</p></li>
-<li><p><strong>file_skip</strong> (<em>str</em>) – string that, if present in file name, means file should be skipped.</p></li>
+<li><p><strong>*file_filer_regex</strong> (<em>str</em>) – regex string that must match in each file name</p></li>
+<li><p><strong>*file_skip</strong> (<em>str</em>) – string that, if present in file name, means file should be skipped.</p></li>
 <li><p><strong>md_filter</strong> (<em>dict</em>) – dict of <em>required</em> metadata values; points without these metadata values will be dropped</p></li>
 <li><p><strong>md_filter_regex</strong> (<em>dict</em>) – dict of <em>required</em> metadata regex; points without these metadata values will be dropped</p></li>
 <li><p><strong>quiet</strong> (<em>bool</em>) – skip printing most intermediate output if true.</p></li>
@@ -1030,8 +1011,9 @@ the output q-binning.</p>
 <span id="pyhyperscattering-integrate-pfgeneralintegrator-module"></span><h3>PyHyperScattering.integrate.PFGeneralIntegrator module<a class="headerlink" href="#module-PyHyperScattering.PFGeneralIntegrator" title="Permalink to this heading">#</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">PyHyperScattering.PFGeneralIntegrator.</span></span><span class="sig-name descname"><span class="pre">PFGeneralIntegrator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">maskmethod</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'none'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maskpath</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maskrotate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">geomethod</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'none'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">NIdistance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">NIbcx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">NIbcy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">NItiltx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">NItilty</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">NIpixsizex</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">NIpixsizey</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">template_xr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integration_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'csr_ocl'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">correctSolidAngle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maskToNan</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">npts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">500</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_log_ish_binning</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">do_1d_integration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_chunked_processing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">PyHyperScattering.PFGeneralIntegrator.</span></span><span class="sig-name descname"><span class="pre">PFGeneralIntegrator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">maskmethod</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'none'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maskrotate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">geomethod</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'none'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">NIdistance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">NIbcx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">NIbcy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">NItiltx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">NItilty</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">NIpixsizex</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">NIpixsizey</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">template_xr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ponifile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integration_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'csr_ocl'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">correctSolidAngle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maskToNan</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">npts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">500</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_log_ish_binning</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">do_1d_integration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_chunked_processing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator" title="Permalink to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>PyFAI general integrator wrapper</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.calibrationFromNikaParams">
 <span class="sig-name descname"><span class="pre">calibrationFromNikaParams</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">distance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bcx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bcy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tiltx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tilty</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pixsizex</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pixsizey</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.calibrationFromNikaParams" title="Permalink to this definition">#</a></dt>
@@ -1053,6 +1035,21 @@ pixsizex: pixel size in x, microns
 pixsizey: pixel size in y, microns</p>
 </dd>
 </dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.calibrationFromPoniFile">
+<span class="sig-name descname"><span class="pre">calibrationFromPoniFile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ponifile</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.calibrationFromPoniFile" title="Permalink to this definition">#</a></dt>
+<dd><p>Sets calibration from a pyFAI poni-file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ponifile</strong> (<em>str</em><em> or </em><em>Pathlib.path</em>) – a pyFAI poni file containing the geometry</p></li>
+<li><p><strong>raw_xr</strong> (<em>raw format xarray</em>) – optional, raw xr with correct pixel dimensions
+for creating an empty mask if necessary</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
@@ -1094,6 +1091,17 @@ pixsizey: pixel size in y, microns</p>
 <dd></dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.loadEdfMask">
+<span class="sig-name descname"><span class="pre">loadEdfMask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.loadEdfMask" title="Permalink to this definition">#</a></dt>
+<dd><p>Loads an edf-format mask (probably from pyFAI.calib2?).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>filetoload</strong> (<em>pathlib.Path</em><em> or </em><em>string</em>) – path to edf format mask</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.loadImageMask">
 <span class="sig-name descname"><span class="pre">loadImageMask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.loadImageMask" title="Permalink to this definition">#</a></dt>
 <dd><p>loads a mask from a generic image</p>
@@ -1109,7 +1117,7 @@ pixsizey: pixel size in y, microns</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.loadNikaMask">
-<span class="sig-name descname"><span class="pre">loadNikaMask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filetoload</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotate_image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.loadNikaMask" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">loadNikaMask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rotate_image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.loadNikaMask" title="Permalink to this definition">#</a></dt>
 <dd><p>Loads a Nika-generated HDF5 or tiff mask and converts it to an array that matches the local conventions.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1273,7 +1281,8 @@ pixsizey: pixel size in y, microns</p>
             
             
               
-                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
 
   <div class="sidebar-secondary-item">
@@ -1383,12 +1392,14 @@ pixsizey: pixel size in y, microns</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#module-PyHyperScattering.PFGeneralIntegrator">PyHyperScattering.integrate.PFGeneralIntegrator module</a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator"><code class="docutils literal notranslate"><span class="pre">PFGeneralIntegrator</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.calibrationFromNikaParams"><code class="docutils literal notranslate"><span class="pre">PFGeneralIntegrator.calibrationFromNikaParams()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.calibrationFromPoniFile"><code class="docutils literal notranslate"><span class="pre">PFGeneralIntegrator.calibrationFromPoniFile()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.calibrationFromTemplateXRParams"><code class="docutils literal notranslate"><span class="pre">PFGeneralIntegrator.calibrationFromTemplateXRParams()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.energy"><code class="docutils literal notranslate"><span class="pre">PFGeneralIntegrator.energy</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.integrateImageStack"><code class="docutils literal notranslate"><span class="pre">PFGeneralIntegrator.integrateImageStack()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.integrateImageStack_dask"><code class="docutils literal notranslate"><span class="pre">PFGeneralIntegrator.integrateImageStack_dask()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.integrateImageStack_legacy"><code class="docutils literal notranslate"><span class="pre">PFGeneralIntegrator.integrateImageStack_legacy()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.integrateSingleImage"><code class="docutils literal notranslate"><span class="pre">PFGeneralIntegrator.integrateSingleImage()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.loadEdfMask"><code class="docutils literal notranslate"><span class="pre">PFGeneralIntegrator.loadEdfMask()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.loadImageMask"><code class="docutils literal notranslate"><span class="pre">PFGeneralIntegrator.loadImageMask()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.loadNikaMask"><code class="docutils literal notranslate"><span class="pre">PFGeneralIntegrator.loadNikaMask()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.PFGeneralIntegrator.PFGeneralIntegrator.loadPolyMask"><code class="docutils literal notranslate"><span class="pre">PFGeneralIntegrator.loadPolyMask()</span></code></a></li>
@@ -1423,13 +1434,13 @@ pixsizey: pixel size in y, microns</p>
   </nav></div>
 
   <div class="sidebar-secondary-item">
-
-  <div class="tocsection sourcelink">
-    <a href="../../_sources/source/reference_API/PyHyperScattering.rst.txt">
-      <i class="fa-solid fa-file-lines"></i> Show Source
-    </a>
-  </div>
-</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/source/reference_API/PyHyperScattering.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
 
 </div></div>
               
@@ -1444,8 +1455,8 @@ pixsizey: pixel size in y, microns</p>
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
-<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <script defer src="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
 
 
   
@@ -1480,7 +1491,8 @@ pixsizey: pixel size in y, microns</p>
       
         <div class="footer-item">
 <p class="theme-version">
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.4.
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
 </p></div>
       
     </div>
