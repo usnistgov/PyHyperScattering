@@ -56,7 +56,7 @@ performance = [
     "cupy"
 ]
 ui = [
-    "holoviews==1.16.2",
+    "holoviews",
     "hvplot",
     "matplotlib"
 ]
@@ -70,6 +70,22 @@ test =  [
          "codecov",
          "pylint"
          ]
+all-nogpu = [
+    "tiled[all]>=0.1.0a74",
+    "databroker[all]>=2.0.0b10",
+    "bluesky-tiled-plugins",
+    "bottleneck",
+    "pyopencl",
+    "dask",
+    "holoviews",
+    "hvplot",
+    "sphinx",
+    "pydata_sphinx_theme",
+    "pytest",
+    "black",
+    "codecov",
+    "pylint"
+]
 all = [
     "tiled[all]>=0.1.0a74",
     "databroker[all]>=2.0.0b10",
@@ -79,7 +95,7 @@ all = [
     "pyopencl",
     "dask",
     "cupy",
-    "holoviews==1.16.2",
+    "holoviews",
     "hvplot",
     "silx==2.0.0",
     "sphinx",
