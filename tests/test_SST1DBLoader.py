@@ -84,6 +84,35 @@ def test_SST1DB_load_SingleEnergy2Polarizations_scan_explicit_dims(sstdb):
     assert 'polarization' in run.indexes
 
 
+
+@must_have_tiled
+def test_SST1DB_load_energy_scan_20241209(sstdb):
+    run = sstdb.loadRun(91175,dims=['energy','polarization']).unstack('system')
+    assert type(run) == xr.DataArray
+    assert 'energy' in run.indexes
+    assert 'polarization' in run.indexes
+
+@must_have_tiled
+def test_SST1DB_load_energy_scan_20250213(sstdb):
+    run = sstdb.loadRun(92202,dims=['energy','polarization']).unstack('system')
+    assert type(run) == xr.DataArray
+    assert 'energy' in run.indexes
+    assert 'polarization' in run.indexes
+
+@must_have_tiled
+def test_SST1DB_load_count_scan_20250222(sstdb):
+    run = sstdb.loadRun(92849,dims=['time','polarization']).unstack('system')
+    assert type(run) == xr.DataArray
+    assert 'time' in run.indexes
+    assert 'polarization' in run.indexes
+
+@must_have_tiled
+def test_SST1DB_load_energy_scan_20250223(sstdb):
+    run = sstdb.loadRun(93065,dims=['energy','polarization']).unstack('system')
+    assert type(run) == xr.DataArray
+    assert 'energy' in run.indexes
+    assert 'polarization' in run.indexes
+
 @must_have_tiled
 def test_SST1DB_exposurewarnings(sstdb):
     with pytest.warns(UserWarning, match="Wide Angle CCD Detector is reported as underexposed"):
