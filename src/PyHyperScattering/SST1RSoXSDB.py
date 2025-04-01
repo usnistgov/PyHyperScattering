@@ -767,7 +767,6 @@ class SST1RSoXSDB:
         # handle the edge case of a partly-finished scan
         if len(index) != len(data["time"]):
             index = index[: len(data["time"])]
-        actual_exposure = md["exposure"] * len(data.dim_0)
         mindex_coords = xr.Coordinates.from_pandas_multiindex(index, 'system')
         retxr = (
             data.sum("dim_0")
@@ -803,9 +802,13 @@ class SST1RSoXSDB:
             )
         retxr.attrs.update(md)
 
-        retxr.attrs["exposure"] = (
-            len(data.dim_0) * retxr.attrs["exposure"]
-        )  # patch for multi exposures
+        exposure = retxr.attrs.get("exposure")
+        
+        if exposure is not None:
+            retxr.attrs["exposure"] = len(data.dim_0) * exposure
+        else:
+            retxr.attrs["exposure"] = None  # or 0, or skip setting it  # patch for multi exposures
+        
         # now do corrections:
         frozen_attrs = retxr.attrs
         if self.corr_mode == "i0":
