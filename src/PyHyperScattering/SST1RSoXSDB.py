@@ -625,7 +625,7 @@ class SST1RSoXSDB:
             elif "spiralsearch" in md["start"]["plan_name"] and dims is None:
                 dims = ["sam_x", "sam_y"]
             elif "count" in md["start"]["plan_name"] and dims is None:
-                dims = ["epoch"]
+                dims = ["time"]
             else:
                 axes_to_include = []
                 rsd_cutoff = 0.005
