@@ -38,7 +38,7 @@ dependencies = [
     "silx==2.0.0",
     "pygix",
     "pydata_sphinx_theme",
-    "numexpr<2.8.5",
+    "numexpr!=2.8.5,!=2.8.6"
 ]
 
 [project.optional-dependencies]
