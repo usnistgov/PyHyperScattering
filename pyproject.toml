@@ -35,13 +35,15 @@ dependencies = [
     "astropy",
     "fabio",
     "nodejs",
-    "silx==2.0.0",
-    "pygix",
     "pydata_sphinx_theme",
-    "numexpr<2.8.5",
+    "numexpr!=2.8.5,!=2.8.6"
 ]
 
 [project.optional-dependencies]
+grazing = [    
+    "silx==2.0.0",
+    "pygix"
+    ]
 bluesky = [
     "tiled[all]>=0.1.0a74",
     "databroker[all]>=2.0.0b10",
@@ -55,7 +57,7 @@ performance = [
     "cupy"
 ]
 ui = [
-    "holoviews==1.16.2",
+    "holoviews",
     "hvplot",
     "matplotlib"
 ]
@@ -69,16 +71,34 @@ test =  [
          "codecov",
          "pylint"
          ]
-all = [
+all-nogpu = [
     "tiled[all]>=0.1.0a74",
     "databroker[all]>=2.0.0b10",
     "bluesky-tiled-plugins",
     "bottleneck",
     "pyopencl",
     "dask",
-    "cupy",
-    "holoviews==1.16.2",
+    "holoviews",
     "hvplot",
+    "sphinx",
+    "pydata_sphinx_theme",
+    "pytest",
+    "black",
+    "codecov",
+    "pylint"
+]
+all = [
+    "tiled[all]>=0.1.0a74",
+    "databroker[all]>=2.0.0b10",
+    "bluesky-tiled-plugins",
+    "bottleneck",
+    "pygix",
+    "pyopencl",
+    "dask",
+    "cupy",
+    "holoviews",
+    "hvplot",
+    "silx==2.0.0",
     "sphinx",
     "pydata_sphinx_theme",
     "pytest",
