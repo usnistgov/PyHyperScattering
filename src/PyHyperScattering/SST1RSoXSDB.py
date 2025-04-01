@@ -626,6 +626,11 @@ class SST1RSoXSDB:
                 axis_list = [x for x in axis_list if "saturated" not in x]
                 axis_list = [x for x in axis_list if "under_exposed" not in x]
 
+                # remove new detector terms #193
+                axis_list = [x for x in axis_list if "acquire_time" not in x]
+                axis_list = [x for x in axis_list if "tiff_time_stamp" not in x]
+                
+
                 # remove hinted Energy and EPU60 items #161
                 axis_list = [x for x in axis_list if "EPU60" not in x]
                 axis_list = [x for x in axis_list if "Energy" not in x]
