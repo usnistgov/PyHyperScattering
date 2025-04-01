@@ -20,11 +20,11 @@ try:
     from httpx import HTTPStatusError
     import tiled
     import dask
-    from databroker.queries import RawMongo, Key, FullText, Contains, Regex
+    try: from bluesky_tiled_plugins.queries import RawMongo, Key, FullText, Contains, Regex ## Intended to handle database navigation for 2025 onwards
+    except ImportError: from databroker.queries import RawMongo, Key, FullText, Contains, Regex
 except Exception:
     print(
-        "Imports failed.  Are you running on a machine with proper libraries for databroker,"
-        " tiled, etc.?"
+        "Imports failed.  Are you running on a machine with proper libraries for tiled, etc.?"
     )
 
 import copy
@@ -609,16 +609,20 @@ class SST1RSoXSDB:
             else:
                 axes_to_include = []
                 rsd_cutoff = 0.005
-            
+
                 # begin with a list of the things that are primary streams
                 axis_list = list(run["primary"]["data"].keys())
-                
+
                 # next, knock out anything that has 'image', 'fullframe' in it - these aren't axes
                 axis_list = [x for x in axis_list if "image" not in x]
                 axis_list = [x for x in axis_list if "fullframe" not in x]
                 axis_list = [x for x in axis_list if "stats" not in x]
                 axis_list = [x for x in axis_list if "saturated" not in x]
                 axis_list = [x for x in axis_list if "under_exposed" not in x]
+
+                # remove hinted Energy and EPU60 items #161
+                axis_list = [x for x in axis_list if "EPU60" not in x]
+                axis_list = [x for x in axis_list if "Energy" not in x]
                 
                 # knock out any known names of scalar counters
                 axis_list = [x for x in axis_list if "Beamstop" not in x]
@@ -638,10 +642,10 @@ class SST1RSoXSDB:
                         rsd = 0
                     else:
                         rsd = std / motion
-                    #print(f'Evaluating {axis} for inclusion as a dimension with rsd {rsd}...')
+                    # print(f'Evaluating {axis} for inclusion as a dimension with rsd {rsd}...')
                     if rsd > rsd_cutoff:
                         axes_to_include.append(axis)
-                        #print(f'    --> it was included')
+                        # print(f'    --> it was included')
 
                 # next, construct the reverse lookup table - best mapping we can make of key to pyhyper word
                 # we start with the lookup table used by loadMd()
@@ -697,7 +701,10 @@ class SST1RSoXSDB:
             data = run["primary"]["data"].read()[md["detector"] + "_image"]
         elif isinstance(data,tiled.client.array.DaskArrayClient):
             data = run["primary"]["data"].read()[md["detector"] + "_image"]
-        
+        # Handle extra dimensions (non-pixel and non-intended dimensions from repeat exposures) by averaging them along the dim_0 axis
+        if len(data.shape) > 3:
+            data = data.mean("dim_0")
+            
         data = data.astype(int)  # convert from uint to handle dark subtraction
 
         if self.dark_subtract:
@@ -1085,10 +1092,52 @@ class SST1RSoXSDB:
                             md[phs] = None
         md["epoch"] = md["meas_time"].timestamp()
 
+        # looking at exposure tests in the stream and issuing warnings
+        if "Wide Angle CCD Detector_under_exposed" in md:
+            if np.any(md["Wide Angle CCD Detector_under_exposed"]):
+                message = "\nWide Angle CCD Detector is reported as underexposed\n"
+                message += "at one or more energies per definitions here:\n"
+                message += "https://github.com/NSLS-II-SST/rsoxs/blob/10c2c41b695c1db552f62decdde571472b71d981/rsoxs/Base/detectors.py#L110-L119\n"
+                if np.all(md["Wide Angle CCD Detector_under_exposed"]):
+                    message += "Wide Angle CCD Detector is reported as underexposed at all energies."
+                else:
+                    idx = np.where(md["Wide Angle CCD Detector_under_exposed"])
+                    try:
+                        warning_e = md["energy"][idx]
+                        message += f"Affected energies include: \n{warning_e}"
+                    except Exception:
+                        message += f"Affected frames were {idx}."
+                warnings.warn(message, stacklevel=2)
+        else:
+            warnings.warn(
+                "'Wide Angle CCD Detector_under_exposed' not found in stream."
+            )
+        if "Wide Angle CCD Detector_saturated" in md:
+            if np.any(md["Wide Angle CCD Detector_saturated"]):
+                message = "\nWide Angle CCD Detector is reported as saturated\n"
+                message += "at one or more energies per definitions here:\n"
+                message += "https://github.com/NSLS-II-SST/rsoxs/blob/10c2c41b695c1db552f62decdde571472b71d981/rsoxs/Base/detectors.py#L110-L119\n"
+                if np.all(md["Wide Angle CCD Detector_saturated"]):
+                    message += "\tWide Angle CCD Detector is reported as saturated at all energies."
+                else:
+                    idx = np.where(md["Wide Angle CCD Detector_saturated"])
+                    try:
+                        warning_e = md["energy"][idx]
+                        message += f"Affected energies include: \n{warning_e}"
+                    except Exception:
+                        message += f"Affected frames were {idx}."
+                warnings.warn(message, stacklevel=2)
+        else:
+            warnings.warn(
+                "'Wide Angle CCD Detector_saturated' not found in stream."
+            )
+        md["epoch"] = md["meas_time"].timestamp()
+
         try:
             md["wavelength"] = 1.239842e-6 / md["energy"]
         except TypeError:
             md["wavelength"] = None
+            
         md["sampleid"] = start["scan_id"]
 
         md["dist"] = md["sdd"] / 1000

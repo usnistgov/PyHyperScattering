@@ -4,3 +4,4 @@ from PyHyperScattering.SST1RSoXSDB import SST1RSoXSDB
 from PyHyperScattering.SST1RSoXSLoader import SST1RSoXSLoader
 from PyHyperScattering.cyrsoxsLoader import cyrsoxsLoader
 from PyHyperScattering.SMIRSoXSLoader import SMIRSoXSLoader
+from PyHyperScattering.CMSGIWAXSLoader import CMSGIWAXSLoader

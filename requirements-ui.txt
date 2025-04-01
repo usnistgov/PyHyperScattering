@@ -1,2 +1,3 @@
 holoviews
 hvplot
+matplotlib
