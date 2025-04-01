@@ -81,6 +81,7 @@ all = [
     "cupy",
     "holoviews==1.16.2",
     "hvplot",
+    "silx==2.0.0",
     "sphinx",
     "pydata_sphinx_theme",
     "pytest",
