@@ -606,7 +606,7 @@ class SST1RSoXSDB:
             )
 
         md = self.loadMd(run)
-        md.update(md_manual) ## Add manually added metadata to the md dictionary
+       
 
         monitors = self.loadMonitors(run)
 
@@ -669,7 +669,6 @@ class SST1RSoXSDB:
 
                 # next, construct the reverse lookup table - best mapping we can make of key to pyhyper word
                 # we start with the lookup table used by loadMd()
-                reverse_lut = {}
                 reverse_lut = {md_key_beamline: md_key_PHS 
                                for md_key_PHS, md_key_beamline_list in self.md_lookup.items() 
                                for md_key_beamline in md_key_beamline_list}
@@ -780,7 +779,7 @@ class SST1RSoXSDB:
         exposure = retxr.attrs.get("exposure")
         
         if exposure is not None:
-            retxr.attrs["exposure"] = len(data.dim_0) * exposure
+            retxr.attrs["exposure"] = (len(data.dim_0) * exposure)
         else:
             retxr.attrs["exposure"] = None  # or 0, or skip setting it  # patch for multi exposures
         
