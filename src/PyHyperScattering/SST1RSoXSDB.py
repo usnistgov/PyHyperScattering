@@ -21,9 +21,10 @@ try:
     from httpx import HTTPStatusError
     import tiled
     import dask
-    # from dask.distributed import Client
-    try: from bluesky_tiled_plugins.queries import RawMongo, Key, FullText, Contains, Regex ## Intended to handle database navigation for 2025 onwards
-    except ImportError: from databroker.queries import RawMongo, Key, FullText, Contains, Regex
+    try: 
+        from bluesky_tiled_plugins.queries import RawMongo, Key, FullText, Contains, Regex # 2025-present databroker queries
+    except ImportError: 
+        from databroker.queries import RawMongo, Key, FullText, Contains, Regex
 except Exception:
     print("Imports of some libraries needed for SST-1 RSoXS failed.  If you are trying to use SST-1 RSoXS, install pyhyperscattering[bluesky].")
 
@@ -117,15 +118,8 @@ class SST1RSoXSDB:
         self.exposure_offset = exposure_offset
         self.use_precise_positions = use_precise_positions
         self.suppress_time_dimension = suppress_time_dimension
-        dask.config.set(num_workers=min(12,multiprocessing.cpu_count()))
-        '''        
-        self.client = Client(n_workers = 1, 
-                             threads_per_worker = min(12,multiprocessing.cpu_count()), 
-                             processes = False)
-
-    def __del__(self):
-        self.client.close()
-        '''    
+        dask.config.set(num_workers=min(12,multiprocessing.cpu_count())) # this limits the number of worker threads, which should help avoid timeouts on some large data
+ 
     def runSearch(self, **kwargs):
         """
         Search the catalog using given commands.
