@@ -13,6 +13,7 @@ import scipy.ndimage
 import asyncio
 import time
 import copy
+import multiprocessing
 
 try:
     os.environ["TILED_SITE_PROFILES"] = "/nsls2/software/etc/tiled/profiles"
@@ -21,13 +22,12 @@ try:
     import tiled
     import dask
     try: 
-        from bluesky_tiled_plugins.queries import RawMongo, Key, FullText, Contains, Regex # Bluesky changed the location of these queries in 2025, this is new location
+        from bluesky_tiled_plugins.queries import RawMongo, Key, FullText, Contains, Regex # 2025-present databroker queries
     except ImportError: 
-        from databroker.queries import RawMongo, Key, FullText, Contains, Regex # old location, in case dependencies aren't updated
+        from databroker.queries import RawMongo, Key, FullText, Contains, Regex
+
 except Exception:
-    print(
-        "Imports failed.  Are you running on a machine with proper libraries for tiled, etc.?"
-    )
+    print("Imports of some libraries needed for SST-1 RSoXS failed.  If you are trying to use SST-1 RSoXS, install pyhyperscattering[bluesky].")
 
 import copy
 
@@ -136,22 +136,8 @@ class SST1RSoXSDB:
         self.exposure_offset = exposure_offset
         self.use_precise_positions = use_precise_positions
         self.suppress_time_dimension = suppress_time_dimension
-
-    # def loadFileSeries(self,basepath):
-    #     try:
-    #         flist = list(basepath.glob('*primary*.tiff'))
-    #     except AttributeError:
-    #         basepath = pathlib.Path(basepath)
-    #         flist = list(basepath.glob('*primary*.tiff'))
-    #     print(f'Found {str(len(flist))} files.')
-    #
-    #     out = xr.DataArray()
-    #     for file in flist:
-    #         single_img = self.loadSingleImage(file)
-    #         out = xr.concat(out,single_img)
-    #
-    #     return out
-
+        dask.config.set(num_workers=min(12,multiprocessing.cpu_count())) # this limits the number of worker threads, which should help avoid timeouts on some large data
+ 
     def runSearch(self, **kwargs):
         """
         Search the catalog using given commands.
