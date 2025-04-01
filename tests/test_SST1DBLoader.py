@@ -87,21 +87,21 @@ def test_SST1DB_load_SingleEnergy2Polarizations_scan_explicit_dims(sstdb):
 
 @must_have_tiled
 def test_SST1DB_load_energy_scan_20241209(sstdb):
-    run = sstdb.loadRun(91175,dims=['energy','polarization']).unstack('system')
+    run = sstdb.loadRun(91175).unstack('system')
     assert type(run) == xr.DataArray
     assert 'energy' in run.indexes
     assert 'polarization' in run.indexes
 
 @must_have_tiled
 def test_SST1DB_load_energy_scan_20250213(sstdb):
-    run = sstdb.loadRun(92202,dims=['energy','polarization']).unstack('system')
+    run = sstdb.loadRun(92202).unstack('system')
     assert type(run) == xr.DataArray
     assert 'energy' in run.indexes
     assert 'polarization' in run.indexes
 
 @must_have_tiled
 def test_SST1DB_load_spiral_scan_20250221(sstdb):
-    run = sstdb.loadRun(92770,dims=['sam_x','sam_y']).unstack('system')
+    run = sstdb.loadRun(92770).unstack('system')
     assert type(run) == xr.DataArray
     assert 'sam_x' in run.indexes
     assert 'sam_y' in run.indexes
@@ -115,7 +115,7 @@ def test_SST1DB_load_count_scan_20250222(sstdb):
 
 @must_have_tiled
 def test_SST1DB_load_energy_scan_20250223(sstdb):
-    run = sstdb.loadRun(93065,dims=['energy','polarization']).unstack('system')
+    run = sstdb.loadRun(93065).unstack('system')
     assert type(run) == xr.DataArray
     assert 'energy' in run.indexes
     assert 'polarization' in run.indexes
