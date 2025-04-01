@@ -12,7 +12,8 @@ pygix
 scikit-image
 scipy
 pillow
-xarray
+# the following minimum version is due to new explicit Coordinate code
+xarray>2023.6
 tqdm
 pydata_sphinx_theme
 # the following pin is due to a security update to numexpr: https://github.com/pydata/numexpr/issues/442
