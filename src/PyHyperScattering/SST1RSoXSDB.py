@@ -42,7 +42,7 @@ class SST1RSoXSDB:
     pix_size_1 = 0.06
     pix_size_2 = 0.06
 
-    ## List of metadata key names used historically at SST1 RSoXS
+    # List of metadata key names used historically at SST1 RSoXS
     md_lookup = {
         "sam_x": ["solid_sample_x",
                   "manipulator_x", ## Started using ~January 2025
