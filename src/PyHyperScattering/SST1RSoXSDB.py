@@ -46,20 +46,20 @@ class SST1RSoXSDB:
 
     # List of metadata key names used historically at SST1 RSoXS
     md_lookup = {
-        "sam_x": ["solid_sample_x",
-                  "manipulator_x", ## Started using ~January 2025
+        "sam_x": ["solid_sample_x", # Started using ~March 2025
+                  "manipulator_x", # Started using ~January 2025
                  "RSoXS Sample Outboard-Inboard",
                  ],
-        "sam_y": ["solid_sample_y",
-                  "manipulator_y", ## Started using ~January 2025
+        "sam_y": ["solid_sample_y", # Started using ~March 2025
+                  "manipulator_y", # Started using ~January 2025
                   "RSoXS Sample Up-Down",
                  ],
-        "sam_z": ["solid_sample_z",
-                  "manipulator_z", ## Started using ~January 2025
+        "sam_z": ["solid_sample_z", # Started using ~March 2025
+                  "manipulator_z", # Started using ~January 2025
                   "RSoXS Sample Downstream-Upstream",
                  ],
-        "sam_th": ["solid_sample_r",
-                   "manipulator_r", ## Started using ~January 2025
+        "sam_th": ["solid_sample_r", # Started using ~March 2025
+                   "manipulator_r", # Started using ~January 2025
                    "RSoXS Sample Rotation",
                   ],
         "polarization": ["en_polarization_setpoint",
