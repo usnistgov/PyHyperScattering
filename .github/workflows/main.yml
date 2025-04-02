@@ -20,8 +20,9 @@ jobs:
             python-version: '3.12'
           - os: windows-latest
             python-version: '3.11'
+            # this last one is a specific incompatibility...
           - os: windows-latest
-            python-version: '3.12'
+            python-version: '3.13'
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
