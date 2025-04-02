@@ -16,8 +16,8 @@
     document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
     document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
   </script>
-  <!-- 
-    this give us a css class that will be invisible only if js is disabled 
+  <!--
+    this give us a css class that will be invisible only if js is disabled
   -->
   <noscript>
     <style>
@@ -27,17 +27,17 @@
   </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../../_static/styles/theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
-<link href="../../_static/styles/pydata-sphinx-theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
+  <link href="../../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=a746c00c" />
     <link rel="stylesheet" type="text/css" href="../../_static/ntd2d.css?v=525a25f0" />
   
   <!-- So that users can add custom icons -->
-  <script src="../../_static/scripts/fontawesome.js?digest=26a4bc78f4c0ddb94549"></script>
+  <script src="../../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549" />
-<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549" />
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js?v=f0cffefe"></script>
     <script src="../../_static/doctools.js?v=888ff710"></script>
@@ -347,9 +347,14 @@
   
   
   <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
   </div>
-  
-  <div id="rtd-footer-container"></div>
 
 
       </div>
@@ -710,7 +715,7 @@ To get <em>a</em> singular “best diode”, just take the first row of the retu
 
 <dl class="py method">
 <dt class="sig sig-object py" id="PyHyperScattering.load.SST1RSoXSDB.loadMonitors">
-<span class="sig-name descname"><span class="pre">loadMonitors</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">entry</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integrate_onto_images</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">useShutterThinning</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_thinning_iters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.load.SST1RSoXSDB.loadMonitors" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">loadMonitors</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">entry</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integrate_onto_images</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">useShutterThinning</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_thinning_iters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">directLoadPulsedMonitors</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.load.SST1RSoXSDB.loadMonitors" title="Permalink to this definition">#</a></dt>
 <dd><p>Load the monitor streams for entry.</p>
 <p>Creates a dataset containing all monitor streams (e.g., Mesh Current, Shutter Timing, etc.) as data variables mapped
 against time. Optionally, all streams can be indexed against the primary measurement time for the images using
@@ -726,9 +731,13 @@ ex: phs.load.SST1RSoXSDB.c[scanID] or databroker.client.CatalogOfBlueskyRuns[sca
 Presently bins are averaged between measurements intervals.</p></li>
 <li><p><strong>useShutterThinning</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether or not to attempt to thin (filter) the raw time streams to remove data collected during shutter opening/closing, by default False
 As of 9 Feb 2023 at NSLS2 SST1, using useShutterThinning= True for exposure times of &lt; 0.5s is
-not recommended because the shutter data is unreliable and too many points will be culled</p></li>
-<li><p><strong>n_thinning_iters</strong> (<em>int</em><em>, </em><em>optional</em>) – how many iterations of thinning to perform, by default 5
-If the data is becoming too sparse, try fewer iterations</p></li>
+not recommended because the shutter data is unreliable and too many points will be removed</p></li>
+<li><p><strong>n_thinning_iters</strong> (<em>int</em><em>, </em><em>optional</em>) – how many iterations of thinning to perform, by default 1
+(former default was 5 before gated monitor loading was added)
+If you receive errors in assigning image timepoints to counters, try fewer iterations</p></li>
+<li><p><strong>directLoadPulsedMonitors</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether or not to load the pulsed monitors using direct reading, by default True
+This only applies if integrate_onto_images is True; otherwise you’ll get very raw data.
+If False, the pulsed monitors will be loaded using a shutter-thinning and masking approach as with continuous counters</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -799,12 +808,7 @@ If the data is becoming too sparse, try fewer iterations</p></li>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="PyHyperScattering.load.SST1RSoXSDB.md_lookup">
-<span class="sig-name descname"><span class="pre">md_lookup</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'energy':</span> <span class="pre">'en_energy_setpoint',</span> <span class="pre">'exposure':</span> <span class="pre">'RSoXS</span> <span class="pre">Shutter</span> <span class="pre">Opening</span> <span class="pre">Time</span> <span class="pre">(ms)',</span> <span class="pre">'polarization':</span> <span class="pre">'en_polarization_setpoint',</span> <span class="pre">'sam_th':</span> <span class="pre">'RSoXS</span> <span class="pre">Sample</span> <span class="pre">Rotation',</span> <span class="pre">'sam_x':</span> <span class="pre">'RSoXS</span> <span class="pre">Sample</span> <span class="pre">Outboard-Inboard',</span> <span class="pre">'sam_y':</span> <span class="pre">'RSoXS</span> <span class="pre">Sample</span> <span class="pre">Up-Down',</span> <span class="pre">'sam_z':</span> <span class="pre">'RSoXS</span> <span class="pre">Sample</span> <span class="pre">Downstream-Upstream'}</span></em><a class="headerlink" href="#PyHyperScattering.load.SST1RSoXSDB.md_lookup" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="PyHyperScattering.load.SST1RSoXSDB.md_secondary_lookup">
-<span class="sig-name descname"><span class="pre">md_secondary_lookup</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'energy':</span> <span class="pre">'en_monoen_setpoint',</span> <span class="pre">'exposure':</span> <span class="pre">'Small</span> <span class="pre">Angle</span> <span class="pre">CCD</span> <span class="pre">Detector_cam_acquire_time'}</span></em><a class="headerlink" href="#PyHyperScattering.load.SST1RSoXSDB.md_secondary_lookup" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">md_lookup</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'energy':</span> <span class="pre">['en_energy_setpoint',</span> <span class="pre">'en_monoen_setpoint'],</span> <span class="pre">'exposure':</span> <span class="pre">['RSoXS</span> <span class="pre">Shutter</span> <span class="pre">Opening</span> <span class="pre">Time</span> <span class="pre">(ms)'],</span> <span class="pre">'polarization':</span> <span class="pre">['en_polarization_setpoint'],</span> <span class="pre">'sam_th':</span> <span class="pre">['solid_sample_r',</span> <span class="pre">'manipulator_r',</span> <span class="pre">'RSoXS</span> <span class="pre">Sample</span> <span class="pre">Rotation'],</span> <span class="pre">'sam_x':</span> <span class="pre">['solid_sample_x',</span> <span class="pre">'manipulator_x',</span> <span class="pre">'RSoXS</span> <span class="pre">Sample</span> <span class="pre">Outboard-Inboard'],</span> <span class="pre">'sam_y':</span> <span class="pre">['solid_sample_y',</span> <span class="pre">'manipulator_y',</span> <span class="pre">'RSoXS</span> <span class="pre">Sample</span> <span class="pre">Up-Down'],</span> <span class="pre">'sam_z':</span> <span class="pre">['solid_sample_z',</span> <span class="pre">'manipulator_z',</span> <span class="pre">'RSoXS</span> <span class="pre">Sample</span> <span class="pre">Downstream-Upstream'],</span> <span class="pre">'time':</span> <span class="pre">['time']}</span></em><a class="headerlink" href="#PyHyperScattering.load.SST1RSoXSDB.md_lookup" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -1403,7 +1407,6 @@ for creating an empty mask if necessary</p></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSDB.loadSingleImage"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSDB.loadSingleImage()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSDB.md_loading_is_quick"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSDB.md_loading_is_quick</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSDB.md_lookup"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSDB.md_lookup</span></code></a></li>
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSDB.md_secondary_lookup"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSDB.md_secondary_lookup</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSDB.peekAtMd"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSDB.peekAtMd()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSDB.pix_size_1"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSDB.pix_size_1</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSDB.pix_size_2"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSDB.pix_size_2</span></code></a></li>
@@ -1489,13 +1492,13 @@ for creating an empty mask if necessary</p></li>
   </nav></div>
 
   <div class="sidebar-secondary-item">
-
-  <div class="tocsection sourcelink">
-    <a href="../../_sources/source/reference_API/PyHyperScattering.rst.txt">
-      <i class="fa-solid fa-file-lines"></i> Show Source
-    </a>
-  </div>
-</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/source/reference_API/PyHyperScattering.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
 
 </div></div>
               
@@ -1510,8 +1513,8 @@ for creating an empty mask if necessary</p></li>
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script defer src="../../_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549"></script>
-<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549"></script>
+  <script defer src="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
 
 
   
@@ -1546,7 +1549,8 @@ for creating an empty mask if necessary</p></li>
       
         <div class="footer-item">
 <p class="theme-version">
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.0.
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
 </p></div>
       
     </div>
