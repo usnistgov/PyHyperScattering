@@ -68,7 +68,7 @@ If a CondaSSL error is encountered during this step, the following solution can 
 Install PyHyperScattering
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-``pip install pyhyperscattering[bluesky, ui]`` installs PyHyperScattering.  The ``bluesky`` portion installs Bluesky-related dependencies needed to access the NSLS II Tiled database. The ``ui`` portion installs the necessary dependencies to draw a mask.  In some cases, it may be necessary to clone and check out a later PyHyperScattering commit or branch instead of the default version. Below are some examples.
+``pip install pyhyperscattering[bluesky,ui]`` installs PyHyperScattering.  The ``bluesky`` portion installs Bluesky-related dependencies needed to access the NSLS II Tiled database. The ``ui`` portion installs the necessary dependencies to draw a mask.  In some cases, it may be necessary to clone and check out a later PyHyperScattering commit or branch instead of the default version. Below are some examples.
 
 - ``pip install "git+https://github.com/usnistgov/PyHyperScattering.git#egg=PyHyperScattering[bluesky, ui]"`` installs the latest commit on the main branch.
 
