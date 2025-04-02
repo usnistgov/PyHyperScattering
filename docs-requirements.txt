@@ -1,0 +1,15 @@
+versioneer
+astropy
+fabio
+h5py
+nodejs
+numpy<2
+pandas
+pyfai
+scikit-image
+scipy
+pillow
+xarray
+tqdm
+pydata_sphinx_theme
+numexpr!=2.8.5,!=2.8.6
