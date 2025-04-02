@@ -1,3 +1,0 @@
-holoviews
-hvplot
-matplotlib
