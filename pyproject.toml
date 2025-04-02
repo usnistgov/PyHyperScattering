@@ -10,14 +10,13 @@ authors = [
 ]
 description = "Utilities for loading, reducing, fitting, and plotting hyperspectral x-ray and neutron scattering data."
 readme = "README.md"
+license = "NIST-PD-fallback"
 requires-python = ">=3.6"
 classifiers = [
     "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Science/Research",
-    "License :: Freely Distributable",
     "Topic :: Scientific/Engineering :: Chemistry",
     "Topic :: Scientific/Engineering :: Physics",
 ]
