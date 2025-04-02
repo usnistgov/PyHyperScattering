@@ -25,7 +25,6 @@ dependencies = [
     "numpy<2",
     "pandas",
     "pyfai",
-    "pyopencl",
     "scikit-image",
     "scipy",
     "pillow",
