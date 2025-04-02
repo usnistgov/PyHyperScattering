@@ -26,18 +26,14 @@ jobs:
       with:
         path: ${{ env.pythonLocation }}
         # Look to see if there is a cache hit for the corresponding requirements file
-        key: ${{ runner.os }}-py${{ matrix.python-version }}-pip-${{ hashFiles('requirements.txt') }}
+        key: ${{ runner.os }}-py${{ matrix.python-version }}-pip-${{ hashFiles('pyproject.toml') }}
         restore-keys: |
          ${{ runner.os }}-py${{ matrix.python-version }}-pip-
           ${{ runner.os }}-
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install flake8 pytest coverage
-        pip install pybind11 wheel
-        pip install -r requirements.txt
-        pip install -r requirements-bluesky.txt
-        pip install dask
+        pip install .[dev,bluesky]
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
