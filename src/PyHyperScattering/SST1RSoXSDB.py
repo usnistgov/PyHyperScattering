@@ -319,7 +319,7 @@ class SST1RSoXSDB:
                 # If a match fails, notify the user which search parameter yielded 0 results
                 if len(reducedCatalog) == 0:
                     warnString = (
-                        f"Catalog reduced to zero when attempting to match {str(searchSeries.iloc[0])}\n"
+                        f"No results found when searching {str(searchSeries.iloc[0])}. "
                         + f"If this is a user-provided search parameter, check spelling/syntax."
                     )
                     warnings.warn(warnString, stacklevel=2)
