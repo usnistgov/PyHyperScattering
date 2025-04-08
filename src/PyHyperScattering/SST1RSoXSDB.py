@@ -293,7 +293,7 @@ class SST1RSoXSDB:
             df_SearchDet.iterrows(), total=df_SearchDet.shape[0], desc="Running catalog search..."
         ):
             # Skip arguments with value None, and quits if the catalog was reduced to 0 elements
-            if (searchSeries[1] is not None) and (len(reducedCatalog) > 0):
+            if (searchSeries.iloc[1] is not None) and (len(reducedCatalog) > 0):
                 # For numeric entries, do Key equality
                 if "numeric" in str(searchSeries.iloc[2]):
                     reducedCatalog = reducedCatalog.search(
@@ -321,7 +321,7 @@ class SST1RSoXSDB:
                 # If a match fails, notify the user which search parameter yielded 0 results
                 if len(reducedCatalog) == 0:
                     warnString = (
-                        f"Catalog reduced to zero when attempting to match {searchSeries}\n"
+                        f"Catalog reduced to zero when attempting to match {str(searchSeries.iloc[0])}\n"
                         + f"If this is a user-provided search parameter, check spelling/syntax."
                     )
                     warnings.warn(warnString, stacklevel=2)
