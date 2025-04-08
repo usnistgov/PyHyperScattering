@@ -208,7 +208,7 @@ class SST1RSoXSDB:
                 'default' returns scan_id, start time, cycle, institution, project, sample_name, sample_id, plan name, detector,
                 polarization, exit_status, and num_images
                 'scans' returns only the scan_ids (1-column dataframe)
-                'ext_msmt' returns default columns AND bar_spot, sample_rotation
+                'ext_msmt' returns default columns AND bar_spot, sample_rotation, polarization (_very_ slow)
                 'ext_bio' returns default columns AND uid, saf, user_name
                 'all' is equivalent to 'default' and all other additive choices
             cycle (str, optional): NSLS2 beamtime cycle, regex search e.g., "2022" matches "2022-2", "2022-1"
@@ -354,7 +354,7 @@ class SST1RSoXSDB:
                 ["bar_spot", "bar_spot", r"catalog.start", "ext_msmt"],
                 ["plan", "plan_name", r"catalog.start", "default"],
                 ["detector", "RSoXS_Main_DET", r"catalog.start", "default"],
-                ["polarization", "en_polarization", r'catalog.baseline["data"]', "default"],
+                ["polarization", "en_polarization", r'catalog.baseline["data"]', "ext_msmt"],
                 ["sample_rotation", "angle", r"catalog.start", "ext_msmt"],
                 ["exit_status", "exit_status", r"catalog.stop", "default"],
                 ["num_Images", "primary", r'catalog.stop["num_events"]', "default"],
