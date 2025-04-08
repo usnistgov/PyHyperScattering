@@ -289,9 +289,7 @@ class SST1RSoXSDB:
         # Iterate through search terms sequentially, reducing the size of the catalog based on successful matches
 
         reducedCatalog = bsCatalog
-        for _, searchSeries in tqdm(
-            df_SearchDet.iterrows(), total=df_SearchDet.shape[0], desc="Running catalog search..."
-        ):
+        for _, searchSeries in df_SearchDet.iterrows():
             # Skip arguments with value None, and quits if the catalog was reduced to 0 elements
             if (searchSeries.iloc[1] is not None) and (len(reducedCatalog) > 0):
                 # For numeric entries, do Key equality
