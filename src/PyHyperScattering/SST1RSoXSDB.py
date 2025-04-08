@@ -212,7 +212,7 @@ class SST1RSoXSDB:
                 'ext_bio' returns default columns AND uid, saf, user_name
                 'all' is equivalent to 'default' and all other additive choices
             cycle (str, optional): NSLS2 beamtime cycle, regex search e.g., "2022" matches "2022-2", "2022-1"
-            proposal (str, optional): NSLS2 PASS proposal ID, case-insensitive, exact match, e.g., "GU-310176"
+            proposal (int, optional): NSLS2 PASS proposal ID, numeric, exact match, e.g., 310176
             saf (str, optional): Safety Approval Form (SAF) number, exact match, e.g., "309441"
             user (str, optional): User name, case-insensitive, regex search e.g., "eliot" matches "Eliot", "Eliot Gann"
             institution (str, optional): Research Institution, case-insensitive, exact match, e.g., "NIST"
@@ -253,7 +253,7 @@ class SST1RSoXSDB:
         # Plan the 'default' search through the keyword parameters, build list of [metadata ID, user input value, match type]
         defaultSearchDetails = [
             ["cycle", cycle, "case-insensitive"],
-            ["proposal_id", proposal, "case-insensitive exact"],
+            ["proposal_id", proposal, "numeric"],
             ["saf_id", saf, "case-insensitive exact"],
             ["user_name", user, "case-insensitive"],
             ["institution", institution, "case-insensitive exact"],
