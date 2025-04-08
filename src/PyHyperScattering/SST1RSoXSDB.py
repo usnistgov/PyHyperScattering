@@ -354,7 +354,7 @@ class SST1RSoXSDB:
                 ["bar_spot", "bar_spot", r"catalog.start", "ext_msmt"],
                 ["plan", "plan_name", r"catalog.start", "default"],
                 ["detector", "RSoXS_Main_DET", r"catalog.start", "default"],
-                ["polarization", "pol", r'catalog.start["plan_args"]', "default"],
+                ["polarization", "en_polarization", r'catalog.baseline["data"]', "default"],
                 ["sample_rotation", "angle", r"catalog.start", "ext_msmt"],
                 ["exit_status", "exit_status", r"catalog.stop", "default"],
                 ["num_Images", "primary", r'catalog.stop["num_events"]', "default"],
@@ -437,6 +437,10 @@ class SST1RSoXSDB:
                         elif metaDataSource == r'catalog.stop["num_events"]':
                             singleScanOutput.append(
                                 currentCatalogStop["num_events"][metaDataLabel]
+                            )
+                        elif metaDataSource == r'catalog.baseline["data"]':
+                            singleScanOutput.append(
+                                scanEntry.baseline["data"][metaDataLabel].__array__().mean()
                             )
                         else:
                             if debugWarnings:
