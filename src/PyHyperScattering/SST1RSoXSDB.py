@@ -13,6 +13,7 @@ import scipy.ndimage
 import asyncio
 import time
 import copy
+import multiprocessing
 
 try:
     os.environ["TILED_SITE_PROFILES"] = "/nsls2/software/etc/tiled/profiles"
@@ -20,12 +21,13 @@ try:
     from httpx import HTTPStatusError
     import tiled
     import dask
-    try: from bluesky_tiled_plugins.queries import RawMongo, Key, FullText, Contains, Regex ## Intended to handle database navigation for 2025 onwards
-    except ImportError: from databroker.queries import RawMongo, Key, FullText, Contains, Regex
+    try: 
+        from bluesky_tiled_plugins.queries import RawMongo, Key, FullText, Contains, Regex # 2025-present databroker queries
+    except ImportError: 
+        from databroker.queries import RawMongo, Key, FullText, Contains, Regex
+
 except Exception:
-    print(
-        "Imports failed.  Are you running on a machine with proper libraries for tiled, etc.?"
-    )
+    print("Imports of some libraries needed for SST-1 RSoXS failed.  If you are trying to use SST-1 RSoXS, install pyhyperscattering[bluesky].")
 
 import copy
 
@@ -42,18 +44,35 @@ class SST1RSoXSDB:
     pix_size_1 = 0.06
     pix_size_2 = 0.06
 
+    # List of metadata key names used historically at SST1 RSoXS
     md_lookup = {
-        "sam_x": "RSoXS Sample Outboard-Inboard",
-        "sam_y": "RSoXS Sample Up-Down",
-        "sam_z": "RSoXS Sample Downstream-Upstream",
-        "sam_th": "RSoXS Sample Rotation",
-        "polarization": "en_polarization_setpoint",
-        "energy": "en_energy_setpoint",
-        "exposure": "RSoXS Shutter Opening Time (ms)",  # md['detector']+'_cam_acquire_time'
+        "sam_x": ["solid_sample_x", # Started using ~March 2025
+                  "manipulator_x", # Started using ~January 2025
+                 "RSoXS Sample Outboard-Inboard",
+                 ],
+        "sam_y": ["solid_sample_y", # Started using ~March 2025
+                  "manipulator_y", # Started using ~January 2025
+                  "RSoXS Sample Up-Down",
+                 ],
+        "sam_z": ["solid_sample_z", # Started using ~March 2025
+                  "manipulator_z", # Started using ~January 2025
+                  "RSoXS Sample Downstream-Upstream",
+                 ],
+        "sam_th": ["solid_sample_r", # Started using ~March 2025
+                   "manipulator_r", # Started using ~January 2025
+                   "RSoXS Sample Rotation",
+                  ],
+        "polarization": ["en_polarization_setpoint",
+                        ],
+        "energy": ["en_energy_setpoint",
+                   "en_monoen_setpoint",
+                  ],
+        "exposure": ["RSoXS Shutter Opening Time (ms)", 
+                    ],
+        "time": ["time",
+                     ],
     }
-    md_secondary_lookup = {
-        "energy": "en_monoen_setpoint",
-    }
+    
 
     def __init__(
         self,
@@ -117,22 +136,8 @@ class SST1RSoXSDB:
         self.exposure_offset = exposure_offset
         self.use_precise_positions = use_precise_positions
         self.suppress_time_dimension = suppress_time_dimension
-
-    # def loadFileSeries(self,basepath):
-    #     try:
-    #         flist = list(basepath.glob('*primary*.tiff'))
-    #     except AttributeError:
-    #         basepath = pathlib.Path(basepath)
-    #         flist = list(basepath.glob('*primary*.tiff'))
-    #     print(f'Found {str(len(flist))} files.')
-    #
-    #     out = xr.DataArray()
-    #     for file in flist:
-    #         single_img = self.loadSingleImage(file)
-    #         out = xr.concat(out,single_img)
-    #
-    #     return out
-
+        dask.config.set(num_workers=min(12,multiprocessing.cpu_count())) # this limits the number of worker threads, which should help avoid timeouts on some large data
+ 
     def runSearch(self, **kwargs):
         """
         Search the catalog using given commands.
@@ -557,7 +562,7 @@ class SST1RSoXSDB:
         coords={},
         return_dataset=False,
         useMonitorShutterThinning=True,
-    ):
+     ):
         """
         Loads a run entry from a catalog result into a raw xarray.
 
@@ -587,6 +592,7 @@ class SST1RSoXSDB:
             )
 
         md = self.loadMd(run)
+       
 
         monitors = self.loadMonitors(run)
 
@@ -605,7 +611,7 @@ class SST1RSoXSDB:
             elif "spiralsearch" in md["start"]["plan_name"] and dims is None:
                 dims = ["sam_x", "sam_y"]
             elif "count" in md["start"]["plan_name"] and dims is None:
-                dims = ["epoch"]
+                dims = ["time"]
             else:
                 axes_to_include = []
                 rsd_cutoff = 0.005
@@ -619,6 +625,11 @@ class SST1RSoXSDB:
                 axis_list = [x for x in axis_list if "stats" not in x]
                 axis_list = [x for x in axis_list if "saturated" not in x]
                 axis_list = [x for x in axis_list if "under_exposed" not in x]
+
+                # remove new detector terms #193
+                axis_list = [x for x in axis_list if "acquire_time" not in x]
+                axis_list = [x for x in axis_list if "tiff_time_stamp" not in x]
+                
 
                 # remove hinted Energy and EPU60 items #161
                 axis_list = [x for x in axis_list if "EPU60" not in x]
@@ -649,10 +660,10 @@ class SST1RSoXSDB:
 
                 # next, construct the reverse lookup table - best mapping we can make of key to pyhyper word
                 # we start with the lookup table used by loadMd()
-                reverse_lut = {v: k for k, v in self.md_lookup.items()}
-                reverse_lut_secondary = {v: k for k, v in self.md_secondary_lookup.items()}
-                reverse_lut.update(reverse_lut_secondary)
-
+                reverse_lut = {md_key_beamline: md_key_PHS 
+                               for md_key_PHS, md_key_beamline_list in self.md_lookup.items() 
+                               for md_key_beamline in md_key_beamline_list}
+# this creates a reverse mapping where the keys are the possible names in 'beamline language' of a parameter, and the values are the name in 'PyHyper language'.  This exploits the fact that dicts are ordered to provide rank-sorted mapping of parameters.
                 # here, we broaden the table to make a value that default sources from '_setpoint' actually match on either
                 # the bare value or the readback value.
                 reverse_lut_adds = {}
@@ -669,32 +680,6 @@ class SST1RSoXSDB:
                     except KeyError:
                         pyhyper_axes_to_use.append(x)
                 dims = pyhyper_axes_to_use
-
-        """
-        elif dims == None:
-            # use the dim tols to define the dimensions
-            # dims = []
-            # dim_tols = {'en_polarization': 0.5, 'sam_x': 0.05, 'sam_y':0.05, 'en_energy':0.05, 'exposure': 1., 'sam_th': 0.05} # set the amount dims are allowed to change; could make this user-chosen in the future
-            dims = ['en_energy','time'] # I think this always needs to be an axis due to the way that the integrator is set up
-            dim_tols = {'en_polarization': 0.5, 'sam_x': 0.05, 'sam_y':0.05, 'exposure': 1., 'sam_th': 0.05} # set the amount dims are allowed to change; could make this user-chosen in the future
-            if 'spiral' in md['start']['plan_name']:
-                dims = ['energy','time']
-                dim_tols = {'polarization': 0.5, 'sam_x': 0.05, 'sam_y':0.05, 'exposure': 1., 'sam_th': 0.05} # set the amount dims are allowed to change; could make this user-chosen in the future
-            for k in dim_tols.keys():
-                dim = md[k]
-                dim_std = np.std(dim)
-                if dim_std > dim_tols[k]:
-                    dims.append(k)
-        else: # if the user has already specified the dims; user may frequently specify 'energy' or 'polarization', so just changing that so it's readable to access correct metadata (without en_, they are just setpoints)
-            dims = dims
-            for i in range(0,len(dims)):
-                if dims[i] == 'polarization':
-                    dims[i] = 'en_polarization'
-                if dims[i] == 'energy':
-                    dims[i] = 'en_energy'
-            if len(dims) == 0:
-                raise NotImplementedError('You have not entered any dimensions; please enter at least one, or use None rather than an empty list')
-        """
 
         data = run["primary"]["data"][md["detector"] + "_image"]
         if isinstance(data,tiled.client.array.ArrayClient):
@@ -747,7 +732,6 @@ class SST1RSoXSDB:
         # handle the edge case of a partly-finished scan
         if len(index) != len(data["time"]):
             index = index[: len(data["time"])]
-        actual_exposure = md["exposure"] * len(data.dim_0)
         mindex_coords = xr.Coordinates.from_pandas_multiindex(index, 'system')
         retxr = (
             data.sum("dim_0")
@@ -767,7 +751,7 @@ class SST1RSoXSDB:
             monitors = (
                 monitors.rename({"time": "system"})
                 .reset_index("system")
-                .assign_coords(system=index)
+                .assign_coords(mindex_coords)
             )
 
             if "system_" in monitors.indexes.keys():
@@ -783,9 +767,13 @@ class SST1RSoXSDB:
             )
         retxr.attrs.update(md)
 
-        retxr.attrs["exposure"] = (
-            len(data.dim_0) * retxr.attrs["exposure"]
-        )  # patch for multi exposures
+        exposure = retxr.attrs.get("exposure")
+        
+        if exposure is not None:
+            retxr.attrs["exposure"] = (len(data.dim_0) * exposure)
+        else:
+            retxr.attrs["exposure"] = None  # or 0, or skip setting it  # patch for multi exposures
+        
         # now do corrections:
         frozen_attrs = retxr.attrs
         if self.corr_mode == "i0":
@@ -824,7 +812,8 @@ class SST1RSoXSDB:
         entry,
         integrate_onto_images: bool = True,
         useShutterThinning: bool = True,
-        n_thinning_iters: int = 5,
+        n_thinning_iters: int = 1,
+        directLoadPulsedMonitors: bool = True
     ):
         """Load the monitor streams for entry.
 
@@ -845,51 +834,53 @@ class SST1RSoXSDB:
         useShutterThinning : bool, optional
             Whether or not to attempt to thin (filter) the raw time streams to remove data collected during shutter opening/closing, by default False
             As of 9 Feb 2023 at NSLS2 SST1, using useShutterThinning= True for exposure times of < 0.5s is
-            not recommended because the shutter data is unreliable and too many points will be culled
+            not recommended because the shutter data is unreliable and too many points will be removed
         n_thinning_iters : int, optional
-            how many iterations of thinning to perform, by default 5
-            If the data is becoming too sparse, try fewer iterations
+            how many iterations of thinning to perform, by default 1
+            (former default was 5 before gated monitor loading was added)
+            If you receive errors in assigning image timepoints to counters, try fewer iterations
+        directLoadPulsedMonitors : bool, optional
+            Whether or not to load the pulsed monitors using direct reading, by default True
+            This only applies if integrate_onto_images is True; otherwise you'll get very raw data.
+            If False, the pulsed monitors will be loaded using a shutter-thinning and masking approach as with continuous counters
+
         Returns
         -------
         xr.Dataset
             xarray dataset containing all monitor streams as data variables mapped against the dimension "time"
         """
 
-        monitors = None
+        raw_monitors = None
 
-        # Iterate through the list of streams held by the Bluesky document 'entry'
+
+        # Iterate through the list of streams held by the Bluesky document 'entry', and build 
         for stream_name in list(entry.keys()):
             # Add monitor streams to the output xr.Dataset
             if "monitor" in stream_name:
-                if monitors is None:  # First one
+                if raw_monitors is None:  # First one
                     # incantation to extract the dataset from the bluesky stream
-                    monitors = entry[stream_name].data.read()
+                    raw_monitors = entry[stream_name].data.read()
                 else:  # merge into the to existing output xarray
-                    monitors = xr.merge((monitors, entry[stream_name].data.read()))
+                    raw_monitors = xr.merge((raw_monitors, entry[stream_name].data.read()))
 
         # At this stage monitors has dimension time and all streams as data variables
         # the time dimension inherited all time values from all streams
         # the data variables (Mesh current, sample current etc.) are all sparse, with lots of nans
 
         # if there are no monitors, return an empty xarray Dataset
-        if monitors is None:
+        if raw_monitors is None:
             return xr.Dataset()
 
         # For each nan value, replace with the closest value ahead of it in time
         # For remaining nans, replace with closest value behind it in time
-        monitors = monitors.ffill("time").bfill("time")
+        monitors = raw_monitors.ffill("time").bfill("time")
 
         # If we need to remap timepoints to match timepoints for data acquisition
         if integrate_onto_images:
             try:
                 # Pull out ndarray of 'primary' timepoints (measurement timepoints)
-                try:
-                    primary_time = entry.primary.data["time"].values
-                except AttributeError:
-                    if type(entry.primary.data["time"]) == tiled.client.array.DaskArrayClient:
-                        primary_time = entry.primary.data["time"].read().compute()
-                    elif type(entry.primary.data["time"]) == tiled.client.array.ArrayClient:
-                        primary_time = entry.primary.data["time"].read()
+                primary_time = entry.primary.data["time"].__array__()
+                primary_time_bins = np.insert(primary_time, 0,0)
 
                 # If we want to exclude values for when the shutter was opening or closing
                 # This doesn't work for exposure times ~ < 0.5 s, because shutter stream isn't reliable
@@ -911,22 +902,50 @@ class SST1RSoXSDB:
                         "time"
                     )
 
+                #return monitors
                 # Bin the indexes in 'time' based on the intervales between timepoints in 'primary_time' and evaluate their mean
                 # Then rename the 'time_bin' dimension that results to 'time'
                 monitors = (
-                    monitors.groupby_bins("time", np.insert(primary_time, 0, 0))
+                    monitors.groupby_bins("time",primary_time_bins,include_lowest=True)
                     .mean()
-                    .rename_dims({"time_bins": "time"})
+                    .rename({"time_bins": "time"})
                 )
-
+                '''
                 # Add primary measurement time as a coordinate in monitors that is named 'time'
                 # Remove the coordinate 'time_bins' from the array
                 monitors = (
                     monitors.assign_coords({"time": primary_time})
                     .drop_indexes("time_bins")
                     .reset_coords("time_bins", drop=True)
-                )
+                )'''
 
+                # load direct/pulsed monitors
+
+                for stream_name in list(entry.keys()):
+                    if "monitor" in stream_name and ("Beamstop" in stream_name or "Sample" in stream_name):
+                        # the pulsed monitors we know about are "SAXS Beamstop", "WAXS Beamstop", "Sample Current"
+                        # if others show up here, they could be added
+                        out_name = stream_name.replace("_monitor", "")
+                        mon = entry[stream_name].data.read()[out_name].compute()
+                        SIGNAL_THRESHOLD = 0.1
+                        threshold = SIGNAL_THRESHOLD*mon.mean('time')
+                        mon_filter = xr.zeros_like(mon)
+                        mon_filter[mon<threshold] = 0
+                        mon_filter[mon>threshold] = 1
+                        mon_filter.values = scipy.ndimage.binary_erosion(mon_filter)
+                        mon_filtered = mon.where(mon_filter==1)
+                        mon_binned = (mon_filtered.groupby_bins("time",primary_time_bins,include_lowest=True)
+                                        .mean()
+                                        .rename({"time_bins":"time"})
+                                        )
+
+                        if not directLoadPulsedMonitors:
+                            out_name = 'pl_' + out_name
+
+                        monitors[out_name] = mon_binned
+                monitors = monitors.assign_coords({"time": primary_time})
+
+              
             except Exception as e:
                 # raise e # for testing
                 warnings.warn(
@@ -980,7 +999,7 @@ class SST1RSoXSDB:
                 md["beamcenter_y"] = run.start["RSoXS_SAXS_BCY"]
                 md["sdd"] = run.start["RSoXS_SAXS_SDD"]
 
-        elif start["RSoXS_Config"] == "WAXS":
+        elif "WAXS" in start["RSoXS_Config"]:
             md["rsoxs_config"] = "waxs"
             if (meas_time > datetime.datetime(2020, 11, 16)) and (
                 meas_time < datetime.datetime(2021, 1, 15)
@@ -1025,72 +1044,46 @@ class SST1RSoXSDB:
             primary = run["primary"]["data"]
         except (KeyError, HTTPStatusError):
             raise Exception(
-                "No primary stream --> probably you caught run before image was written.  Try"
-                " again."
+                "No primary stream --> probably you caught run before image was written.  Try again."
             )
 
         md_lookup = copy.deepcopy(self.md_lookup)
-        md_secondary_lookup = copy.deepcopy(self.md_secondary_lookup)
-
+        # Add additional metadata not included in lookup dictionary
+        md_key_names_beamline = []
+        
+        for key in md_lookup.keys(): # Make a single list with all historical keys, in the order to check for them.
+            md_key_names_beamline = md_key_names_beamline + md_lookup[key] 
+        
         for key in primary.keys():
-            if key not in md_lookup.values():
+            if key not in md_key_names_beamline:
                 if "_image" not in key:
-                    md_lookup[key] = key
-
-        for phs, rsoxs in md_lookup.items():
-            try:
-                md[phs] = primary[rsoxs].read()
-                # print(f'Loading from primary: {phs}, value {primary[rsoxs].values}')
-            except (KeyError, HTTPStatusError):
-                try:
-                    blval = baseline[rsoxs]
-                    if (
-                        type(blval) == tiled.client.array.ArrayClient
-                        or type(blval) == tiled.client.array.DaskArrayClient
-                    ):
-                        blval = blval.read()
-                    md[phs] = blval.mean().round(4)
-                    if blval.var() > 0:
-                        warnings.warn(
-                            (
-                                f"While loading {rsoxs} to infill metadata entry for {phs}, found"
-                                f" beginning and end values unequal: {baseline[rsoxs]}.  It is"
-                                " possible something is messed up."
-                            ),
-                            stacklevel=2,
-                        )
+                    md_lookup[key] = [key]
+                    
+        # Find metadata from Tiled primary and store in PyHyperScattering metadata dictionary
+        for key_name_PHS, key_names_beamline in md_lookup.items(): # first iterate over PyHyper 'words' and ordered lists to check
+            for key_name_beamline in key_names_beamline: # next, go through that list in order
+                if (key_name_PHS in md
+                    and md[key_name_PHS] is not None): 
+                    break # If the pyhyper key is already filled in, no need to try other beamline keys, so stop processing this PyHyper key.
+                try: 
+                    md[key_name_PHS] = primary[key_name_beamline].read() # first try finding metadata in primary stream
                 except (KeyError, HTTPStatusError):
                     try:
-                        md[phs] = primary[md_secondary_lookup[phs]].read()
-                    except (KeyError, HTTPStatusError):
-                        try:
-                            blval = baseline[md_secondary_lookup[phs]]
-                            if (
-                                type(blval) == tiled.client.array.ArrayClient
-                                or type(blval) == tiled.client.array.DaskArrayClient
-                            ):
-                                blval = blval.read()
-                            md[phs] = blval.mean().round(4)
-                            if blval.var() > 0:
-                                warnings.warn(
-                                    (
-                                        f"While loading {md_secondary_lookup[phs]} to infill"
-                                        f" metadata entry for {phs}, found beginning and end"
-                                        f" values unequal: {baseline[rsoxs]}.  It is possible"
-                                        " something is messed up."
-                                    ),
-                                    stacklevel=2,
-                                )
-                        except (KeyError, HTTPStatusError):
-                            warnings.warn(
-                                (
-                                    f"Could not find {rsoxs} in either baseline or primary. "
-                                    f" Needed to infill value {phs}.  Setting to None."
-                                ),
-                                stacklevel=2,
-                            )
-                            md[phs] = None
-        md["epoch"] = md["meas_time"].timestamp()
+                        baseline_value = baseline[key_name_beamline] # Next, try finding metadata in baseline
+                        
+                        if isinstance(baseline_value, (tiled.client.array.ArrayClient, tiled.client.array.DaskArrayClient)): 
+                            baseline_value = baseline_value.read() # For tiled_client.array data types, need to use .read() to get the values
+                        
+                        md[key_name_PHS] = baseline_value.mean().round(4) # Rounded for stacking purposes, to avoid slightly different values when not meaningful
+                        
+                        if baseline_value.var() > 1e-4*abs(baseline_value.mean()):                             
+                            warnings.warn(f"{key_name_PHS} changed during scan: {baseline_value}.",stacklevel=2)
+                    except (KeyError, HTTPStatusError): 
+                        md[key_name_PHS] = None
+            if md[key_name_PHS] is None:
+                warnings.warn(f"Could not find any of {key_names_beamline} in either baseline or primary. Setting {key_name_PHS} to None.",stacklevel=2)
+                        
+        md["epoch"] = md["meas_time"].timestamp() # Epoch = the time the entire run started, used for multi-scan stacking
 
         # looking at exposure tests in the stream and issuing warnings
         if "Wide Angle CCD Detector_under_exposed" in md:
@@ -1131,7 +1124,6 @@ class SST1RSoXSDB:
             warnings.warn(
                 "'Wide Angle CCD Detector_saturated' not found in stream."
             )
-        md["epoch"] = md["meas_time"].timestamp()
 
         try:
             md["wavelength"] = 1.239842e-6 / md["energy"]
