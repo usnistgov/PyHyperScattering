@@ -208,11 +208,11 @@ class SST1RSoXSDB:
                 'default' returns scan_id, start time, cycle, institution, project, sample_name, sample_id, plan name, detector,
                 polarization, exit_status, and num_images
                 'scans' returns only the scan_ids (1-column dataframe)
-                'ext_msmt' returns default columns AND bar_spot, sample_rotation
+                'ext_msmt' returns default columns AND bar_spot, sample_rotation, polarization (_very_ slow)
                 'ext_bio' returns default columns AND uid, saf, user_name
                 'all' is equivalent to 'default' and all other additive choices
             cycle (str, optional): NSLS2 beamtime cycle, regex search e.g., "2022" matches "2022-2", "2022-1"
-            proposal (str, optional): NSLS2 PASS proposal ID, case-insensitive, exact match, e.g., "GU-310176"
+            proposal (int, optional): NSLS2 PASS proposal ID, numeric, exact match, e.g., 310176
             saf (str, optional): Safety Approval Form (SAF) number, exact match, e.g., "309441"
             user (str, optional): User name, case-insensitive, regex search e.g., "eliot" matches "Eliot", "Eliot Gann"
             institution (str, optional): Research Institution, case-insensitive, exact match, e.g., "NIST"
@@ -253,7 +253,7 @@ class SST1RSoXSDB:
         # Plan the 'default' search through the keyword parameters, build list of [metadata ID, user input value, match type]
         defaultSearchDetails = [
             ["cycle", cycle, "case-insensitive"],
-            ["proposal_id", proposal, "case-insensitive exact"],
+            ["proposal_id", proposal, "numeric"],
             ["saf_id", saf, "case-insensitive exact"],
             ["user_name", user, "case-insensitive"],
             ["institution", institution, "case-insensitive exact"],
@@ -289,11 +289,9 @@ class SST1RSoXSDB:
         # Iterate through search terms sequentially, reducing the size of the catalog based on successful matches
 
         reducedCatalog = bsCatalog
-        for _, searchSeries in tqdm(
-            df_SearchDet.iterrows(), total=df_SearchDet.shape[0], desc="Running catalog search..."
-        ):
+        for _, searchSeries in df_SearchDet.iterrows():
             # Skip arguments with value None, and quits if the catalog was reduced to 0 elements
-            if (searchSeries[1] is not None) and (len(reducedCatalog) > 0):
+            if (searchSeries.iloc[1] is not None) and (len(reducedCatalog) > 0):
                 # For numeric entries, do Key equality
                 if "numeric" in str(searchSeries.iloc[2]):
                     reducedCatalog = reducedCatalog.search(
@@ -321,7 +319,7 @@ class SST1RSoXSDB:
                 # If a match fails, notify the user which search parameter yielded 0 results
                 if len(reducedCatalog) == 0:
                     warnString = (
-                        f"Catalog reduced to zero when attempting to match {searchSeries}\n"
+                        f"No results found when searching {str(searchSeries.iloc[0])}. "
                         + f"If this is a user-provided search parameter, check spelling/syntax."
                     )
                     warnings.warn(warnString, stacklevel=2)
@@ -354,7 +352,7 @@ class SST1RSoXSDB:
                 ["bar_spot", "bar_spot", r"catalog.start", "ext_msmt"],
                 ["plan", "plan_name", r"catalog.start", "default"],
                 ["detector", "RSoXS_Main_DET", r"catalog.start", "default"],
-                ["polarization", "pol", r'catalog.start["plan_args"]', "default"],
+                ["polarization", "en_polarization", r'catalog.baseline["data"]', "ext_msmt"],
                 ["sample_rotation", "angle", r"catalog.start", "ext_msmt"],
                 ["exit_status", "exit_status", r"catalog.stop", "default"],
                 ["num_Images", "primary", r'catalog.stop["num_events"]', "default"],
@@ -437,6 +435,10 @@ class SST1RSoXSDB:
                         elif metaDataSource == r'catalog.stop["num_events"]':
                             singleScanOutput.append(
                                 currentCatalogStop["num_events"][metaDataLabel]
+                            )
+                        elif metaDataSource == r'catalog.baseline["data"]':
+                            singleScanOutput.append(
+                                scanEntry.baseline["data"][metaDataLabel].__array__().mean()
                             )
                         else:
                             if debugWarnings:
