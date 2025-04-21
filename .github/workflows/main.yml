@@ -1,7 +1,6 @@
 name: PyHyperScattering CI Testing
 
-on: 
-  push:
+on:
   pull_request:
     # The branches below must be a subset of the branches above
     branches: [ main ]
@@ -12,9 +11,18 @@ jobs:
     runs-on: ${{ matrix.os}}
     strategy:
       matrix:
-        python-version: ['3.10','3.11']
+        python-version: ['3.10','3.11','3.12','3.13']
         os: [ubuntu-latest, macOS-latest, windows-latest]
-
+        exclude:
+          - os: macOS-latest
+            python-version: '3.11'
+          - os: macOS-latest
+            python-version: '3.12'
+          - os: windows-latest
+            python-version: '3.11'
+            # this last one is a specific incompatibility...
+          - os: windows-latest
+            python-version: '3.13'
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
@@ -26,18 +34,14 @@ jobs:
       with:
         path: ${{ env.pythonLocation }}
         # Look to see if there is a cache hit for the corresponding requirements file
-        key: ${{ runner.os }}-py${{ matrix.python-version }}-pip-${{ hashFiles('requirements.txt') }}
+        key: ${{ runner.os }}-py${{ matrix.python-version }}-pip-${{ hashFiles('pyproject.toml') }}
         restore-keys: |
          ${{ runner.os }}-py${{ matrix.python-version }}-pip-
           ${{ runner.os }}-
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install flake8 pytest coverage
-        pip install pybind11 wheel
-        pip install -r requirements.txt
-        pip install -r requirements-bluesky.txt
-        pip install dask
+        pip install .[dev,bluesky]
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
