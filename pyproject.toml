@@ -25,7 +25,6 @@ dependencies = [
     "numpy<2",
     "pandas",
     "pyfai",
-    "pyopencl",
     "scikit-image",
     "scipy",
     "pillow",
@@ -64,6 +63,12 @@ doc = [
         "sphinx",
         "pydata_sphinx_theme"
         ]
+dev = ["flake8",
+       "pytest", 
+       "coverage",
+       "pybind11",
+       "wheel"
+        ]
 test =  [
         "pytest",
          "black",
@@ -84,7 +89,12 @@ all-nogpu = [
     "pytest",
     "black",
     "codecov",
-    "pylint"
+    "pylint",
+    "flake8",
+       "pytest", 
+       "coverage",
+       "pybind11",
+       "wheel"
 ]
 all = [
     "tiled[all]>=0.1.0a74",
@@ -103,7 +113,12 @@ all = [
     "pytest",
     "black",
     "codecov",
-    "pylint"
+    "pylint",
+    "flake8",
+       "pytest", 
+       "coverage",
+       "pybind11",
+       "wheel"
 ]
 
 [project.urls]
