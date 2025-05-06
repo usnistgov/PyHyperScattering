@@ -44,8 +44,7 @@ grazing = [
     ]
 bluesky = [
     "tiled[all]>=0.1.0a74",
-    "databroker[all]>=2.0.0b10",
-    "bluesky-tiled-plugins",
+    "bluesky-tiled-plugins!=2.0.0b60",
     "bottleneck"
 ]
 performance = [
@@ -76,8 +75,7 @@ test =  [
          ]
 all-nogpu = [
     "tiled[all]>=0.1.0a74",
-    "databroker[all]>=2.0.0b10",
-    "bluesky-tiled-plugins",
+    "bluesky-tiled-plugins!=2.0.0b60",
     "bottleneck",
     "pyopencl",
     "dask",
