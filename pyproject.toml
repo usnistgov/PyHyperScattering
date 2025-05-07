@@ -44,7 +44,7 @@ grazing = [
     ]
 bluesky = [
     "tiled[all]>=0.1.0a74",
-    "bluesky-tiled-plugins>=2.0.0b54,!=2.0.0b60",
+    "bluesky-tiled-plugins",
     "bottleneck"
 ]
 performance = [
@@ -74,8 +74,8 @@ test =  [
          "pylint"
          ]
 all-nogpu = [
-    "tiled[all]>=0.1.0a74",
-    "bluesky-tiled-plugins>=2.0.0b54,!=2.0.0b60",
+    "tiled[client]>=0.1.0a74",
+    "bluesky-tiled-plugins",
     "bottleneck",
     "pyopencl",
     "dask",
@@ -94,8 +94,8 @@ all-nogpu = [
        "wheel"
 ]
 all = [
-    "tiled[all]>=0.1.0a74",
-    "bluesky-tiled-plugins>=2.0.0b54,!=2.0.0b60",
+    "tiled[client]>=0.1.0a74",
+    "bluesky-tiled-plugins",
     "bottleneck",
     "pygix",
     "pyopencl",
