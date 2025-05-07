@@ -29,6 +29,7 @@ dependencies = [
     "scipy",
     "pillow",
     "xarray",
+    "bottleneck",
     "tqdm",
     "astropy",
     "fabio",
@@ -43,10 +44,8 @@ grazing = [
     "pygix"
     ]
 bluesky = [
-    "tiled[all]>=0.1.0a74",
-    "databroker[all]>=2.0.0b10",
-    "bluesky-tiled-plugins",
-    "bottleneck"
+    "tiled[client]>=0.1.0a74",
+    "bluesky-tiled-plugins"
 ]
 performance = [
     "pyopencl",
@@ -75,10 +74,8 @@ test =  [
          "pylint"
          ]
 all-nogpu = [
-    "tiled[all]>=0.1.0a74",
-    "databroker[all]>=2.0.0b10",
+    "tiled[client]>=0.1.0a74",
     "bluesky-tiled-plugins",
-    "bottleneck",
     "pyopencl",
     "dask",
     "holoviews",
@@ -96,10 +93,8 @@ all-nogpu = [
        "wheel"
 ]
 all = [
-    "tiled[all]>=0.1.0a74",
-    "databroker[all]>=2.0.0b10",
+    "tiled[client]>=0.1.0a74",
     "bluesky-tiled-plugins",
-    "bottleneck",
     "pygix",
     "pyopencl",
     "dask",
