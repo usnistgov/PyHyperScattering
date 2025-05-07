@@ -44,6 +44,7 @@ grazing = [
     ]
 bluesky = [
     "tiled[client]>=0.1.0a74",
+    "event-model",
     "bluesky-tiled-plugins"
 ]
 performance = [
@@ -74,6 +75,7 @@ test =  [
          ]
 all-nogpu = [
     "tiled[client]>=0.1.0a74",
+    "event-model",
     "bluesky-tiled-plugins",
     "pyopencl",
     "dask",
@@ -93,6 +95,7 @@ all-nogpu = [
 ]
 all = [
     "tiled[client]>=0.1.0a74",
+    "event-model",
     "bluesky-tiled-plugins",
     "pygix",
     "pyopencl",
