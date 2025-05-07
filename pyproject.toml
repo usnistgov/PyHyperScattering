@@ -43,9 +43,8 @@ grazing = [
     "pygix"
     ]
 bluesky = [
-    "tiled[all]>=0.1.0a74",
-    "bluesky-tiled-plugins",
-    "bottleneck"
+    "tiled[client]>=0.1.0a74",
+    "bluesky-tiled-plugins"
 ]
 performance = [
     "pyopencl",
@@ -76,7 +75,6 @@ test =  [
 all-nogpu = [
     "tiled[client]>=0.1.0a74",
     "bluesky-tiled-plugins",
-    "bottleneck",
     "pyopencl",
     "dask",
     "holoviews",
@@ -96,7 +94,6 @@ all-nogpu = [
 all = [
     "tiled[client]>=0.1.0a74",
     "bluesky-tiled-plugins",
-    "bottleneck",
     "pygix",
     "pyopencl",
     "dask",
