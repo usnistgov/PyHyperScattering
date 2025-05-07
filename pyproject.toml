@@ -29,6 +29,7 @@ dependencies = [
     "scipy",
     "pillow",
     "xarray",
+    "bottleneck",
     "tqdm",
     "astropy",
     "fabio",
