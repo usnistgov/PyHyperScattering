@@ -31,7 +31,9 @@ The metadata should be loaded and converted to a standardized set of terms, inte
 
 :ref:`Integration <integration>`
 -----------------------------------
-Convert your data from pixel space or qx/qy space to chi-q space - perfect for slicing.  generally tools here are built on pyFAI, though some variants also use warp_polar from numpy.
+Convert your data from pixel space or qx/qy space to chi-q space - perfect for slicing.  Most integrators wrap `pyFAI <https://pyfai.readthedocs.io/>`_ but there are alternatives.
+The standard :class:`~PyHyperScattering.PFGeneralIntegrator` uses pyFAI's azimuthal integrator with a mask and calibration parameters.
+For grazing-incidence work :class:`~PyHyperScattering.PGGeneralIntegrator` relies on ``pygix`` and :class:`~PyHyperScattering.WPIntegrator` integrates ``qx``/``qy`` data with ``warp_polar``.
 
 
 :ref:`Custom Analysis <analysis>`
