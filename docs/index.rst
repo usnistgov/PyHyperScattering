@@ -19,7 +19,7 @@
 .. toctree::
    :maxdepth: 1
    :hidden:
-   
+   Installation <source/getting_started/installation>
    Getting Started <source/getting_started/idx_getting_started>
    User Guide <source/user_guide/idx_user_guide>
    API Reference <source/reference_API/idx_reference_API>
