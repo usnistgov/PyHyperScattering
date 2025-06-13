@@ -120,7 +120,7 @@ class WPIntegrator():
         qx = img.qx
         qy = img.qy
         q = np.sqrt(qy**2+qx**2)
-        q = np.linspace(0,np.amax(q), TwoD.shape[1])
+        q = np.linspace(0,float(np.amax(q)), int(TwoD.shape[1]))
 
         # warp_polar maps to 0-360 instead of -180-180
         chi = np.linspace(-179.5,179.5,360)
