@@ -7,6 +7,7 @@ Getting Started
    :maxdepth: 1
    :hidden:
    
+   Installation <installation>
    Loading Data <loading>
    Integration <integration>
    Custom Analysis <learning-to-fly>
