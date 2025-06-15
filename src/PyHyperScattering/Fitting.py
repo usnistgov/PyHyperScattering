@@ -80,7 +80,7 @@ def fit_lorentz(x,guess=None,pos_int_override=False,silent=False):
         pos_int_override (bool): if True, overrides the peak center as the median q-value of the array, and intensity as the intensity at that q.
     '''
     # example guess: [500.,0.00665,0.0002] [int, q, width]
-    x = x.dropna('q')
+    x = x.dropna('q').squeeze()
     if guess == None:
         guess = [500.,0.00665,0.0002]
         pos_int_override=True
@@ -117,7 +117,7 @@ def fit_lorentz_bg(x,guess=None,pos_int_override=False,silent=False):
         pos_int_override (bool): if True, overrides the peak center as the median q-value of the array, and intensity as the intensity at that q.
     '''
     # example guess: [500.,0.00665,0.0002,0] [int, q, width, bg]
-    x = x.dropna('q')
+    x = x.dropna('q').squeeze()
     if guess == None:
         guess = [500.,0.00665,0.0002,0]
         pos_int_override=True
