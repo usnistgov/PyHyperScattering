@@ -298,7 +298,7 @@ class PFGeneralIntegrator:
                     )
         if self.return_sigma:
             sigma = xr.ones_like(res)
-            sigma.values = frame.sigma
+            sigma.data = np.broadcast_to(frame.sigma, sigma.shape)
             res = res.to_dataset(name='I')
             res['dI'] = sigma
         return res

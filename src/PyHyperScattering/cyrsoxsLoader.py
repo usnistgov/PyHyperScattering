@@ -86,7 +86,7 @@ class cyrsoxsLoader():
         directory = pathlib.Path(directory)
         #these waits are here intentionally so that data read-in can be started simultaneous with launching sim jobs and data will be read-in as soon as it is available.
         if self.eager_load:
-            while not (directory/'config.txt').is_dir():
+            while not (directory/'config.txt').is_file():
                 time.sleep(0.5)
         config = self.read_config(directory/'config.txt')
         
@@ -137,7 +137,7 @@ class cyrsoxsLoader():
         filehandles = []
         for i, e in enumerate(elist):
             if self.eager_load:
-                while not (directory/'HDF5'/hd5files[i]).is_dir():
+                while not (directory/'HDF5'/hd5files[i]).is_file():
                     time.sleep(0.5)
             
             h5 = h5py.File(directory/'HDF5'/hd5files[i],'r')
@@ -177,7 +177,7 @@ class cyrsoxsLoader():
         directory = pathlib.Path(directory)
         #these waits are here intentionally so that data read-in can be started simultaneous with launching sim jobs and data will be read-in as soon as it is available.
         if self.eager_load:
-            while not (directory/'config.txt').is_dir():
+            while not (directory/'config.txt').is_file():
                 time.sleep(0.5)
         config = self.read_config(directory/'config.txt')
         
@@ -226,7 +226,7 @@ class cyrsoxsLoader():
 
         for i, e in enumerate(elist):
             if self.eager_load:
-                while not (directory/'HDF5'/hd5files[i]).is_dir():
+                while not (directory/'HDF5'/hd5files[i]).is_file():
                     time.sleep(0.5)
                     
             if i==0:
