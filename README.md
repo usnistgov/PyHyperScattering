@@ -6,6 +6,8 @@ This is a package approaching scope-completeness, but still under extremely acti
 
 The (quite incomplete) documentation is located at https://pages.nist.gov/PyHyperScattering, and the tutorials in the repository are occasionally helpful.  Several core developers are active on the NIST RSoXS slack, Nikea, and NSLS2 slacks and welcome DMs with questions, or email Peter Beaucage.
 
+Example data used in the tutorials and tests can be downloaded from our [GitHub release](https://github.com/usnistgov/PyHyperScattering/releases/tag/0.0.0-example-data).  See [Obtaining Example Data](docs/source/getting_started/example_data.rst) for more information.
+
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/usnistgov/PyHyperScattering/HEAD)
 ![Unit Tests](https://github.com/usnistgov/PyHyperScattering/actions/workflows/main.yml/badge.svg)
 ![CodeQL](https://github.com/usnistgov/PyHyperScattering/actions/workflows/codeql-analysis.yml/badge.svg)
