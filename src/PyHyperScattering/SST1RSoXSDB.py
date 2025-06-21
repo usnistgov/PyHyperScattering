@@ -884,7 +884,8 @@ class SST1RSoXSDB:
         # if there are no monitors, return the dataset as it is, assume it's already been treated upstream
         if raw_monitors is None:
             if isinstance(entry['primary']['data'],tiled.client.xarray.DatasetClient) or isinstance(entry['primary']['data'],tiled.client.xarray.DaskDatasetClient):
-                return entry['primary']['data'].read()
+                keys_to_load = [x for x in list(entry['primary']['data'].keys()) if 'image' not in x]
+                return entry['primary']['data'].read(keys_to_load)
             else:
                 return entry['primary']['data']
 
