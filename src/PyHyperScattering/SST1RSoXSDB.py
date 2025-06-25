@@ -88,6 +88,7 @@ class SST1RSoXSDB:
         use_precise_positions=False,
         use_chunked_loading=False,
         suppress_time_dimension=True,
+        double_diode_norm_scanid=None,
     ):
         """
         Args:
@@ -138,6 +139,7 @@ class SST1RSoXSDB:
         self.exposure_offset = exposure_offset
         self.use_precise_positions = use_precise_positions
         self.suppress_time_dimension = suppress_time_dimension
+        self.double_diode_norm_scanid = double_diode_norm_scanid
 
         self.catalog_df = None
         self.catalog_df_kwargs = None
@@ -883,9 +885,7 @@ class SST1RSoXSDB:
                 dims = pyhyper_axes_to_use
 
         data = run["primary"]["data"][md["detector"] + "_image"]
-        if isinstance(data,tiled.client.array.ArrayClient):
-            data = run["primary"]["data"].read()[md["detector"] + "_image"]
-        elif isinstance(data,tiled.client.array.DaskArrayClient):
+        if isinstance(data,tiled.client.array.ArrayClient) or isinstance(data,tiled.client.array.DaskArrayClient):
             data = run["primary"]["data"].read()[md["detector"] + "_image"]
         # Handle extra dimensions (non-pixel and non-intended dimensions from repeat exposures) by averaging them along the dim_0 axis
         if len(data.shape) > 3:
@@ -896,8 +896,8 @@ class SST1RSoXSDB:
         if self.dark_subtract:
             dark = run["dark"]["data"][md["detector"] + "_image"]
             if (
-                type(dark) == tiled.client.array.ArrayClient
-                or type(dark) == tiled.client.array.DaskArrayClient
+                isinstance(dark,tiled.client.array.ArrayClient)
+                or isinstance(dark,tiled.client.array.DaskArrayClient)
             ):
                 dark = run["dark"]["data"].read()[md["detector"] + "_image"]
             darkframe = np.copy(data.time)
@@ -916,7 +916,7 @@ class SST1RSoXSDB:
         for dim in dims:
             try:
                 test = len(md[dim])  # this will throw a typeerror if single value
-                if type(md[dim]) == dask.array.core.Array:
+                if isinstance(md[dim], dask.array.core.Array):
                     dims_to_join.append(md[dim].compute())
                 else:
                     dims_to_join.append(md[dim])
@@ -979,6 +979,18 @@ class SST1RSoXSDB:
         frozen_attrs = retxr.attrs
         if self.corr_mode == "i0":
             retxr = retxr / monitors["RSoXS Au Mesh Current"]
+        if self.corr_mode == "double_diode_i0":
+            diode_reference = self.loadMonitors(self.c[self.double_diode_norm_scanid])
+            assert diode_reference.len('time') == retxr.len('system') # must be the exact same scan
+            diode_reference = (
+                diode_reference.rename({"time": "system"})
+                .reset_index("system")
+                .assign_coords(mindex_coords)
+            )
+            # in double-diode normalization, we correct for the mesh sensitivity by using a diode sensitivity scan to normalize the mesh current
+            # this assumes the diode is clean/true/correct, and the mesh sensitivity didn't change between the runs
+            retxr = retxr / monitors['RSoXS Au Mesh Current'] * (diode_reference['RSoXS Au Mesh Current'] / diode_reference['WAXS Beamstop'])
+
         elif self.corr_mode != "none":
             warnings.warn(
                 "corrections other than none or i0 are not supported at the moment",
@@ -1067,9 +1079,13 @@ class SST1RSoXSDB:
         # the time dimension inherited all time values from all streams
         # the data variables (Mesh current, sample current etc.) are all sparse, with lots of nans
 
-        # if there are no monitors, return an empty xarray Dataset
+        # if there are no monitors, return the dataset as it is, assume it's already been treated upstream
         if raw_monitors is None:
-            return xr.Dataset()
+            if isinstance(entry['primary']['data'],tiled.client.xarray.DatasetClient) or isinstance(entry['primary']['data'],tiled.client.xarray.DaskDatasetClient):
+                keys_to_load = [x for x in list(entry['primary']['data'].keys()) if 'image' not in x]
+                return entry['primary']['data'].read(keys_to_load)
+            else:
+                return entry['primary']['data']
 
         # For each nan value, replace with the closest value ahead of it in time
         # For remaining nans, replace with closest value behind it in time
@@ -1351,74 +1367,3 @@ class SST1RSoXSDB:
 
         md.update(run.metadata)
         return md
-
-    def loadSingleImage(self, filepath, coords=None, return_q=False, **kwargs):
-        """
-        DO NOT USE
-
-        This function is preserved as reference for the qx/qy loading conventions.
-
-        NOT FOR ACTIVE USE.  DOES NOT WORK.
-        """
-        if len(kwargs.keys()) > 0:
-            warnings.warn(
-                f"Loader does not support features for args: {kwargs.keys()}",
-                stacklevel=2,
-            )
-        img = Image.open(filepath)
-
-        headerdict = self.loadMd(filepath)
-        # two steps in this pre-processing stage:
-        #     (1) get and apply the right scalar correction term to the image
-        #     (2) find and subtract the right dark
-        if coords != None:
-            headerdict.update(coords)
-
-        # step 1: correction term
-
-        if self.corr_mode == "expt":
-            corr = headerdict["exposure"]  # (headerdict['AI 3 Izero']*expt)
-        elif self.corr_mode == "i0":
-            corr = headerdict["AI 3 Izero"]
-        elif self.corr_mode == "expt+i0":
-            corr = headerdict["exposure"] * headerdict["AI 3 Izero"]
-        elif self.corr_mode == "user_func":
-            corr = self.user_corr_func(headerdict)
-        elif self.corr_mode == "old":
-            corr = (
-                headerdict["AI 6 BeamStop"]
-                * 2.4e10
-                / headerdict["Beamline Energy"]
-                / headerdict["AI 3 Izero"]
-            )
-            # this term is a mess...  @TODO check where it comes from
-        else:
-            corr = 1
-
-        if corr < 0:
-            warnings.warn(
-                f"Correction value is negative: {corr} with headers {headerdict}.",
-                stacklevel=2,
-            )
-            corr = abs(corr)
-
-        # # step 2: dark subtraction
-        # try:
-        #     darkimg = self.darks[headerdict['EXPOSURE']]
-        # except KeyError:
-        #     warnings.warn(f"Could not find a dark image with exposure time {headerdict['EXPOSURE']}.  Using zeros.",stacklevel=2)
-        #     darkimg = np.zeros_like(img)
-
-        # img = (img-darkimg+self.dark_pedestal)/corr
-        if return_q:
-            qpx = (
-                2 * np.pi * 60e-6 / (headerdict["sdd"] / 1000) / (headerdict["wavelength"] * 1e10)
-            )
-            qx = (np.arange(1, img.size[0] + 1) - headerdict["beamcenter_x"]) * qpx
-            qy = (np.arange(1, img.size[1] + 1) - headerdict["beamcenter_y"]) * qpx
-            # now, match up the dims and coords
-            return xr.DataArray(
-                img, dims=["qy", "qx"], coords={"qy": qy, "qx": qx}, attrs=headerdict
-            )
-        else:
-            return xr.DataArray(img, dims=["pix_x", "pix_y"], attrs=headerdict)
