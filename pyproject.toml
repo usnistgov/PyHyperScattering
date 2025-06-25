@@ -54,6 +54,7 @@ performance = [
 ui = [
     "holoviews",
     "hvplot",
+    "ipyaggrid",
     "matplotlib"
 ]
 doc = [
