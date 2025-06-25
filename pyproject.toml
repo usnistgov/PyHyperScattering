@@ -33,7 +33,6 @@ dependencies = [
     "tqdm",
     "astropy",
     "fabio",
-    "nodejs",
     "pydata_sphinx_theme",
     "numexpr!=2.8.5,!=2.8.6"
 ]
