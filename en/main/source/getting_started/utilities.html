@@ -45,8 +45,6 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'source/getting_started/utilities';</script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="User Guide" href="../user_guide/idx_user_guide.html" />
-    <link rel="prev" title="Learning to Fly" href="learning-to-fly.html" />
   
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -138,40 +136,6 @@
 <nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item current active">
-  <a class="nav-link nav-internal" href="idx_getting_started.html">
-    Getting Started
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../user_guide/idx_user_guide.html">
-    User Guide
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../reference_API/idx_reference_API.html">
-    API Reference
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../development/idx_development.html">
-    Development
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../release_notes/idx_release_notes.html">
-    Release notes
-  </a>
-</li>
-
   </ul>
 </nav></div>
       
@@ -261,40 +225,6 @@
 <nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item current active">
-  <a class="nav-link nav-internal" href="idx_getting_started.html">
-    Getting Started
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../user_guide/idx_user_guide.html">
-    User Guide
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../reference_API/idx_reference_API.html">
-    API Reference
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../development/idx_development.html">
-    Development
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../release_notes/idx_release_notes.html">
-    Release notes
-  </a>
-</li>
-
   </ul>
 </nav></div>
           
@@ -338,13 +268,7 @@
 <nav class="bd-docs-nav bd-links"
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
-  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="loading.html">Loading Data</a></li>
-<li class="toctree-l1"><a class="reference internal" href="integration.html">Integration</a></li>
-<li class="toctree-l1"><a class="reference internal" href="learning-to-fly.html">Custom Analysis</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Utilities</a></li>
-</ul>
-</div>
+  <div class="bd-toc-item navbar-nav"></div>
 </nav></div>
     </div>
   
@@ -383,9 +307,6 @@
         <i class="fa-solid fa-home"></i>
       </a>
     </li>
-    
-    <li class="breadcrumb-item"><a href="idx_getting_started.html" class="nav-link">Getting Started</a></li>
-    
     <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Utility Modules</span></li>
   </ul>
 </nav>
@@ -406,12 +327,32 @@
   <section id="utility-modules">
 <span id="utilities"></span><h1>Utility Modules<a class="headerlink" href="#utility-modules" title="Permalink to this heading">#</a></h1>
 <p>Despite the power of writing your own analyses, it seems likely that many of the analyses you’ll want to do won’t actually be that novel.</p>
-<p>To that end, we furnish two modules of ‘canned’ approaches: RSoXS and fitting.  User contributions are encouraged in this area.</p>
+<p>To that end, we furnish two modules of ‘canned’ approaches: RSoXS and fitting. User contributions are encouraged in this area.</p>
 <section id="rsoxs">
 <h2>RSoXS<a class="headerlink" href="#rsoxs" title="Permalink to this heading">#</a></h2>
+<p>Tools in <a class="reference internal" href="../reference_API/PyHyperScattering.html#module-PyHyperScattering.util.RSoXS" title="PyHyperScattering.util.RSoXS"><code class="xref py py-mod docutils literal notranslate"><span class="pre">PyHyperScattering.util.RSoXS</span></code></a> help with common resonant soft x-ray scattering analyses.  The <code class="docutils literal notranslate"><span class="pre">rsoxs</span></code> accessor on <code class="docutils literal notranslate"><span class="pre">DataArray</span></code> objects provides helpers for chi slicing and for computing anisotropy.  The <code class="xref py py-meth docutils literal notranslate"><span class="pre">AR()</span></code> method returns the anisotropic ratio from one or two polarized measurements.</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ar</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">rsoxs</span><span class="o">.</span><span class="n">AR</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>or, with both polarizations available:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ar</span> <span class="o">=</span> <span class="n">pair</span><span class="o">.</span><span class="n">rsoxs</span><span class="o">.</span><span class="n">AR</span><span class="p">(</span><span class="n">calc2d</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>See the <a class="reference internal" href="../reference_API/PyHyperScattering.html#module-PyHyperScattering.util.RSoXS" title="PyHyperScattering.util.RSoXS"><code class="xref py py-mod docutils literal notranslate"><span class="pre">PyHyperScattering.util.RSoXS</span></code></a> API reference for details.</p>
 </section>
 <section id="fitting">
 <h2>Fitting<a class="headerlink" href="#fitting" title="Permalink to this heading">#</a></h2>
+<p>Fitting helpers live in <a class="reference internal" href="../reference_API/PyHyperScattering.html#module-PyHyperScattering.util.Fitting" title="PyHyperScattering.util.Fitting"><code class="xref py py-mod docutils literal notranslate"><span class="pre">PyHyperScattering.util.Fitting</span></code></a>.  The <code class="docutils literal notranslate"><span class="pre">fit</span></code> accessor stacks all dimensions except the chosen fit axis and applies a supplied function.  Several ready-made fit functions are provided, including <code class="xref py py-func docutils literal notranslate"><span class="pre">fit_lorentz()</span></code>, <code class="xref py py-func docutils literal notranslate"><span class="pre">fit_lorentz_bg()</span></code> and <code class="xref py py-func docutils literal notranslate"><span class="pre">fit_cos_anisotropy()</span></code>.</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">results</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">fit</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>
+    <span class="n">PyHyperScattering</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">Fitting</span><span class="o">.</span><span class="n">fit_lorentz_bg</span><span class="p">,</span>
+    <span class="n">guess</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">0.0002</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+    <span class="n">pos_int_override</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>See the <a class="reference internal" href="../reference_API/PyHyperScattering.html#module-PyHyperScattering.util.Fitting" title="PyHyperScattering.util.Fitting"><code class="xref py py-mod docutils literal notranslate"><span class="pre">PyHyperScattering.util.Fitting</span></code></a> API reference for a full list of utilities.</p>
 </section>
 </section>
 
@@ -425,24 +366,6 @@
                 <footer class="prev-next-footer d-print-none">
                   
 <div class="prev-next-area">
-    <a class="left-prev"
-       href="learning-to-fly.html"
-       title="previous page">
-      <i class="fa-solid fa-angle-left"></i>
-      <div class="prev-next-info">
-        <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Learning to Fly</p>
-      </div>
-    </a>
-    <a class="right-next"
-       href="../user_guide/idx_user_guide.html"
-       title="next page">
-      <div class="prev-next-info">
-        <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">User Guide</p>
-      </div>
-      <i class="fa-solid fa-angle-right"></i>
-    </a>
 </div>
                 </footer>
               

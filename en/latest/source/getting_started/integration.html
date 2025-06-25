@@ -45,8 +45,6 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'source/getting_started/integration';</script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Learning to Fly" href="learning-to-fly.html" />
-    <link rel="prev" title="Loading: getting your data into PyHyperScattering" href="loading.html" />
   
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -138,40 +136,6 @@
 <nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item current active">
-  <a class="nav-link nav-internal" href="idx_getting_started.html">
-    Getting Started
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../user_guide/idx_user_guide.html">
-    User Guide
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../reference_API/idx_reference_API.html">
-    API Reference
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../development/idx_development.html">
-    Development
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../release_notes/idx_release_notes.html">
-    Release notes
-  </a>
-</li>
-
   </ul>
 </nav></div>
       
@@ -261,40 +225,6 @@
 <nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item current active">
-  <a class="nav-link nav-internal" href="idx_getting_started.html">
-    Getting Started
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../user_guide/idx_user_guide.html">
-    User Guide
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../reference_API/idx_reference_API.html">
-    API Reference
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../development/idx_development.html">
-    Development
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../release_notes/idx_release_notes.html">
-    Release notes
-  </a>
-</li>
-
   </ul>
 </nav></div>
           
@@ -338,13 +268,7 @@
 <nav class="bd-docs-nav bd-links"
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
-  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="loading.html">Loading Data</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Integration</a></li>
-<li class="toctree-l1"><a class="reference internal" href="learning-to-fly.html">Custom Analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="utilities.html">Utilities</a></li>
-</ul>
-</div>
+  <div class="bd-toc-item navbar-nav"></div>
 </nav></div>
     </div>
   
@@ -383,9 +307,6 @@
         <i class="fa-solid fa-home"></i>
       </a>
     </li>
-    
-    <li class="breadcrumb-item"><a href="idx_getting_started.html" class="nav-link">Getting Started</a></li>
-    
     <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Integration: raw intensity to I(q)</span></li>
   </ul>
 </nav>
@@ -405,6 +326,28 @@
                   
   <section id="integration-raw-intensity-to-i-q">
 <span id="integration"></span><h1>Integration: raw intensity to I(q)<a class="headerlink" href="#integration-raw-intensity-to-i-q" title="Permalink to this heading">#</a></h1>
+<p>Raw detector images generally contain two pixel axes.  To visualize
+and analyze scattering patterns these need to be transformed into
+chi/q or qz/qxy coordinates.  PyHyperScattering wraps several
+integrators to accomplish this, with most implementations relying on
+<a class="reference external" href="https://pyfai.readthedocs.io/">pyFAI</a>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">PFGeneralIntegrator</span></code> provides a thin layer over pyFAI’s azimuthal
+integrator.  Pass in calibration parameters or a <code class="docutils literal notranslate"><span class="pre">.poni</span></code> file and a
+mask, then call <code class="docutils literal notranslate"><span class="pre">integrateImageStack</span></code> to convert an xarray with
+<code class="docutils literal notranslate"><span class="pre">pix_x</span></code>/<code class="docutils literal notranslate"><span class="pre">pix_y</span></code> axes to intensity in <code class="docutils literal notranslate"><span class="pre">q</span></code> and optionally <code class="docutils literal notranslate"><span class="pre">chi</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">PyHyperScattering.PFGeneralIntegrator</span> <span class="kn">import</span> <span class="n">PFGeneralIntegrator</span>
+<span class="n">integrator</span> <span class="o">=</span> <span class="n">PFGeneralIntegrator</span><span class="p">(</span><span class="n">ponifile</span><span class="o">=</span><span class="s2">&quot;calib.poni&quot;</span><span class="p">,</span>
+                                <span class="n">maskmethod</span><span class="o">=</span><span class="s2">&quot;image&quot;</span><span class="p">,</span> <span class="n">maskpath</span><span class="o">=</span><span class="s2">&quot;mask.tif&quot;</span><span class="p">)</span>
+<span class="n">iq</span> <span class="o">=</span> <span class="n">integrator</span><span class="o">.</span><span class="n">integrateImageStack</span><span class="p">(</span><span class="n">raw_data</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>For grazing-incidence experiments <code class="docutils literal notranslate"><span class="pre">PGGeneralIntegrator</span></code> uses
+<code class="docutils literal notranslate"><span class="pre">pygix</span></code> to output either reciprocal-space <code class="docutils literal notranslate"><span class="pre">q_xy</span></code>/<code class="docutils literal notranslate"><span class="pre">q_z</span></code> data or
+caked <code class="docutils literal notranslate"><span class="pre">q</span></code> vs <code class="docutils literal notranslate"><span class="pre">chi</span></code>.  Datasets already in <code class="docutils literal notranslate"><span class="pre">qx</span></code>/<code class="docutils literal notranslate"><span class="pre">qy</span></code> coordinates
+can be integrated with <code class="docutils literal notranslate"><span class="pre">WPIntegrator</span></code> which relies on
+<code class="docutils literal notranslate"><span class="pre">skimage.transform.warp_polar</span></code> (or its GPU version).</p>
+<p>All integrators return properly labeled xarray objects so the rest of
+the workflow can use normal xarray indexing and visualization.</p>
 </section>
 
 
@@ -417,24 +360,6 @@
                 <footer class="prev-next-footer d-print-none">
                   
 <div class="prev-next-area">
-    <a class="left-prev"
-       href="loading.html"
-       title="previous page">
-      <i class="fa-solid fa-angle-left"></i>
-      <div class="prev-next-info">
-        <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Loading: getting your data into PyHyperScattering</p>
-      </div>
-    </a>
-    <a class="right-next"
-       href="learning-to-fly.html"
-       title="next page">
-      <div class="prev-next-info">
-        <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Learning to Fly</p>
-      </div>
-      <i class="fa-solid fa-angle-right"></i>
-    </a>
 </div>
                 </footer>
               

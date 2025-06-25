@@ -7,10 +7,12 @@ Getting Started
    :maxdepth: 1
    :hidden:
    
+   Installation <installation>
    Loading Data <loading>
    Integration <integration>
    Custom Analysis <learning-to-fly>
    Utilities <utilities>
+   Example Data <example_data>
 
 PyHyperScattering aims to make working with hyperspectral x-ray and neutron scattering data easy, to make programs that work with such data a combination of simple, logical commands with minimal 'cruft'.  In the era of modern computing, there is no reason you should have to think about for loops and how you're storing different intermediate data products - you should be able to go immediately from raw data to an analysis with clear commands, punch down to the data you need for your science quickly.  The goal is for these tools to make the mechanics of hyperspectral scattering easier and in so doing, more reproducible, explainable, and robust.
 
@@ -31,7 +33,9 @@ The metadata should be loaded and converted to a standardized set of terms, inte
 
 :ref:`Integration <integration>`
 -----------------------------------
-Convert your data from pixel space or qx/qy space to chi-q space - perfect for slicing.  generally tools here are built on pyFAI, though some variants also use warp_polar from numpy.
+Convert your data from pixel space or qx/qy space to chi-q space - perfect for slicing.  Most integrators wrap `pyFAI <https://pyfai.readthedocs.io/>`_ but there are alternatives.
+The standard :class:`~PyHyperScattering.PFGeneralIntegrator` uses pyFAI's azimuthal integrator with a mask and calibration parameters.
+For grazing-incidence work :class:`~PyHyperScattering.PGGeneralIntegrator` relies on ``pygix`` and :class:`~PyHyperScattering.WPIntegrator` integrates ``qx``/``qy`` data with ``warp_polar``.
 
 
 :ref:`Custom Analysis <analysis>`

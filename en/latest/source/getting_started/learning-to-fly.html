@@ -45,8 +45,6 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'source/getting_started/learning-to-fly';</script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Utility Modules" href="utilities.html" />
-    <link rel="prev" title="Integration: raw intensity to I(q)" href="integration.html" />
   
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -138,40 +136,6 @@
 <nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item current active">
-  <a class="nav-link nav-internal" href="idx_getting_started.html">
-    Getting Started
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../user_guide/idx_user_guide.html">
-    User Guide
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../reference_API/idx_reference_API.html">
-    API Reference
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../development/idx_development.html">
-    Development
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../release_notes/idx_release_notes.html">
-    Release notes
-  </a>
-</li>
-
   </ul>
 </nav></div>
       
@@ -261,40 +225,6 @@
 <nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item current active">
-  <a class="nav-link nav-internal" href="idx_getting_started.html">
-    Getting Started
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../user_guide/idx_user_guide.html">
-    User Guide
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../reference_API/idx_reference_API.html">
-    API Reference
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../development/idx_development.html">
-    Development
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../release_notes/idx_release_notes.html">
-    Release notes
-  </a>
-</li>
-
   </ul>
 </nav></div>
           
@@ -338,13 +268,7 @@
 <nav class="bd-docs-nav bd-links"
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
-  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="loading.html">Loading Data</a></li>
-<li class="toctree-l1"><a class="reference internal" href="integration.html">Integration</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Custom Analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="utilities.html">Utilities</a></li>
-</ul>
-</div>
+  <div class="bd-toc-item navbar-nav"></div>
 </nav></div>
     </div>
   
@@ -383,9 +307,6 @@
         <i class="fa-solid fa-home"></i>
       </a>
     </li>
-    
-    <li class="breadcrumb-item"><a href="idx_getting_started.html" class="nav-link">Getting Started</a></li>
-    
     <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Learning to Fly</span></li>
   </ul>
 </nav>
@@ -407,7 +328,27 @@
 <span id="analysis"></span><h1>Learning to Fly<a class="headerlink" href="#learning-to-fly" title="Permalink to this heading">#</a></h1>
 <p>From this point, you’re in a place where the next steps largely depend on the analysis you want to do with your data.</p>
 <p>The tools and language are that of the xarray package, so the main goal of this section is to teach you just enough xarray to have a vocabulary for converting scientific lines of thought into commands and visualize/dissect the results.</p>
-<p>The most important command, by far, is select or .sel</p>
+<p>The most important command, by far, is select or <code class="docutils literal notranslate"><span class="pre">.sel</span></code>.  It lets you grab
+specific coordinates from your dataset.  Once selected, you can perform
+reductions such as averaging with <code class="docutils literal notranslate"><span class="pre">.mean</span></code> and quickly visualize results with
+<code class="docutils literal notranslate"><span class="pre">.plot</span></code>.</p>
+<p>Example workflow:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ds</span> <span class="o">=</span> <span class="n">load_some_data</span><span class="p">()</span>
+
+<span class="c1"># choose the energy slice nearest 284 eV</span>
+<span class="n">e_slice</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">energy</span><span class="o">=</span><span class="mi">284</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;nearest&quot;</span><span class="p">)</span>
+
+<span class="c1"># average over repeated frames</span>
+<span class="n">q_avg</span> <span class="o">=</span> <span class="n">e_slice</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="s2">&quot;repeat&quot;</span><span class="p">)</span>
+
+<span class="c1"># plot intensity versus q</span>
+<span class="n">q_avg</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s2">&quot;q&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>You can do the same with <code class="docutils literal notranslate"><span class="pre">q</span></code> slices or any other coordinate using the same
+pattern of <code class="docutils literal notranslate"><span class="pre">.sel</span></code> followed by a reduction and plot.  See the
+<a class="reference external" href="https://docs.xarray.dev/en/stable/">xarray documentation</a> for more
+information and examples.</p>
 </section>
 
 
@@ -420,24 +361,6 @@
                 <footer class="prev-next-footer d-print-none">
                   
 <div class="prev-next-area">
-    <a class="left-prev"
-       href="integration.html"
-       title="previous page">
-      <i class="fa-solid fa-angle-left"></i>
-      <div class="prev-next-info">
-        <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Integration: raw intensity to I(q)</p>
-      </div>
-    </a>
-    <a class="right-next"
-       href="utilities.html"
-       title="next page">
-      <div class="prev-next-info">
-        <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Utility Modules</p>
-      </div>
-      <i class="fa-solid fa-angle-right"></i>
-    </a>
 </div>
                 </footer>
               

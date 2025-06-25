@@ -45,8 +45,6 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'source/getting_started/loading';</script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Integration: raw intensity to I(q)" href="integration.html" />
-    <link rel="prev" title="Getting Started" href="idx_getting_started.html" />
   
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -138,40 +136,6 @@
 <nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item current active">
-  <a class="nav-link nav-internal" href="idx_getting_started.html">
-    Getting Started
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../user_guide/idx_user_guide.html">
-    User Guide
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../reference_API/idx_reference_API.html">
-    API Reference
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../development/idx_development.html">
-    Development
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../release_notes/idx_release_notes.html">
-    Release notes
-  </a>
-</li>
-
   </ul>
 </nav></div>
       
@@ -261,40 +225,6 @@
 <nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item current active">
-  <a class="nav-link nav-internal" href="idx_getting_started.html">
-    Getting Started
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../user_guide/idx_user_guide.html">
-    User Guide
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../reference_API/idx_reference_API.html">
-    API Reference
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../development/idx_development.html">
-    Development
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../release_notes/idx_release_notes.html">
-    Release notes
-  </a>
-</li>
-
   </ul>
 </nav></div>
           
@@ -338,13 +268,7 @@
 <nav class="bd-docs-nav bd-links"
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
-  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Loading Data</a></li>
-<li class="toctree-l1"><a class="reference internal" href="integration.html">Integration</a></li>
-<li class="toctree-l1"><a class="reference internal" href="learning-to-fly.html">Custom Analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="utilities.html">Utilities</a></li>
-</ul>
-</div>
+  <div class="bd-toc-item navbar-nav"></div>
 </nav></div>
     </div>
   
@@ -383,9 +307,6 @@
         <i class="fa-solid fa-home"></i>
       </a>
     </li>
-    
-    <li class="breadcrumb-item"><a href="idx_getting_started.html" class="nav-link">Getting Started</a></li>
-    
     <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Loading: getting your data into PyHyperScattering</span></li>
   </ul>
 </nav>
@@ -405,6 +326,40 @@
                   
   <section id="loading-getting-your-data-into-pyhyperscattering">
 <span id="loading"></span><h1>Loading: getting your data into PyHyperScattering<a class="headerlink" href="#loading-getting-your-data-into-pyhyperscattering" title="Permalink to this heading">#</a></h1>
+<p>PyHyperScattering organizes raw scattering images into <cite>xarray</cite> objects.
+Image reading is handled by subclasses of <a class="reference internal" href="../reference_API/PyHyperScattering.html#PyHyperScattering.load.FileLoader" title="PyHyperScattering.FileLoader.FileLoader"><code class="xref py py-class docutils literal notranslate"><span class="pre">FileLoader</span></code></a>.
+The key method defined in <code class="docutils literal notranslate"><span class="pre">FileLoader.py</span></code> is <code class="docutils literal notranslate"><span class="pre">loadFileSeries</span></code> which
+converts a folder of detector files into a single DataArray.</p>
+<p>The simplified signature is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">loadFileSeries</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">basepath</span><span class="p">,</span> <span class="n">dims</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="p">{},</span> <span class="n">file_filter</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                   <span class="n">md_filter</span><span class="o">=</span><span class="p">{},</span> <span class="n">quiet</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">output_qxy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                   <span class="n">dest_qx</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dest_qy</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">output_raw</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                   <span class="n">image_slice</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</pre></div>
+</div>
+<p>It walks a directory, loads each file with <code class="docutils literal notranslate"><span class="pre">loadSingleImage</span></code> and stacks
+frames along the requested dimensions.  Metadata keys listed in
+<code class="docutils literal notranslate"><span class="pre">md_filter</span></code> must be present for a frame to be included.  The returned
+DataArray always contains <code class="docutils literal notranslate"><span class="pre">pix_x</span></code> and <code class="docutils literal notranslate"><span class="pre">pix_y</span></code> axes together with any
+additional dimensions discovered from metadata or <code class="docutils literal notranslate"><span class="pre">coords</span></code>.</p>
+<p>Once an array is created you can write it to disk using the
+<code class="docutils literal notranslate"><span class="pre">fileio</span></code> accessor defined in <code class="docutils literal notranslate"><span class="pre">FileIO.py</span></code>.  This accessor provides
+convenience methods such as <code class="docutils literal notranslate"><span class="pre">savePickle</span></code> and <code class="docutils literal notranslate"><span class="pre">saveNetCDF</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">loaded</span> <span class="o">=</span> <span class="n">loader</span><span class="o">.</span><span class="n">loadFileSeries</span><span class="p">(</span><span class="n">my_path</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;energy&quot;</span><span class="p">])</span>
+<span class="n">loaded</span><span class="o">.</span><span class="n">fileio</span><span class="o">.</span><span class="n">saveNetCDF</span><span class="p">(</span><span class="s2">&quot;run.nc&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The same accessor can also export to NeXus or Zarr formats while taking
+care to sanitize attributes for serialization.</p>
+<p>For curve fitting the package offers a <code class="docutils literal notranslate"><span class="pre">fit</span></code> accessor
+implemented in <code class="docutils literal notranslate"><span class="pre">Fitting.py</span></code>.  The <code class="docutils literal notranslate"><span class="pre">apply</span></code> method stacks all
+dimensions except the chosen fit axis, applies a user supplied function
+with progress bars, and returns the results as another xarray object:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">result</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">fit</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">PyHyperScattering</span><span class="o">.</span><span class="n">Fitting</span><span class="o">.</span><span class="n">fit_lorentz_bg</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This design keeps reduction and analysis steps in the familiar xarray
+workflow while hiding repetitive boilerplate.</p>
 </section>
 
 
@@ -417,24 +372,6 @@
                 <footer class="prev-next-footer d-print-none">
                   
 <div class="prev-next-area">
-    <a class="left-prev"
-       href="idx_getting_started.html"
-       title="previous page">
-      <i class="fa-solid fa-angle-left"></i>
-      <div class="prev-next-info">
-        <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Getting Started</p>
-      </div>
-    </a>
-    <a class="right-next"
-       href="integration.html"
-       title="next page">
-      <div class="prev-next-info">
-        <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Integration: raw intensity to I(q)</p>
-      </div>
-      <i class="fa-solid fa-angle-right"></i>
-    </a>
 </div>
                 </footer>
               

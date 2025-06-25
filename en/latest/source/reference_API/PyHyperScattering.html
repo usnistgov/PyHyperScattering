@@ -45,8 +45,6 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'source/reference_API/PyHyperScattering';</script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Development and Contributing Info: TODO" href="../development/idx_development.html" />
-    <link rel="prev" title="API Reference" href="idx_reference_API.html" />
   
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -138,40 +136,6 @@
 <nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../getting_started/idx_getting_started.html">
-    Getting Started
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../user_guide/idx_user_guide.html">
-    User Guide
-  </a>
-</li>
-
-
-<li class="nav-item current active">
-  <a class="nav-link nav-internal" href="idx_reference_API.html">
-    API Reference
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../development/idx_development.html">
-    Development
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../release_notes/idx_release_notes.html">
-    Release notes
-  </a>
-</li>
-
   </ul>
 </nav></div>
       
@@ -261,40 +225,6 @@
 <nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../getting_started/idx_getting_started.html">
-    Getting Started
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../user_guide/idx_user_guide.html">
-    User Guide
-  </a>
-</li>
-
-
-<li class="nav-item current active">
-  <a class="nav-link nav-internal" href="idx_reference_API.html">
-    API Reference
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../development/idx_development.html">
-    Development
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../release_notes/idx_release_notes.html">
-    Release notes
-  </a>
-</li>
-
   </ul>
 </nav></div>
           
@@ -338,10 +268,7 @@
 <nav class="bd-docs-nav bd-links"
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
-  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">PyHyperScattering package</a></li>
-</ul>
-</div>
+  <div class="bd-toc-item navbar-nav"></div>
 </nav></div>
     </div>
   
@@ -380,9 +307,6 @@
         <i class="fa-solid fa-home"></i>
       </a>
     </li>
-    
-    <li class="breadcrumb-item"><a href="idx_reference_API.html" class="nav-link">API Reference</a></li>
-    
     <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">PyHyperScattering package</span></li>
   </ul>
 </nav>
@@ -642,6 +566,23 @@ come from external data.</p>
 <dd></dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="PyHyperScattering.load.SST1RSoXSDB.browseCatalog">
+<span class="sig-name descname"><span class="pre">browseCatalog</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">force_refresh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.load.SST1RSoXSDB.browseCatalog" title="Permalink to this definition">#</a></dt>
+<dd><p>Browse the catalog.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>**kwargs</strong> – passed through to searchCatalog, and bounds the set of runs fetched/displayed.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>an ipyaggrid instance to browse the catalog.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>result (obj)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="PyHyperScattering.load.SST1RSoXSDB.do_list_append">
 <span class="sig-name descname"><span class="pre">do_list_append</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.load.SST1RSoXSDB.do_list_append" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
@@ -650,6 +591,45 @@ come from external data.</p>
 <dt class="sig sig-object py" id="PyHyperScattering.load.SST1RSoXSDB.file_ext">
 <span class="sig-name descname"><span class="pre">file_ext</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">''</span></em><a class="headerlink" href="#PyHyperScattering.load.SST1RSoXSDB.file_ext" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyHyperScattering.load.SST1RSoXSDB.findAppropriateDiodes">
+<span class="sig-name descname"><span class="pre">findAppropriateDiodes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">run_to_find</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cat_diodes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">diode_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'diode'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">same_cycle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_cutoff_days</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyHyperScattering.load.SST1RSoXSDB.findAppropriateDiodes" title="Permalink to this definition">#</a></dt>
+<dd><p>Finds appropriate diode scans for a given run.
+“Appropriate” scans are somewhat controlled by the kwargs to this function, but in general:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>same detector</p></li>
+<li><p>same cycle</p></li>
+<li><p>same edge</p></li>
+<li><p>within 3 days of the run</p></li>
+</ul>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>run_to_find</strong> (<em>pd.DataFrame</em><em> or </em><em>numeric</em>) – a dataframe with a single row of the run you are trying to find a diode for, or the scan_id
+(if scan_id it will be loaded using searchCatalog)</p></li>
+<li><p><strong>cat_diodes</strong> (<em>pd.DataFrame</em>) – a dataframe of diode scans to search through.  If None, will search the catalog for diode scans.</p></li>
+<li><p><strong>diode_name</strong> (<em>str</em>) – the sample_name of the diode to use in search.  Default is ‘diode’.</p></li>
+<li><p><strong>same_cycle</strong> (<em>bool</em>) – if True, only searches for diodes in the same cycle as the run_to_find.</p></li>
+<li><p><strong>time_cutoff_days</strong> (<em>float</em>) – the maximum time difference between the run and the diode scan to be considered “relevant”.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>a dataframe of relevant diode scans, ordered by distance in time from your run.
+Will warn if the closest diode is more than 1 day away.
+To get <em>a</em> singular “best diode”, just take the first row of the returned dataframe, i.e,:</p>
+<blockquote>
+<div><p>best_diode = findAppropriateDiodes(run_to_find,cat_diodes,diode_name,same_cycle,time_cutoff_days).iloc[0]</p>
+</div></blockquote>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="PyHyperScattering.load.SST1RSoXSDB.loadMd">
@@ -789,7 +769,7 @@ If False, the pulsed monitors will be loaded using a shutter-thinning and maskin
 
 <dl class="py method">
 <dt class="sig sig-object py" id="PyHyperScattering.load.SST1RSoXSDB.searchCatalog">
-<span class="sig-name descname"><span class="pre">searchCatalog</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outputType</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'default'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cycle</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proposal</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">saf</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">institution</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">project</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampleID</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plan</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">userOutputs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debugWarnings</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="headerlink" href="#PyHyperScattering.load.SST1RSoXSDB.searchCatalog" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">searchCatalog</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outputType</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'default'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cycle</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proposal</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">saf</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">institution</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">project</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampleID</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plan</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scan_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">userOutputs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debugWarnings</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">existingCatalog</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="headerlink" href="#PyHyperScattering.load.SST1RSoXSDB.searchCatalog" title="Permalink to this definition">#</a></dt>
 <dd><p>Search the Bluesky catalog for scans matching all provided keywords and return metadata as a dataframe.</p>
 <p>Matches are made based on the values in the top level of the ‘start’ dict within the metadata of each
 entry in the Bluesky Catalog (databroker.client.CatalogOfBlueskyRuns). Based on the search arguments provided,
@@ -829,6 +809,7 @@ e.g., “liquid” matches “Liquids”, “Liquid-RSoXS”</p></li>
 <li><p><strong>plan</strong> (<em>str</em><em>, </em><em>optional</em>) – Measurement Plan, case-insensitive, regex search,
 e.g., “Full” matches “full_carbon_scan_nd”, “full_fluorine_scan_nd”
 e.g., “carbon|oxygen|fluorine” matches carbon OR oxygen OR fluorine scans</p></li>
+<li><p><strong>scan_id</strong> (<em>int</em><em>, </em><em>optional</em>) – Scan ID, exact numeric match, e.g., 12345</p></li>
 <li><p><strong>**kwargs</strong> – <p>Additional search terms can be provided as keyword args and will further filter
 the catalog Valid input follows metadataLabel=’searchTerm’ or metadataLavel = [‘searchTerm’,’matchType’].
 Metadata labels must match an entry in the ‘start’ dictionary of the catalog. Supported match types are
@@ -851,6 +832,7 @@ Valid options for the Metadata Source are any of [r’catalog.start’, r’cata
 r’catalog.stop[“num_events”]’]
 e.g., userOutputs = [[“Exposure Multiplier”,”exptime”, r’catalog.start’], [“Stop Time”,”time”,r’catalog.stop’]]</p></li>
 <li><p><strong>debugWarnings</strong> (<em>bool</em><em>, </em><em>optional</em>) – if True, raises a warning with debugging information whenever a key can’t be found.</p></li>
+<li><p><strong>existingCatalog</strong> (<em>pd.Dataframe</em><em>, </em><em>optional</em>) – if provided, results with scan_id that appear in this dataframe and equal number of points will not be re-downloaded.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -1255,24 +1237,6 @@ for creating an empty mask if necessary</p></li>
                 <footer class="prev-next-footer d-print-none">
                   
 <div class="prev-next-area">
-    <a class="left-prev"
-       href="idx_reference_API.html"
-       title="previous page">
-      <i class="fa-solid fa-angle-left"></i>
-      <div class="prev-next-info">
-        <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">API Reference</p>
-      </div>
-    </a>
-    <a class="right-next"
-       href="../development/idx_development.html"
-       title="next page">
-      <div class="prev-next-info">
-        <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Development and Contributing Info: TODO</p>
-      </div>
-      <i class="fa-solid fa-angle-right"></i>
-    </a>
 </div>
                 </footer>
               
@@ -1338,8 +1302,10 @@ for creating an empty mask if necessary</p></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pyhyperscattering-load-sst1rsoxsdb-module">PyHyperScattering.load.SST1RSoXSDB module</a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSDB"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSDB</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSDB.background"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSDB.background()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSDB.browseCatalog"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSDB.browseCatalog()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSDB.do_list_append"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSDB.do_list_append()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSDB.file_ext"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSDB.file_ext</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSDB.findAppropriateDiodes"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSDB.findAppropriateDiodes()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSDB.loadMd"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSDB.loadMd()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSDB.loadMonitors"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSDB.loadMonitors()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#PyHyperScattering.load.SST1RSoXSDB.loadRun"><code class="docutils literal notranslate"><span class="pre">SST1RSoXSDB.loadRun()</span></code></a></li>
