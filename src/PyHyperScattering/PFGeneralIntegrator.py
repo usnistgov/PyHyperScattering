@@ -1,6 +1,7 @@
 from pyFAI import azimuthalIntegrator
 from pyFAI.units import eq_q, formula_q, register_radial_unit
 from pyFAI.io.ponifile import PoniFile
+import io
 import h5py
 import warnings
 import xarray as xr
@@ -555,7 +556,10 @@ class PFGeneralIntegrator:
         # print(strlist)
         dflist = []
         for item in strlist:
-            dflist.append(pd.read_json(item))
+            if isinstance(item, str):
+                dflist.append(pd.read_json(io.StringIO(item)))
+            else:
+                dflist.append(pd.DataFrame(item))
         # print(dflist)
         pyhyperlist = []
         for shape in dflist:

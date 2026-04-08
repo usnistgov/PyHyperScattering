@@ -32,6 +32,15 @@ except Exception:
 import copy
 
 
+def _scalarize_dark_index(value):
+    arr = np.asarray(value).reshape(-1)
+    if arr.size == 0:
+        raise ValueError("dark_id is empty")
+    if not np.all(arr == arr[0]):
+        raise ValueError(f"dark_id is not uniform within group: {arr}")
+    return int(arr[0])
+
+
 class SST1RSoXSDB:
     """
     Loader for bluesky run xarrays form NSLS-II SST1 RSoXS instrument
@@ -906,7 +915,8 @@ class SST1RSoXSDB:
             data = data.assign_coords(dark_id=("time", darkframe))
 
             def subtract_dark(img, pedestal=100, darks=None):
-                return img + pedestal - darks[int(img.dark_id.values)]
+                dark_idx = _scalarize_dark_index(img.dark_id.values)
+                return img + pedestal - darks[dark_idx]
 
             data = data.groupby("time",squeeze=False).map(subtract_dark, darks=dark, pedestal=self.dark_pedestal)
 

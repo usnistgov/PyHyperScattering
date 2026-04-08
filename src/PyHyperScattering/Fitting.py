@@ -94,15 +94,15 @@ def fit_lorentz(x,guess=None,pos_int_override=False,silent=False):
     except RuntimeError:
         if not silent:
             print("Fit failed to converge")
-        retval = xr.DataArray(data=np.nan,coords=x.coords).to_dataset(name='intensity')
-        retval['pos'] = xr.DataArray(data=np.nan,coords=x.coords)
-        retval['width'] = xr.DataArray(data=np.nan,coords=x.coords)
+        retval = xr.full_like(x, np.nan, dtype=float).to_dataset(name='intensity')
+        retval['pos'] = xr.full_like(x, np.nan, dtype=float)
+        retval['width'] = xr.full_like(x, np.nan, dtype=float)
         return retval
     if not silent:
         print(f"Fit completed, coeff = {coeff}")
-    retval = xr.DataArray(data=coeff[0],coords=x.coords).to_dataset(name='intensity')
-    retval['pos'] = xr.DataArray(data=coeff[1],coords=x.coords)
-    retval['width'] = xr.DataArray(data=coeff[2],coords=x.coords)
+    retval = xr.full_like(x, coeff[0], dtype=float).to_dataset(name='intensity')
+    retval['pos'] = xr.full_like(x, coeff[1], dtype=float)
+    retval['width'] = xr.full_like(x, coeff[2], dtype=float)
     return retval
 def fit_lorentz_bg(x,guess=None,pos_int_override=False,silent=False):
     '''
@@ -131,17 +131,17 @@ def fit_lorentz_bg(x,guess=None,pos_int_override=False,silent=False):
     except RuntimeError:
         if not silent:
             print("Fit failed to converge")
-        retval = xr.DataArray(data=np.nan,coords=x.coords).to_dataset(name='intensity')
-        retval['pos'] = xr.DataArray(data=np.nan,coords=x.coords)
-        retval['width'] = xr.DataArray(data=np.nan,coords=x.coords)
-        retval['bg'] = xr.DataArray(data=np.nan,coords=x.coords)
+        retval = xr.full_like(x, np.nan, dtype=float).to_dataset(name='intensity')
+        retval['pos'] = xr.full_like(x, np.nan, dtype=float)
+        retval['width'] = xr.full_like(x, np.nan, dtype=float)
+        retval['bg'] = xr.full_like(x, np.nan, dtype=float)
         return retval
     if not silent:
         print(f"Fit completed, coeff = {coeff}")
-    retval = xr.DataArray(data=coeff[0],coords=x.coords).to_dataset(name='intensity')
-    retval['pos'] = xr.DataArray(data=coeff[1],coords=x.coords)
-    retval['width'] = xr.DataArray(data=coeff[2],coords=x.coords)
-    retval['bg'] = xr.DataArray(data=coeff[3],coords=x.coords)
+    retval = xr.full_like(x, coeff[0], dtype=float).to_dataset(name='intensity')
+    retval['pos'] = xr.full_like(x, coeff[1], dtype=float)
+    retval['width'] = xr.full_like(x, coeff[2], dtype=float)
+    retval['bg'] = xr.full_like(x, coeff[3], dtype=float)
     return retval
     
 def fit_cos_anisotropy(data,qL,qU,qspacing,Enlist,ChiL,ChiU,binnumber,Chilim):
