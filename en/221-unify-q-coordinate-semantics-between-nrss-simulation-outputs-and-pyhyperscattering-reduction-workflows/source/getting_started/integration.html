@@ -357,7 +357,13 @@ mask, then call <code class="docutils literal notranslate"><span class="pre">int
 <code class="docutils literal notranslate"><span class="pre">pygix</span></code> to output either reciprocal-space <code class="docutils literal notranslate"><span class="pre">q_xy</span></code>/<code class="docutils literal notranslate"><span class="pre">q_z</span></code> data or
 caked <code class="docutils literal notranslate"><span class="pre">q</span></code> vs <code class="docutils literal notranslate"><span class="pre">chi</span></code>.  Datasets already in <code class="docutils literal notranslate"><span class="pre">qx</span></code>/<code class="docutils literal notranslate"><span class="pre">qy</span></code> coordinates
 can be integrated with <code class="docutils literal notranslate"><span class="pre">WPIntegrator</span></code> which relies on
-<code class="docutils literal notranslate"><span class="pre">skimage.transform.warp_polar</span></code> (or its GPU version).</p>
+<code class="docutils literal notranslate"><span class="pre">skimage.transform.warp_polar</span></code> (or its GPU version).  <code class="docutils literal notranslate"><span class="pre">WPIntegrator</span></code>
+is a detector-plane <code class="docutils literal notranslate"><span class="pre">qx</span></code>/<code class="docutils literal notranslate"><span class="pre">qy</span></code> to <code class="docutils literal notranslate"><span class="pre">chi</span></code>/<code class="docutils literal notranslate"><span class="pre">q_perp</span></code> remesher, so it
+is the right choice for reciprocal-plane / 2D NRSS outputs.</p>
+<p>For NRSS detector-aware 3D outputs use <code class="docutils literal notranslate"><span class="pre">NRSSIntegrator</span></code> instead.
+It keeps the same polar remesh approach but relabels the radial axis
+with detector-corrected <code class="docutils literal notranslate"><span class="pre">|q|</span></code> so the reduced curve can be compared to
+geometry-aware analytical form factors.</p>
 <p>All integrators return properly labeled xarray objects so the rest of
 the workflow can use normal xarray indexing and visualization.</p>
 </section>

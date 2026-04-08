@@ -790,11 +790,11 @@ Several presets are provided for choosing which columns are generated, along wit
 user-provided search arguments and additional metadata. Fails gracefully on bad user input/ changes to
 underlying metadata scheme.</p>
 <dl class="simple">
-<dt>Ex1: All of the carbon,fluorine,or oxygen scans for a single sample series in the most recent cycle:</dt><dd><p>bsCatalogReduced4 = db_loader.searchCatalog(sample=”<a href="#id3"><span class="problematic" id="id4">bBP_</span></a>”, institution=”NIST”, cycle = “2022-2”, plan=”carbon|fluorine|oxygen”)</p>
+<dt>Ex1: All of the carbon,fluorine,or oxygen scans for a single sample series in the most recent cycle:</dt><dd><p>bsCatalogReduced4 = db_loader.searchCatalog(sample=”<a href="#id5"><span class="problematic" id="id6">bBP_</span></a>”, institution=”NIST”, cycle = “2022-2”, plan=”carbon|fluorine|oxygen”)</p>
 </dd>
 <dt>Ex2: Just all of the scan Ids for a particular sample:</dt><dd><p>bsCatalogReduced4 = db_loader.searchCatalog(sample=”BBP_PFP09A”, outputType=’scans’)</p>
 </dd>
-<dt>Ex3: Complex Search with custom parameters</dt><dd><p>bsCatalogReduced3 = db_loader.searchCatalog([‘angle’, ‘-1.6’, ‘numeric’], outputType=’all’,sample=”<a href="#id5"><span class="problematic" id="id6">BBP_</span></a>”, cycle = “2022-2”,
+<dt>Ex3: Complex Search with custom parameters</dt><dd><p>bsCatalogReduced3 = db_loader.searchCatalog([‘angle’, ‘-1.6’, ‘numeric’], outputType=’all’,sample=”<a href="#id7"><span class="problematic" id="id8">BBP_</span></a>”, cycle = “2022-2”,
 institution=”NIST”,plan=”carbon”, userOutputs = [[“Exposure Multiplier”, “exptime”, r’catalog.start’], [“Stop
 Time”,”time”,r’catalog.stop’]])</p>
 </dd>
@@ -816,8 +816,8 @@ polarization, exit_status, and num_images
 <li><p><strong>institution</strong> (<em>str</em><em>, </em><em>optional</em>) – Research Institution, case-insensitive, exact match, e.g., “NIST”</p></li>
 <li><p><strong>project</strong> (<em>str</em><em>, </em><em>optional</em>) – Project code, case-insensitive, regex search,
 e.g., “liquid” matches “Liquids”, “Liquid-RSoXS”</p></li>
-<li><p><strong>sample</strong> (<em>str</em><em>, </em><em>optional</em>) – Sample name, case-insensitive, regex search, e.g., “<a href="#id7"><span class="problematic" id="id8">BBP_</span></a>” matches “BBP_PF902A”</p></li>
-<li><p><strong>sampleID</strong> (<em>str</em><em>, </em><em>optional</em>) – Sample ID, case-insensitive, regex search, e.g., “<a href="#id9"><span class="problematic" id="id10">BBP_</span></a>” matches “BBP_PF902A”</p></li>
+<li><p><strong>sample</strong> (<em>str</em><em>, </em><em>optional</em>) – Sample name, case-insensitive, regex search, e.g., “<a href="#id9"><span class="problematic" id="id10">BBP_</span></a>” matches “BBP_PF902A”</p></li>
+<li><p><strong>sampleID</strong> (<em>str</em><em>, </em><em>optional</em>) – Sample ID, case-insensitive, regex search, e.g., “<a href="#id11"><span class="problematic" id="id12">BBP_</span></a>” matches “BBP_PF902A”</p></li>
 <li><p><strong>plan</strong> (<em>str</em><em>, </em><em>optional</em>) – Measurement Plan, case-insensitive, regex search,
 e.g., “Full” matches “full_carbon_scan_nd”, “full_fluorine_scan_nd”
 e.g., “carbon|oxygen|fluorine” matches carbon OR oxygen OR fluorine scans</p></li>
@@ -1213,7 +1213,11 @@ for creating an empty mask if necessary</p></li>
 </section>
 <section id="module-PyHyperScattering.integrate.WPIntegrator">
 <span id="pyhyperscattering-integrate-wpintegrator-module"></span><h3>PyHyperScattering.integrate.WPIntegrator module<a class="headerlink" href="#module-PyHyperScattering.integrate.WPIntegrator" title="Permalink to this heading">#</a></h3>
-<p>Integrator for qx/qy format xarrays using skimage.transform.warp_polar or a custom cuda-accelerated version, warp_polar_gpu</p>
+<p>Integrator for qx/qy format xarrays using skimage.transform.warp_polar or a custom
+cuda-accelerated version, warp_polar_gpu.</p>
+<p>The radial output of this integrator is detector-plane q_perp. This is the correct
+semantics for reciprocal-plane / 2D NRSS outputs, but not for detector-aware 3D
+NRSS outputs that should be compared against detector-corrected <a href="#id3"><span class="problematic" id="id4">|q|</span></a>.</p>
 </section>
 </section>
 <section id="module-PyHyperScattering.util">
