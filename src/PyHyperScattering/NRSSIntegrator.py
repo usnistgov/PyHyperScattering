@@ -59,8 +59,11 @@ class NRSSIntegrator(WPIntegrator):
         }
 
     def integrateSingleImage(self, img, **metadata_kwargs):
-        metadata = self._resolve_metadata(img, metadata_kwargs)
-        return self._integrate_single_image(img, metadata)
+        result = self.integrateImageStack_batched(img, **metadata_kwargs)
+        squeeze_dims = [dim for dim in result.dims if dim not in {"chi", "q"} and result.sizes[dim] == 1]
+        if squeeze_dims:
+            result = result.squeeze(squeeze_dims, drop=True)
+        return result
 
     def integrateImageStack(self, img_stack, method=None, chunksize=None, **metadata_kwargs):
         if (self.use_chunked_processing and method is None) or method == "dask":
@@ -68,124 +71,43 @@ class NRSSIntegrator(WPIntegrator):
                 "NRSSIntegrator does not support dask-backed reduction yet because "
                 "detector-corrected q coordinates can vary between slices."
             )
-        if method is None or method == "legacy":
-            return self.integrateImageStack_legacy(img_stack, **metadata_kwargs)
+        if method is None or method == "legacy" or method == "batched":
+            return self.integrateImageStack_batched(img_stack, **metadata_kwargs)
         raise NotImplementedError(f"unsupported integration method {method}")
 
     def integrateImageStack_legacy(self, data, **metadata_kwargs):
-        spatial_dims = self._spatial_dims(data)
-        index_dims = [dim for dim in data.dims if dim not in spatial_dims]
-        if len(index_dims) == 0:
-            return self.integrateSingleImage(data, **metadata_kwargs)
+        return self.integrateImageStack_batched(data, **metadata_kwargs)
 
-        stacked_name = None
-        if len(index_dims) == 1:
-            stacked = data
-            stacked_name = index_dims[0]
-        else:
-            stacked_name = "pyhyper_internal_multiindex"
-            stacked = data.stack({stacked_name: index_dims})
+    def integrateImageStack_batched(self, data, **metadata_kwargs):
+        stacked, stacked_name, index_dims, spatial_dims = self._prepare_batched_input(data)
+        values = np.asarray(stacked.values)
+        if values.ndim != 3:
+            raise ValueError(f"NRSSIntegrator expected stacked data with 3 dims, got shape {values.shape!r}.")
 
-        arrays = []
-        q_axes = []
-        q_perp_axis = None
-        common_attrs = None
-        common_mode = None
-        q_semantics_vary = False
-
-        for i in range(stacked.sizes[stacked_name]):
-            reduced = self.integrateSingleImage(stacked.isel({stacked_name: i}, drop=False), **metadata_kwargs)
-            arrays.append(np.asarray(reduced.values))
-            q_axes.append(np.asarray(reduced.coords["q"].values, dtype=np.float64))
-            if "q_perp" in reduced.coords:
-                q_perp_axis = np.asarray(reduced.coords["q_perp"].values, dtype=np.float64)
-            else:
-                q_perp_axis = np.asarray(reduced.coords["q"].values, dtype=np.float64)
-            if common_attrs is None:
-                common_attrs = dict(reduced.attrs)
-                common_mode = reduced.attrs.get("nrss_semantic_mode")
-            elif reduced.attrs.get("nrss_semantic_mode") != common_mode:
-                q_semantics_vary = True
-
-        if common_attrs is None:
-            raise AssertionError("NRSSIntegrator did not produce any reduced slices.")
+        metadata = [self._resolve_metadata(stacked.isel({stacked_name: i}, drop=False), metadata_kwargs) for i in range(values.shape[0])]
+        reduced_values, q_axes, q_perp_axis, chi, common_attrs, common_mode, q_semantics_vary = (
+            self._integrate_batched_array(stacked, values, metadata, spatial_dims)
+        )
 
         result = xr.DataArray(
-            np.stack(arrays, axis=0),
+            reduced_values,
             dims=[stacked_name, "chi", "q"],
             coords={
                 stacked_name: stacked.coords[stacked_name],
-                "chi": reduced.coords["chi"].values,
+                "chi": chi,
             },
             attrs=common_attrs,
         )
 
-        q_axes_are_same = self._allclose_1d(q_axes)
-        if q_axes_are_same and not q_semantics_vary:
-            result = result.assign_coords(q=q_axes[0])
-            if q_perp_axis is not None and not np.allclose(q_axes[0], q_perp_axis, atol=0.0, rtol=0.0):
-                result = result.assign_coords(q_perp=("q", q_perp_axis))
-        else:
-            result = result.assign_coords(q=np.arange(result.sizes["q"], dtype=np.int64))
-            result = result.assign_coords(q_abs=((stacked_name, "q"), np.stack(q_axes, axis=0)))
-            if q_perp_axis is not None:
-                result = result.assign_coords(q_perp=("q", q_perp_axis))
-            result.attrs["radial_coordinate_mode"] = "per_slice_q_abs"
-            result.attrs["q_axis_note"] = (
-                "The q dimension indexes radial bins. Exact detector-corrected q values are "
-                "stored in the q_abs coordinate."
-            )
-            result.attrs.pop("energy_ev", None)
+        result = self._assign_output_q_coords(result, stacked_name, q_axes, q_perp_axis, common_mode, q_semantics_vary)
 
+        if len(index_dims) == 0:
+            return result.isel({stacked_name: 0}, drop=True)
         if len(index_dims) > 1:
             result = result.unstack(stacked_name)
             result = result.transpose(*index_dims, "chi", "q")
         return result
 
-    def _integrate_single_image(self, img, metadata):
-        img_to_integ = np.asarray(img.values).squeeze()
-        if img_to_integ.ndim != 2:
-            raise ValueError(
-                f"NRSSIntegrator expects a single detector image after squeezing, got shape {img_to_integ.shape!r}."
-            )
-
-        center_x = self._axis_center(img.qx, "qx")
-        center_y = self._axis_center(img.qy, "qy")
-        radius = np.sqrt((img_to_integ.shape[0] - center_x) ** 2 + (img_to_integ.shape[1] - center_y) ** 2)
-
-        if self.MACHINE_HAS_CUDA:
-            two_d = self.warp_polar_gpu(img_to_integ, center=(center_x, center_y), radius=radius)
-        else:
-            import skimage
-
-            two_d = skimage.transform.warp_polar(img_to_integ, center=(center_x, center_y), radius=radius)
-
-        q_perp_axis = self._q_perp_axis(img, int(two_d.shape[1]))
-        radial_axis = q_perp_axis
-        q_coord_name = "q"
-        if metadata["nrss_semantic_mode"] == "3d_detector_aware":
-            radial_axis = self._detector_corrected_q(q_perp_axis, metadata["energy_ev"])
-
-        chi = np.linspace(-179.5, 179.5, 360)
-        attrs = dict(img.attrs)
-        attrs.update(
-            {
-                "radial_semantics": metadata["radial_semantics"],
-                "source_integrator": "NRSSIntegrator",
-                "nrss_semantic_mode": metadata["nrss_semantic_mode"],
-                "phys_size_nm": metadata["phys_size_nm"],
-                "z_dim": metadata["z_dim"],
-            }
-        )
-        if metadata["shape_zyx"] is not None:
-            attrs["shape_zyx"] = tuple(metadata["shape_zyx"])
-        if metadata["energy_ev"] is not None:
-            attrs["energy_ev"] = float(metadata["energy_ev"])
-
-        result = xr.DataArray(two_d, dims=["chi", "q"], coords={q_coord_name: radial_axis, "chi": chi}, attrs=attrs)
-        if metadata["nrss_semantic_mode"] == "3d_detector_aware":
-            result = result.assign_coords(q_perp=("q", q_perp_axis))
-        return result
 
     def _resolve_metadata(self, img, metadata_kwargs):
         fallback = dict(self._default_metadata)
@@ -386,6 +308,196 @@ class NRSSIntegrator(WPIntegrator):
         return shape
 
     @staticmethod
+    def _prepare_batched_input(data):
+        spatial_dims = NRSSIntegrator._spatial_dims(data)
+        index_dims = [dim for dim in data.dims if dim not in spatial_dims]
+        spatial_dims_in_order = tuple(dim for dim in data.dims if dim in {"qx", "qy"})
+
+        if len(index_dims) == 0:
+            stacked_name = "pyhyper_internal_batch"
+            stacked = data.expand_dims({stacked_name: [0]})
+        elif len(index_dims) == 1:
+            stacked_name = index_dims[0]
+            stacked = data
+        else:
+            stacked_name = "pyhyper_internal_multiindex"
+            stacked = data.stack({stacked_name: index_dims})
+
+        stacked = stacked.transpose(stacked_name, *spatial_dims_in_order)
+        return stacked, stacked_name, index_dims, spatial_dims_in_order
+
+    def _integrate_batched_array(self, stacked, values, metadata, spatial_dims):
+        center_x = self._axis_center(stacked.qx, "qx")
+        center_y = self._axis_center(stacked.qy, "qy")
+        center_lookup = {
+            "qx": center_x,
+            "qy": center_y,
+        }
+        center = tuple(center_lookup[dim] for dim in spatial_dims)
+        radius = np.sqrt((values.shape[1] - center[0]) ** 2 + (values.shape[2] - center[1]) ** 2)
+        reduced_values = self._warp_polar_batched(values, center=center, radius=radius)
+
+        q_perp_axis = self._q_perp_axis(stacked, int(reduced_values.shape[-1]))
+        q_axes, common_mode, q_semantics_vary = self._batched_q_axes(q_perp_axis, metadata)
+        chi = np.linspace(-179.5, 179.5, reduced_values.shape[1])
+        common_attrs = self._build_batched_attrs(stacked.attrs, metadata[0])
+        return reduced_values, q_axes, q_perp_axis, chi, common_attrs, common_mode, q_semantics_vary
+
+    def _assign_output_q_coords(self, result, stacked_name, q_axes, q_perp_axis, common_mode, q_semantics_vary):
+        q_axes_are_same = self._allclose_1d(q_axes)
+        if q_axes_are_same and not q_semantics_vary:
+            result = result.assign_coords(q=q_axes[0])
+            if q_perp_axis is not None and not np.allclose(q_axes[0], q_perp_axis, atol=0.0, rtol=0.0):
+                result = result.assign_coords(q_perp=("q", q_perp_axis))
+            return result
+
+        if common_mode == "3d_detector_aware" and not q_semantics_vary:
+            q_common = self._shared_q_grid(q_axes)
+            if q_common is not None:
+                interpolated = self._interp_stack_to_common_q(np.asarray(result.values), q_axes, q_common)
+                result = xr.DataArray(
+                    interpolated,
+                    dims=result.dims,
+                    coords={
+                        stacked_name: result.coords[stacked_name],
+                        "chi": result.coords["chi"].values,
+                        "q": q_common,
+                        "q_abs": ((stacked_name, "q"), np.stack(q_axes, axis=0)),
+                    },
+                    attrs=dict(result.attrs),
+                )
+                result.attrs["radial_coordinate_mode"] = "shared_q_grid_interpolated"
+                result.attrs["q_axis_note"] = (
+                    "The q dimension is a shared detector-corrected q grid spanning the overlap "
+                    "of all slices. Exact per-slice q values before interpolation remain in q_abs."
+                )
+                result.attrs.pop("energy_ev", None)
+                return result
+
+        return self._attach_per_slice_q_index(result, stacked_name, q_axes, q_perp_axis)
+
+    @staticmethod
+    def _build_batched_attrs(base_attrs, metadata):
+        attrs = dict(base_attrs)
+        attrs.update(
+            {
+                "radial_semantics": metadata["radial_semantics"],
+                "source_integrator": "NRSSIntegrator",
+                "nrss_semantic_mode": metadata["nrss_semantic_mode"],
+                "phys_size_nm": metadata["phys_size_nm"],
+                "z_dim": metadata["z_dim"],
+            }
+        )
+        if metadata["shape_zyx"] is not None:
+            attrs["shape_zyx"] = tuple(metadata["shape_zyx"])
+        if metadata["energy_ev"] is not None:
+            attrs["energy_ev"] = float(metadata["energy_ev"])
+        return attrs
+
+    @staticmethod
+    def _batched_q_axes(q_perp_axis, metadata):
+        q_axes = []
+        common_mode = None
+        q_semantics_vary = False
+        three_d_indices = []
+        three_d_energies = []
+
+        for i, md in enumerate(metadata):
+            mode = md["nrss_semantic_mode"]
+            if common_mode is None:
+                common_mode = mode
+            elif mode != common_mode:
+                q_semantics_vary = True
+            q_axes.append(np.asarray(q_perp_axis, dtype=np.float64))
+            if mode == "3d_detector_aware":
+                three_d_indices.append(i)
+                three_d_energies.append(md["energy_ev"])
+
+        if three_d_indices:
+            corrected = NRSSIntegrator._detector_corrected_q_batch(q_perp_axis, np.asarray(three_d_energies, dtype=np.float64))
+            for idx, q_axis in zip(three_d_indices, corrected):
+                q_axes[idx] = q_axis
+
+        return q_axes, common_mode, q_semantics_vary
+
+    def _warp_polar_batched(self, values, center, radius):
+        if self.MACHINE_HAS_CUDA:
+            try:
+                import cupy as cp
+            except ImportError:  # pragma: no cover
+                return self._warp_polar_batched_numpy(values, center=center, radius=radius)
+
+            values_xp = cp.asarray(values)
+            reduced = self._warp_polar_batched_xp(values_xp, center=center, radius=radius, xp=cp)
+            if self.return_cupy:
+                return reduced
+            return cp.asnumpy(reduced)
+
+        return self._warp_polar_batched_numpy(values, center=center, radius=radius)
+
+    def _warp_polar_batched_numpy(self, values, center, radius):
+        reduced = self._warp_polar_batched_xp(np.asarray(values), center=center, radius=radius, xp=np)
+        return np.asarray(reduced)
+
+    @staticmethod
+    def _warp_polar_batched_xp(values, center, radius, xp):
+        values = xp.asarray(values)
+        n_images, n_rows, n_cols = values.shape
+        n_theta = 360
+        n_radius = int(np.ceil(radius))
+        if n_radius <= 0:
+            raise ValueError(f"NRSSIntegrator computed a non-positive polar radius {radius!r}.")
+
+        center_row, center_col = center
+        theta = xp.deg2rad(xp.arange(n_theta, dtype=xp.float64))
+        radial = xp.arange(n_radius, dtype=xp.float64) * (float(radius) / n_radius)
+        radial_grid, theta_grid = xp.meshgrid(radial, theta)
+
+        row_coords = radial_grid * xp.sin(theta_grid) + center_row
+        col_coords = radial_grid * xp.cos(theta_grid) + center_col
+
+        row0 = xp.floor(row_coords).astype(xp.int64)
+        col0 = xp.floor(col_coords).astype(xp.int64)
+        row1 = row0 + 1
+        col1 = col0 + 1
+
+        row_weight = row_coords - row0
+        col_weight = col_coords - col0
+
+        def sample(row_idx, col_idx):
+            valid = (row_idx >= 0) & (row_idx < n_rows) & (col_idx >= 0) & (col_idx < n_cols)
+            row_clip = xp.clip(row_idx, 0, n_rows - 1)
+            col_clip = xp.clip(col_idx, 0, n_cols - 1)
+            sampled = values[:, row_clip, col_clip]
+            return sampled * valid[None, :, :]
+
+        top_left = sample(row0, col0)
+        top_right = sample(row0, col1)
+        bottom_left = sample(row1, col0)
+        bottom_right = sample(row1, col1)
+
+        return (
+            top_left * (1.0 - row_weight)[None, :, :] * (1.0 - col_weight)[None, :, :]
+            + top_right * (1.0 - row_weight)[None, :, :] * col_weight[None, :, :]
+            + bottom_left * row_weight[None, :, :] * (1.0 - col_weight)[None, :, :]
+            + bottom_right * row_weight[None, :, :] * col_weight[None, :, :]
+        )
+
+    @staticmethod
+    def _detector_corrected_q_batch(q_perp_axis, energy_ev):
+        q_perp_axis = np.asarray(q_perp_axis, dtype=np.float64)[None, :]
+        energy_ev = np.asarray(energy_ev, dtype=np.float64).reshape(-1, 1)
+        wavelength_nm = 1239.84197 / energy_ev
+        k = 2.0 * np.pi / wavelength_nm
+        val = k * k - q_perp_axis * q_perp_axis
+        valid = val >= 0.0
+        qz = -k + np.sqrt(val, where=valid, out=np.full_like(val, np.nan, dtype=np.float64))
+        q = np.full_like(val, np.nan, dtype=np.float64)
+        q_perp_broadcast = np.broadcast_to(q_perp_axis, val.shape)
+        q[valid] = np.sqrt(q_perp_broadcast[valid] * q_perp_broadcast[valid] + qz[valid] * qz[valid])
+        return q
+
+    @staticmethod
     def _allclose_1d(arrays):
         if len(arrays) <= 1:
             return True
@@ -397,3 +509,63 @@ class NRSSIntegrator(WPIntegrator):
             if not np.allclose(candidate, ref, equal_nan=True, rtol=0.0, atol=1e-12):
                 return False
         return True
+
+    @staticmethod
+    def _shared_q_grid(q_axes):
+        lower_bounds = []
+        upper_bounds = []
+        n_points = None
+
+        for axis in q_axes:
+            axis = np.asarray(axis, dtype=np.float64)
+            finite = axis[np.isfinite(axis)]
+            if finite.size < 2:
+                return None
+            lower_bounds.append(float(np.min(finite)))
+            upper_bounds.append(float(np.max(finite)))
+            n_points = axis.size if n_points is None else min(n_points, axis.size)
+
+        q_min = max(lower_bounds)
+        q_max = min(upper_bounds)
+        if not np.isfinite(q_min) or not np.isfinite(q_max) or q_max <= q_min or n_points is None or n_points < 2:
+            return None
+        return np.linspace(q_min, q_max, int(n_points), dtype=np.float64)
+
+    @staticmethod
+    def _interp_stack_to_common_q(values, q_axes, q_common):
+        values = np.asarray(values)
+        output = np.full((values.shape[0], values.shape[1], q_common.size), np.nan, dtype=values.dtype)
+
+        for i, q_axis in enumerate(q_axes):
+            q_axis = np.asarray(q_axis, dtype=np.float64)
+            valid = np.isfinite(q_axis)
+            q_valid = q_axis[valid]
+            if q_valid.size < 2:
+                continue
+
+            q_valid, unique_idx = np.unique(q_valid, return_index=True)
+            slice_values = values[i][:, valid][:, unique_idx]
+            for chi_idx in range(values.shape[1]):
+                output[i, chi_idx, :] = np.interp(
+                    q_common,
+                    q_valid,
+                    slice_values[chi_idx],
+                    left=np.nan,
+                    right=np.nan,
+                )
+
+        return output
+
+    @staticmethod
+    def _attach_per_slice_q_index(result, stacked_name, q_axes, q_perp_axis):
+        result = result.assign_coords(q=np.arange(result.sizes["q"], dtype=np.int64))
+        result = result.assign_coords(q_abs=((stacked_name, "q"), np.stack(q_axes, axis=0)))
+        if q_perp_axis is not None:
+            result = result.assign_coords(q_perp=("q", q_perp_axis))
+        result.attrs["radial_coordinate_mode"] = "per_slice_q_abs"
+        result.attrs["q_axis_note"] = (
+            "The q dimension indexes radial bins. Exact detector-corrected q values are "
+            "stored in the q_abs coordinate."
+        )
+        result.attrs.pop("energy_ev", None)
+        return result

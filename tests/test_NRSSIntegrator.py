@@ -40,7 +40,11 @@ def _synthetic_qxy_image(
 
 
 def test_nrss_integrator_2d_matches_wp_semantics():
-    img = _synthetic_qxy_image(phys_size_nm=5.0, attrs={"z_dim": 1, "phys_size_nm": 5.0})
+    img = _synthetic_qxy_image(
+        phys_size_nm=5.0,
+        attrs={"z_dim": 1, "phys_size_nm": 5.0},
+        dims=("qx", "qy"),
+    )
     nrss = NRSSIntegrator(force_np_backend=True)
     wp = WPIntegrator(force_np_backend=True)
 
@@ -108,6 +112,62 @@ def test_nrss_integrator_preserves_stack_axis():
     assert list(reduced.coords["energy"].values) == [285.0, 286.0]
     assert reduced.sizes["chi"] == 360
     assert reduced.attrs["radial_semantics"] == "q_perp"
+
+
+def test_nrss_integrator_batched_matches_legacy_for_2d_stack():
+    img0 = _synthetic_qxy_image(
+        phys_size_nm=5.0,
+        attrs={"z_dim": 1, "phys_size_nm": 5.0},
+        dims=("qx", "qy"),
+    )
+    img1 = (1.15 * img0).assign_coords(qx=img0.qx, qy=img0.qy)
+    stacked = xr.concat([img0, img1], dim=xr.IndexVariable("energy", [285.0, 286.0]))
+
+    integrator = NRSSIntegrator(force_np_backend=True)
+    legacy = integrator.integrateImageStack(stacked, method="legacy")
+    batched = integrator.integrateImageStack(stacked, method="batched")
+
+    np.testing.assert_allclose(batched.values, legacy.values, rtol=1e-12, atol=1e-12)
+    np.testing.assert_allclose(batched.q.values, legacy.q.values, rtol=0.0, atol=1e-12)
+
+
+def test_nrss_integrator_3d_stack_uses_shared_physical_q_axis():
+    img0 = _synthetic_qxy_image(
+        phys_size_nm=5.0,
+        attrs={"z_dim": 64, "phys_size_nm": 5.0},
+        dims=("qx", "qy"),
+    )
+    img1 = (1.15 * img0).assign_coords(qx=img0.qx, qy=img0.qy)
+    stacked = xr.concat([img0, img1], dim=xr.IndexVariable("energy", [285.0, 286.0]))
+
+    reduced = NRSSIntegrator(force_np_backend=True).integrateImageStack(stacked)
+
+    q = np.asarray(reduced.coords["q"].values, dtype=np.float64)
+    assert reduced.dims == ("energy", "chi", "q")
+    assert reduced.attrs["radial_semantics"] == "q_abs_detector_corrected"
+    assert reduced.attrs["radial_coordinate_mode"] == "shared_q_grid_interpolated"
+    assert "q_abs" in reduced.coords
+    assert np.issubdtype(q.dtype, np.floating)
+    assert np.all(np.diff(q) > 0.0)
+    assert not np.array_equal(q, np.arange(q.size, dtype=np.float64))
+
+
+def test_nrss_integrator_batched_matches_legacy_for_3d_stack():
+    img0 = _synthetic_qxy_image(
+        phys_size_nm=5.0,
+        attrs={"z_dim": 64, "phys_size_nm": 5.0},
+        dims=("qx", "qy"),
+    )
+    img1 = (1.15 * img0).assign_coords(qx=img0.qx, qy=img0.qy)
+    stacked = xr.concat([img0, img1], dim=xr.IndexVariable("energy", [285.0, 286.0]))
+
+    integrator = NRSSIntegrator(force_np_backend=True)
+    legacy = integrator.integrateImageStack(stacked, method="legacy")
+    batched = integrator.integrateImageStack(stacked, method="batched")
+
+    np.testing.assert_allclose(batched.values, legacy.values, rtol=1e-7, atol=1e-7)
+    np.testing.assert_allclose(batched.q.values, legacy.q.values, rtol=0.0, atol=1e-12)
+    np.testing.assert_allclose(batched.q_abs.values, legacy.q_abs.values, rtol=0.0, atol=1e-12)
 
 
 def test_wp_integrator_semantics_note():
