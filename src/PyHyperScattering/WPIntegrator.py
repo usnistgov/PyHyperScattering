@@ -26,7 +26,12 @@ except ImportError:
 
 class WPIntegrator():
     '''
-    Integrator for qx/qy format xarrays using skimage.transform.warp_polar or a custom cuda-accelerated version, warp_polar_gpu
+    Integrator for qx/qy format xarrays using skimage.transform.warp_polar or a custom
+    cuda-accelerated version, warp_polar_gpu.
+
+    The radial output of this integrator is detector-plane q_perp. This is the correct
+    semantics for reciprocal-plane / 2D NRSS outputs, but not for detector-aware 3D
+    NRSS outputs that should be compared against detector-corrected |q|.
     '''
     
     def __init__(self,return_cupy=False,force_np_backend=False,use_chunked_processing=False):
@@ -101,15 +106,17 @@ class WPIntegrator():
                     .rename({'dim_0':'qy'})
                     .interp(qy=0)
                     .data)        
+        stacked_axis = None
+        system_to_integ = None
+        candidate_axes = list(img.coords)
         try:
-            stacked_axis = list(img.coords)
-            stacked_axis.remove('qx')
-            stacked_axis.remove('qy')
-            assert len(stacked_axis)==1, f"More than one axis left ({stacked_axis}) after removing qx and qy, not sure how to handle"
-            stacked_axis = stacked_axis[0]
+            candidate_axes.remove('qx')
+            candidate_axes.remove('qy')
+        except ValueError:
+            candidate_axes = []
+        if len(candidate_axes) == 1:
+            stacked_axis = candidate_axes[0]
             system_to_integ = img.__getattr__(stacked_axis)
-        except AttributeError:
-            pass
         
         if self.MACHINE_HAS_CUDA:
             TwoD = self.warp_polar_gpu(img_to_integ,center=(center_x,center_y), radius = np.sqrt((img_to_integ.shape[0] - center_x)**2 + (img_to_integ.shape[1] - center_y)**2))
@@ -126,10 +133,19 @@ class WPIntegrator():
         chi = np.linspace(-179.5,179.5,360)
         # chi = np.linspace(0.5,359.5,360)
         
+        attrs = dict(img.attrs)
+        attrs.update(
+            {
+                "radial_semantics": "q_perp",
+                "source_integrator": "WPIntegrator",
+            }
+        )
         try:
-            return xr.DataArray([TwoD],dims=[stacked_axis,'chi','q'],coords={'q':q,'chi':chi,stacked_axis:system_to_integ},attrs=img.attrs)
+            if stacked_axis is None or system_to_integ is None:
+                raise ValueError("No stacked axis present.")
+            return xr.DataArray([TwoD],dims=[stacked_axis,'chi','q'],coords={'q':q,'chi':chi,stacked_axis:system_to_integ},attrs=attrs)
         except ValueError:
-            return xr.DataArray(TwoD,dims=['chi','q'],coords={'q':q,'chi':chi},attrs=img.attrs)
+            return xr.DataArray(TwoD,dims=['chi','q'],coords={'q':q,'chi':chi},attrs=attrs)
 
 
     def integrateImageStack(self,img_stack,method=None,chunksize=None):
@@ -160,6 +176,9 @@ class WPIntegrator():
             indexes.remove('qy')
         except ValueError:
             pass
+
+        if len(indexes) == 0:
+            return self.integrateSingleImage(data)
         
         if len(indexes) == 1:
             if data.__getattr__(indexes[0]).to_pandas().drop_duplicates().shape[0] != data.__getattr__(indexes[0]).shape[0]:
@@ -189,6 +208,9 @@ class WPIntegrator():
             indexes.remove('qy')
         except ValueError:
             pass
+
+        if len(indexes) == 0:
+            return self.integrateSingleImage(data)
         
         if len(indexes) == 1:
             if data.__getattr__(indexes[0]).to_pandas().drop_duplicates().shape[0] != data.__getattr__(indexes[0]).shape[0]:

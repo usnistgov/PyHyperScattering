@@ -23,7 +23,14 @@ For grazing-incidence experiments ``PGGeneralIntegrator`` uses
 ``pygix`` to output either reciprocal-space ``q_xy``/``q_z`` data or
 caked ``q`` vs ``chi``.  Datasets already in ``qx``/``qy`` coordinates
 can be integrated with ``WPIntegrator`` which relies on
-``skimage.transform.warp_polar`` (or its GPU version).
+``skimage.transform.warp_polar`` (or its GPU version).  ``WPIntegrator``
+is a detector-plane ``qx``/``qy`` to ``chi``/``q_perp`` remesher, so it
+is the right choice for reciprocal-plane / 2D NRSS outputs.
+
+For NRSS detector-aware 3D outputs use ``NRSSIntegrator`` instead.
+It keeps the same polar remesh approach but relabels the radial axis
+with detector-corrected ``|q|`` so the reduced curve can be compared to
+geometry-aware analytical form factors.
 
 All integrators return properly labeled xarray objects so the rest of
 the workflow can use normal xarray indexing and visualization.

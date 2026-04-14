@@ -26,6 +26,8 @@ def test_fit_lorentz():
     res = Fitting.fit_lorentz(
         lorentz_da, guess=[AMPLITUDE * 0.9, CENTER * 1.01, WIDTH * 1.1], silent=True
     )
+    assert list(res.intensity.dims) == ["q"]
+    assert np.allclose(res.intensity.values, AMPLITUDE, rtol=1e-5)
     assert np.isclose(res.intensity.mean(), AMPLITUDE, rtol=1e-5)
     assert np.isclose(res.pos.mean(), CENTER, rtol=1e-5)
     assert np.isclose(res.width.mean(), WIDTH, rtol=1e-5)
@@ -53,3 +55,19 @@ def test_fitting_apply_with_stacked_dimension():
     assert list(result.dims) == ["replicate"]
     assert list(result.coords["replicate"].values) == ["r1", "r2"]
 
+def test_fit_lorentz_output_is_plottable():
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    res = Fitting.fit_lorentz_bg(
+        lorentz_bg_da,
+        guess=[AMPLITUDE * 0.9, CENTER * 1.01, WIDTH * 1.1, BACKGROUND * 0.8],
+        silent=True,
+    )
+
+    fig, ax = plt.subplots()
+    artist = res.intensity.plot(ax=ax)
+    assert artist is not None
+    assert list(res.intensity.dims) == ["q"]
+    plt.close(fig)

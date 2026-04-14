@@ -2,3 +2,4 @@ from PyHyperScattering.PFEnergySeriesIntegrator import PFEnergySeriesIntegrator
 from PyHyperScattering.PFGeneralIntegrator import PFGeneralIntegrator
 from PyHyperScattering.WPIntegrator import WPIntegrator
 from PyHyperScattering.PGGeneralIntegrator import PGGeneralIntegrator
+from PyHyperScattering.NRSSIntegrator import NRSSIntegrator
