@@ -24,7 +24,7 @@ dependencies = [
     "h5py",
     "numpy",
     "pandas",
-    "pyfai",
+    "pyfai<=2024.9.0",
     "scikit-image",
     "scipy",
     "pillow",
