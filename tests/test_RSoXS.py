@@ -22,6 +22,7 @@ def data():
         assert type(reduced)==xr.DataArray
         return reduced
 
+
 def test_chi_slice_outside_negative(data):
         assert(np.allclose(data.rsoxs.slice_chi(-270),data.rsoxs.slice_chi(90),
                            equal_nan=True))
@@ -57,4 +58,26 @@ def test_chi_select_outside_positive(data):
 def test_chi_select_outside_negative(data):
         assert(np.allclose(data.rsoxs.select_chi(-270),data.rsoxs.select_chi(90),equal_nan=True))
 
-        
+@pytest.fixture(autouse=True,scope='module')
+def aniso_test_data_zero_bkg(OFFSET=0,BACKGROUND=0):
+    '''
+    Make a sinusoidal set of anisotropic test data, with a q^-4 background that is radially symmetric and a q^-2 powerlaw that is sinusoidally distributed with max at OFFSET deg.
+
+    Inputs:
+
+    OFFSET (float, default 0): the angular offset of the center of the sine, in degrees
+    BACKGROUND (float, default 1): a prefactor on the q^-4 background.  set to 0 to disable.
+    '''
+    chi = np.linspace(0,359,360)
+    chi = xr.DataArray(chi,coords=[('chi',chi,{'unit':'deg'})])
+    q = np.logspace(0.001,1,500)
+    q = xr.DataArray(q,coords=[('q',q,{'unit':'A^-1'})])
+
+    I_para = (np.cos(2*chi*np.pi/180+OFFSET)+1) * q**-2 + BACKGROUND* q**-4
+    I_perp = (np.sin(2*chi*np.pi/180+OFFSET)+1) * q**-2 + BACKGROUND* q**-4
+    aniso = xr.concat([I_para,I_perp],dim = xr.DataArray([0,90],[('polarization',[0,90],{'unit':'deg'})]))
+    return aniso
+    
+def test_AR_unity(aniso_test_data_zero_bkg):
+    AR = aniso_test_data_zero_bkg.rsoxs.AR()
+    assert(np.allclose(AR,1,atol=1e-3))
