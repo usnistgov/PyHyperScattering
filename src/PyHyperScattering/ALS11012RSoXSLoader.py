@@ -166,7 +166,9 @@ class ALS11012RSoXSLoader(FileLoader):
                 warnings.warn(f"Could not find a dark image with exposure time {headerdict['EXPOSURE']}.  Using zeros.",stacklevel=2)
                 darkimg = np.zeros_like(img)
 
-            img = (img-darkimg+self.dark_pedestal)/corr
+            img += self.dark_pedestal
+            img = (img - darkimg) / corr
+            img -= self.dark_pedestal / corr
         
         # now, match up the dims and coords
         if return_q:
