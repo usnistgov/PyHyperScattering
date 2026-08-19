@@ -100,10 +100,10 @@ class ALS11012RSoXSLoader(FileLoader):
             if (re.match(self.file_ext,file) is not None) and file_filter in file and file_skip not in file:
                 if self.md_loading_is_quick:
                     #if metadata loading is quick, we can just peek at the metadata and decide what to do
-                    md = self.peekAtMd(basepath+file)
+                    md = self.peekAtMd(f'{basepath}+{file}')
                     img = None
                 else:
-                        input_image = fits.open(basepath+file)
+                        input_image = fits.open(f'{basepath}+{file}')
                         md = self.normalizeMetadata(dict(zip(input_image[0].header.keys(),input_image[0].header.values())))
                         img = input_image[2].data
                 load_this_image = True
