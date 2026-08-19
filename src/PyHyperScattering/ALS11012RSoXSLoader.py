@@ -73,7 +73,7 @@ class ALS11012RSoXSLoader(FileLoader):
         '''
         for file in os.listdir(basepath):
             if dark_base_name in file:
-                darkimage = fits.open(basepath+file)
+                darkimage = fits.open(f'{basepath}/{file}')
                 assert darkimage[0].header[self.shutter_inhibit]==1,"CCD Shutter was not inhibited for image "+file+"... probably not a dark."
 
                 exptime = round(darkimage[0].header['EXPOSURE'],2)
@@ -113,7 +113,7 @@ class ALS11012RSoXSLoader(FileLoader):
                         #print(f'Not loading {file}, expected {key} to be {val} but it was {md[key]}')
                 if load_this_image:
                     if img == None:
-                        input_image = fits.open(basepath+file)
+                        input_image = fits.open(f'{basepath}/{file}')
                         img = input_image[2].data
                     print(f'Loading dark for {md["EXPOSURE"]} from {file}')
                     exptime = md['EXPOSURE']
