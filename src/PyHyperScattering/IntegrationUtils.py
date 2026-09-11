@@ -7,10 +7,13 @@ from tqdm.auto import tqdm
 try:
     import matplotlib.pyplot as plt
     from matplotlib.colors import LogNorm,Normalize
+    from matplotlib.path import Path as MplPath
     import holoviews as hv
     import hvplot.xarray
     import skimage.draw
-    
+    import ipywidgets as widgets
+    from IPython.display import display
+
 except (ModuleNotFoundError,ImportError):
     warnings.warn('Could not import a dependency for interactive integration utils.  Install pyhyperscattering[ui] or pyhyperscattering[all].',stacklevel=2)
 import pandas as pd
@@ -204,6 +207,179 @@ class DrawMask:
             mask |= skimage.draw.polygon2mask(self.frame.shape,self.path_annotator.annotated.iloc[i].dframe(['x','y']))
 
         return mask
+
+
+class DrawMaskMatplotlib:
+    '''
+    Interactive polygon mask tool built on matplotlib/ipympl, as an alternative to DrawMask
+    for notebook environments where DrawMask's holoviews/bokeh-based .ui() does not render
+    as an interactive widget.
+
+    Usage:
+
+        %matplotlib widget
+        mask = DrawMaskMatplotlib(frame)
+        mask.ui()  # or mask.ui(vmin=..., vmax=...) to override auto-scaling
+
+        Left-click on the image to add vertices to the current region.
+        Click "Close region" to commit it (needs >= 3 vertices) and start a new one.
+        Click "Undo last vertex" / "Remove last region" to fix mistakes.
+
+        mask.finish()                          # commit whichever region is still open
+        mask.save(file_path)                   # write a mask description to a json file
+        scan_to_integrate.mask = mask.mask      # boolean array, True = masked out
+
+    The saved/loaded file format is the same one used by DrawMask.save()/.load() and by
+    PFGeneralIntegrator.loadPyHyperMask, so files are interchangeable between the two tools.
+    '''
+
+    def __init__(self, frame):
+        '''
+        Construct a DrawMaskMatplotlib object
+
+        Args:
+            frame (xarray or ndarray): a single data frame with pix_x and pix_y axes
+
+        '''
+        self.image_data = np.squeeze(frame.to_numpy() if hasattr(frame, "to_numpy") else np.asarray(frame))
+        if len(self.image_data.shape) > 2:
+            warnings.warn('This tool needs a single frame, not a stack!  .sel down to a single frame before starting!',stacklevel=2)
+        self.shape = self.image_data.shape  # (rows=pix_y, cols=pix_x)
+        self.polygons = []       # list of Nx2 (x, y) vertex arrays, already committed
+        self._current_verts = []
+        self._current_artist = None
+        self._fig = None
+        self._ax = None
+        self._cid = None
+        self._status = None
+
+    def ui(self, vmin=None, vmax=None):
+        '''
+        Draw the DrawMaskMatplotlib UI in a Jupyter notebook (requires %matplotlib widget).
+
+        Args:
+            vmin (float): optional lower bound for the log color scale (auto-scaled from the 1st percentile of positive finite pixels if omitted)
+            vmax (float): optional upper bound for the log color scale (auto-scaled from the 99th percentile of positive finite pixels if omitted)
+
+        '''
+        fig, ax = plt.subplots(figsize=(6, 6))
+        finite_positive = self.image_data[np.isfinite(self.image_data) & (self.image_data > 0)]
+        if finite_positive.size and (vmin is None or vmax is None):
+            auto_vmin, auto_vmax = np.percentile(finite_positive, [1, 99])
+            if vmin is None:
+                vmin = auto_vmin
+            if vmax is None:
+                vmax = auto_vmax
+        if finite_positive.size and vmin is not None and vmax is not None and vmax > vmin:
+            norm = LogNorm(vmin=vmin, vmax=vmax)
+        else:
+            norm = None  # no usable positive data range; fall back to linear auto-scaling
+        ax.imshow(self.image_data, norm=norm, origin="upper")
+        ax.set_title("Left-click to add vertices; 'Close region' to finish")
+
+        self._fig, self._ax = fig, ax
+        self._current_verts = []
+        (self._current_artist,) = ax.plot([], [], "o-", color="red", markersize=4)
+        self._cid = fig.canvas.mpl_connect("button_press_event", self._on_click)
+
+        close_button = widgets.Button(description="Close region")
+        undo_button = widgets.Button(description="Undo last vertex")
+        remove_button = widgets.Button(description="Remove last region")
+        self._status = widgets.Label(value=f"Regions saved: {len(self.polygons)}")
+        close_button.on_click(self._close_region)
+        undo_button.on_click(self._undo_vertex)
+        remove_button.on_click(self._remove_last)
+
+        display(widgets.HBox([close_button, undo_button, remove_button]))
+        display(self._status)
+        plt.show()
+
+    def _on_click(self, event):
+        if event.inaxes != self._ax or event.button != 1 or event.xdata is None:
+            return
+        self._current_verts.append((event.xdata, event.ydata))
+        self._redraw_current()
+
+    def _redraw_current(self):
+        xs, ys = zip(*self._current_verts) if self._current_verts else ([], [])
+        self._current_artist.set_data(xs, ys)
+        self._fig.canvas.draw_idle()
+
+    def _undo_vertex(self, _btn=None):
+        if self._current_verts:
+            self._current_verts.pop()
+            self._redraw_current()
+
+    def _close_region(self, _btn=None):
+        if len(self._current_verts) >= 3:
+            self.polygons.append(np.array(self._current_verts))
+            self._current_verts = []
+            self._redraw_current()
+            self._status.value = f"Regions saved: {len(self.polygons)}"
+
+    def _remove_last(self, _btn=None):
+        if self.polygons:
+            self.polygons.pop()
+            self._status.value = f"Regions saved: {len(self.polygons)}"
+
+    def finish(self):
+        '''
+        Commit whichever region is currently being drawn (call before save()).
+        '''
+        self._close_region()
+
+    @property
+    def mask(self):
+        '''
+        Render the mask as a numpy boolean array.
+        '''
+        ny, nx = self.shape
+        yy, xx = np.mgrid[0:ny, 0:nx]
+        points = np.column_stack((xx.ravel(), yy.ravel()))
+        mask_arr = np.zeros(self.shape, dtype=bool)
+        for verts in self.polygons:
+            inside = MplPath(verts).contains_points(points).reshape(ny, nx)
+            mask_arr |= inside
+        return mask_arr
+
+    def save(self, file_path):
+        '''
+        Save a parametric mask description as a json dump file, in the same format used by
+        DrawMask.save() and consumed by PFGeneralIntegrator.loadPyHyperMask.
+
+        Args:
+            file_path (str): name of the file to save
+
+        '''
+        records = []
+        for verts in self.polygons:
+            xs, ys = verts[:, 0], verts[:, 1]
+            records.append(json.dumps({
+                "x": {str(i): float(x) for i, x in enumerate(xs)},
+                "y": {str(i): float(y) for i, y in enumerate(ys)},
+            }))
+        with open(file_path, "w") as f:
+            json.dump(records, f)
+
+    def load(self, file_path):
+        '''
+        Load polygon vertices from an existing mask description file (reads DrawMask-format
+        files too).
+
+        Args:
+            file_path (str): name of the file to read from
+
+        '''
+        with open(file_path, "r") as f:
+            raw = json.load(f)
+        if isinstance(raw, dict):
+            raw = [json.dumps(raw)]
+        self.polygons = []
+        for item in raw:
+            record = json.loads(item) if isinstance(item, str) else item
+            xs = [record["x"][k] for k in sorted(record["x"], key=int)]
+            ys = [record["y"][k] for k in sorted(record["y"], key=int)]
+            self.polygons.append(np.column_stack((xs, ys)))
 
 
 class CMSGIWAXS:
