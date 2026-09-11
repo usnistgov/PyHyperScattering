@@ -55,7 +55,9 @@ ui = [
     "holoviews",
     "hvplot",
     "ipyaggrid",
-    "matplotlib"
+    "matplotlib",
+    "ipympl",
+    "ipywidgets"
 ]
 doc = [
         "sphinx",
